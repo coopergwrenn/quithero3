@@ -41,13 +41,6 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
       const roi = await financialIncentives.calculateROI();
       setROIAnalysis(roi);
       
