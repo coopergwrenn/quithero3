@@ -1,293 +1,314 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Theme } from '@/src/design-system/theme';
-import { Card, Badge, Button } from '@/src/design-system/components';
-import { useQuitStore } from '@/src/stores/quitStore';
-import { useToolStore } from '@/src/stores/toolStore';
-import { useAuthStore } from '@/src/stores/authStore';
-import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { analytics } from '@/src/services/analytics';
 import { useRouter } from 'expo-router';
+import { Theme } from '@/src/design-system/theme';
+import { Button, ProgressBar } from '@/src/design-system/components';
+import { useQuitStore } from '@/src/stores/quitStore';
+import { generatePersonalizedPlan } from '@/src/utils/personalization';
+import { analytics } from '@/src/services/analytics';
 
-export default function DashboardScreen() {
+interface OnboardingStep {
+  id: string;
+  question: string;
+  description?: string;
+  options: Array<{
+    value: string;
+    label: string;
+    description?: string;
+    icon?: string;
+  }>;
+  multiSelect?: boolean;
+}
+
+const ONBOARDING_STEPS: OnboardingStep[] = [
+  {
+    id: 'motivation',
+    question: 'What\'s your main reason for quitting?',
+    description: 'Understanding your motivation helps us personalize your support',
+    options: [
+      { value: 'health', label: 'Health concerns', description: 'Breathing, fitness, long-term health', icon: '🫁' },
+      { value: 'money', label: 'Save money', description: 'Stop spending on cigarettes/vapes', icon: '💰' },
+      { value: 'family', label: 'Family & relationships', description: 'Set a good example, protect loved ones', icon: '👨‍👩‍👧‍👦' },
+      { value: 'control', label: 'Take back control', description: 'Break free from addiction', icon: '💪' },
+    ],
+  },
+  {
+    id: 'substanceType',
+    question: 'What do you currently use?',
+    options: [
+      { value: 'cigarettes', label: 'Cigarettes', icon: '🚬' },
+      { value: 'vape', label: 'Vape/E-cigarettes', icon: '💨' },
+      { value: 'both', label: 'Both cigarettes and vape', icon: '🚬💨' },
+    ],
+  },
+  {
+    id: 'usageAmount',
+    question: 'How much do you use per day?',
+    options: [
+      { value: '5', label: '1-5 cigarettes', description: 'Light usage' },
+      { value: '10', label: '6-10 cigarettes', description: 'Moderate usage' },
+      { value: '20', label: '11-20 cigarettes', description: 'Heavy usage' },
+      { value: '30', label: '20+ cigarettes', description: 'Very heavy usage' },
+    ],
+  },
+  {
+    id: 'firstUseTime',
+    question: 'When do you have your first cigarette/vape?',
+    description: 'This helps us understand your dependency level',
+    options: [
+      { value: 'within-5min', label: 'Within 5 minutes of waking', description: 'High dependency' },
+      { value: 'within-30min', label: 'Within 30 minutes', description: 'Moderate dependency' },
+      { value: 'within-1hour', label: 'Within 1 hour', description: 'Lower dependency' },
+      { value: 'later', label: 'After 1 hour', description: 'Lowest dependency' },
+    ],
+  },
+  {
+    id: 'triggers',
+    question: 'What triggers your urge to smoke/vape?',
+    description: 'Select all that apply',
+    multiSelect: true,
+    options: [
+      { value: 'stress', label: 'Stress or anxiety', icon: '😰' },
+      { value: 'social', label: 'Social situations', icon: '👥' },
+      { value: 'boredom', label: 'Boredom or downtime', icon: '😴' },
+      { value: 'routine', label: 'Daily routines (coffee, driving)', icon: '☕' },
+      { value: 'alcohol', label: 'Drinking alcohol', icon: '🍺' },
+      { value: 'work', label: 'Work breaks', icon: '💼' },
+    ],
+  },
+  {
+    id: 'socialContext',
+    question: 'How often are you around other smokers?',
+    options: [
+      { value: 'daily', label: 'Daily', description: 'Family, friends, or coworkers smoke' },
+      { value: 'sometimes', label: 'Sometimes', description: 'Occasional social situations' },
+      { value: 'rarely', label: 'Rarely', description: 'Very few people in my circle smoke' },
+      { value: 'never', label: 'Never', description: 'No one around me smokes' },
+    ],
+  },
+  {
+    id: 'stressLevel',
+    question: 'How would you rate your current stress level?',
+    options: [
+      { value: 'high', label: 'High stress', description: 'Feeling overwhelmed most days' },
+      { value: 'medium', label: 'Moderate stress', description: 'Some stressful days' },
+      { value: 'low', label: 'Low stress', description: 'Generally calm and relaxed' },
+    ],
+  },
+  {
+    id: 'sleepQuality',
+    question: 'How is your sleep quality?',
+    options: [
+      { value: 'poor', label: 'Poor', description: 'Trouble falling asleep or staying asleep' },
+      { value: 'fair', label: 'Fair', description: 'Some sleep issues' },
+      { value: 'good', label: 'Good', description: 'Sleep well most nights' },
+    ],
+  },
+  {
+    id: 'previousAttempts',
+    question: 'Have you tried to quit before?',
+    options: [
+      { value: 'never', label: 'This is my first attempt', icon: '🆕' },
+      { value: 'once', label: 'I\'ve tried once before', icon: '🔄' },
+      { value: 'multiple', label: 'I\'ve tried multiple times', icon: '💪' },
+    ],
+  },
+  {
+    id: 'quitTimeline',
+    question: 'When do you want to quit?',
+    options: [
+      { value: 'today', label: 'Today', description: 'I\'m ready to quit right now', icon: '🚀' },
+      { value: 'this-week', label: 'This week', description: 'Within the next 7 days', icon: '📅' },
+      { value: 'next-week', label: 'Next week', description: 'I need a bit more time to prepare', icon: '⏰' },
+      { value: 'this-month', label: 'This month', description: 'Within the next 30 days', icon: '📆' },
+    ],
+  },
+  {
+    id: 'nrtInterest',
+    question: 'Are you interested in nicotine replacement therapy?',
+    description: 'Patches, gum, lozenges can help with withdrawal',
+    options: [
+      { value: 'yes', label: 'Yes, I want to learn more', icon: '💊' },
+      { value: 'maybe', label: 'Maybe, I\'m unsure', icon: '🤔' },
+      { value: 'no', label: 'No, I want to quit without NRT', icon: '🚫' },
+      { value: 'already-using', label: 'I\'m already using NRT', icon: '✅' },
+    ],
+  },
+  {
+    id: 'support',
+    question: 'What kind of support do you need most?',
+    options: [
+      { value: 'crisis', label: 'Crisis support for intense cravings', icon: '🚨' },
+      { value: 'daily', label: 'Daily motivation and check-ins', icon: '📱' },
+      { value: 'community', label: 'Community and peer support', icon: '👥' },
+      { value: 'education', label: 'Educational content and tips', icon: '📚' },
+    ],
+  },
+];
+
+export default function OnboardingScreen() {
   const router = useRouter();
-  const { quitData } = useQuitStore();
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const { getToolStats } = useToolStore();
-  const { user } = useAuthStore();
+  const { updateQuitData, completeOnboarding } = useQuitStore();
   
-  const [quitStats, setQuitStats] = useState<any>(null);
-  const [toolStats, setToolStats] = useState<any>({});
+  const [currentStep, setCurrentStep] = useState(0);
+  const [responses, setResponses] = useState<Record<string, any>>({});
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    loadDashboardData();
-    trackDashboardView();
-    
-    loadAdditionalData();
-  }, [quitData]);
+    analytics.trackOnboardingStarted();
+  }, []);
 
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
+  const currentStepData = ONBOARDING_STEPS[currentStep];
+  const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
+  const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
+
+  const handleOptionSelect = (value: string) => {
+    if (currentStepData.multiSelect) {
+      const newSelection = selectedOptions.includes(value)
+        ? selectedOptions.filter(option => option !== value)
+        : [...selectedOptions, value];
+      setSelectedOptions(newSelection);
+    } else {
+      setSelectedOptions([value]);
     }
   };
-  
-  const loadDashboardData = () => {
-    // Calculate quit statistics if we have the necessary data
-    if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
-      const dailyCost = calculateDailyCost();
-      const stats = calculateQuitStats(
-        quitData.quitDate,
-        quitData.usageAmount,
-        dailyCost / quitData.usageAmount * 20 // Approximate cost per pack
-      );
-      setQuitStats(stats);
-    }
 
-    // Load tool usage statistics
-    const allToolStats = getToolStats('all');
-    setToolStats(allToolStats);
-  };
+  const handleNext = () => {
+    const stepResponse = currentStepData.multiSelect ? selectedOptions : selectedOptions[0];
+    const newResponses = { ...responses, [currentStepData.id]: stepResponse };
+    setResponses(newResponses);
 
-  const calculateDailyCost = () => {
-    if (!quitData.usageAmount || !quitData.substanceType) return 0;
-    
-    if (quitData.substanceType === 'cigarettes') {
-      // Assume $8 per pack, 20 cigarettes per pack
-      return (quitData.usageAmount / 20) * 8;
-    } else if (quitData.substanceType === 'vape') {
-      // Assume $15 per pod/cartridge
-      return quitData.usageAmount * 15;
-    }
-    return 0;
-  };
-
-  const trackDashboardView = () => {
-    analytics.track('dashboard_viewed', {
-      has_quit_data: !!quitData.quitDate,
-      days_since_quit: quitStats?.daysSinceQuit || 0,
-      user_type: user ? 'authenticated' : 'anonymous',
+    analytics.trackOnboardingStepCompleted(currentStep + 1, {
+      step_id: currentStepData.id,
+      response: stepResponse,
     });
-  };
 
-  const handleToolPress = (toolRoute: string, toolName: string) => {
-    analytics.track('dashboard_tool_clicked', { tool_name: toolName });
-    router.push(toolRoute as any);
-  };
+    if (isLastStep) {
+      // Generate personalized plan
+      const personalizedPlan = generatePersonalizedPlan(newResponses);
+      
+      // Update quit store with all data
+      updateQuitData({
+        ...newResponses,
+        personalizedPlan,
+        usageAmount: parseInt(newResponses.usageAmount) || 0,
+      });
 
-  const renderMainStats = () => {
-    if (!quitStats) {
-      return (
-        <Card style={styles.setupCard}>
-          <Text style={styles.setupIcon}>🎯</Text>
-          <Text style={styles.setupTitle}>Complete Your Quit Setup</Text>
-          <Text style={styles.setupDescription}>
-            Set your quit date and usage details to see your progress and savings
-          </Text>
-          <Button 
-            variant="primary" 
-            size="md"
-            onPress={() => router.push('/(onboarding)')}
-            style={styles.setupButton}
-          >
-            Complete Setup
-          </Button>
-        </Card>
+      analytics.trackOnboardingCompleted(
+        personalizedPlan.riskLevel,
+        newResponses.quitTimeline === 'today' ? new Date() : undefined
       );
+
+      completeOnboarding();
+      router.push('/(paywall)/paywall');
+    } else {
+      setCurrentStep(currentStep + 1);
+      setSelectedOptions([]);
     }
-
-    return (
-      <View style={styles.statsSection}>
-        {/* Primary Stat - Days Smoke Free */}
-        <Card style={styles.primaryStatCard}>
-          <Text style={styles.primaryStatValue}>
-            {formatDuration(quitStats.daysSinceQuit)}
-          </Text>
-          <Text style={styles.primaryStatLabel}>Smoke-Free</Text>
-          {quitStats.daysSinceQuit > 0 && (
-            <Badge variant="success" style={styles.streakBadge}>
-              🔥 {quitStats.daysSinceQuit} day streak
-            </Badge>
-          )}
-        </Card>
-
-        {/* Secondary Stats */}
-        <View style={styles.secondaryStats}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {formatCurrency(quitStats.moneySaved)}
-            </Text>
-            <Text style={styles.statLabel}>Money Saved</Text>
-          </Card>
-          
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {quitStats.cigarettesNotSmoked.toLocaleString()}
-            </Text>
-            <Text style={styles.statLabel}>
-              {quitData.substanceType === 'cigarettes' ? 'Cigarettes' : 'Puffs'} Avoided
-            </Text>
-          </Card>
-        </View>
-      </View>
-    );
   };
 
-  const renderHealthMilestones = () => {
-    if (!quitStats?.healthMilestones) return null;
-
-    const visibleMilestones = quitStats.healthMilestones.slice(0, 4);
-
-    return (
-      <Card style={styles.healthCard}>
-        <Text style={styles.sectionTitle}>🫁 Health Recovery</Text>
-        <View style={styles.milestonesContainer}>
-          {visibleMilestones.map((milestone: any) => (
-            <View key={milestone.id} style={styles.milestoneItem}>
-              <View style={[
-                styles.milestoneIndicator,
-                milestone.achieved && styles.milestoneAchieved
-              ]} />
-              <View style={styles.milestoneContent}>
-                <Text style={[
-                  styles.milestoneTitle,
-                  milestone.achieved && styles.milestoneAchievedText
-                ]}>
-                  {milestone.title}
-                </Text>
-                <Text style={styles.milestoneDescription}>
-                  {milestone.description}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      </Card>
-    );
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      // Restore previous selection
+      const previousResponse = responses[ONBOARDING_STEPS[currentStep - 1].id];
+      if (Array.isArray(previousResponse)) {
+        setSelectedOptions(previousResponse);
+      } else if (previousResponse) {
+        setSelectedOptions([previousResponse]);
+      } else {
+        setSelectedOptions([]);
+      }
+    }
   };
 
-  const renderQuickTools = () => {
-    const tools = [
-      {
-        id: 'panic',
-        name: 'Panic Mode',
-        icon: '🚨',
-        route: '/(app)/tools/panic',
-        color: Theme.colors.error.text,
-      },
-      {
-        id: 'urge-timer',
-        name: 'Urge Timer',
-        icon: '⏱️',
-        route: '/(app)/tools/urge-timer',
-        color: Theme.colors.warning.text,
-      },
-      {
-        id: 'breathwork',
-        name: 'Breathwork',
-        icon: '🫁',
-        route: '/(app)/tools/breathwork',
-        color: Theme.colors.info.text,
-      },
-      {
-        id: 'pledge',
-        name: 'Daily Pledge',
-        icon: '🤝',
-        route: '/(app)/tools/pledge',
-        color: Theme.colors.success.text,
-      },
-    ];
-
-    return (
-      <Card style={styles.toolsCard}>
-        <Text style={styles.sectionTitle}>⚡ Quick Tools</Text>
-        <View style={styles.toolsGrid}>
-          {tools.map((tool) => {
-            const stats = toolStats[tool.id] || { totalUses: 0, currentStreak: 0 };
-            return (
-              <Card 
-                key={tool.id}
-                style={styles.toolCard}
-                onTouchEnd={() => handleToolPress(tool.route, tool.name)}
-              >
-                <Text style={[styles.toolIcon, { color: tool.color }]}>
-                  {tool.icon}
-                </Text>
-                <Text style={styles.toolName}>{tool.name}</Text>
-                {stats.totalUses > 0 && (
-                  <Text style={styles.toolUsage}>
-                    Used {stats.totalUses}x
-                  </Text>
-                )}
-              </Card>
-            );
-          })}
-        </View>
-      </Card>
-    );
-  };
-
-  const renderMotivationalMessage = () => {
-    const messages = [
-      "Every smoke-free moment is a victory! 🏆",
-      "You're building a healthier future, one day at a time. 💪",
-      "Your lungs are thanking you right now. 🫁",
-      "Stay strong - you've got this! ⭐",
-      "Each craving you overcome makes you stronger. 🔥",
-    ];
-
-    const message = messages[Math.floor(Math.random() * messages.length)];
-
-    return (
-      <Card style={styles.motivationCard}>
-        <Text style={styles.motivationMessage}>{message}</Text>
-      </Card>
-    );
-  };
+  const canContinue = selectedOptions.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.greeting}>
-            {user ? `Welcome back!` : 'Welcome to QuitHero!'}
-          </Text>
-          <Text style={styles.title}>Your Quit Journey</Text>
+      <View style={styles.header}>
+        <ProgressBar progress={progress} height={4} style={styles.progressBar} />
+        <Text style={styles.stepCounter}>
+          {currentStep + 1} of {ONBOARDING_STEPS.length}
+        </Text>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <View style={styles.questionSection}>
+            <Text style={styles.question}>{currentStepData.question}</Text>
+            {currentStepData.description && (
+              <Text style={styles.description}>{currentStepData.description}</Text>
+            )}
+          </View>
+
+          <View style={styles.optionsContainer}>
+            {currentStepData.options.map((option) => {
+              const isSelected = selectedOptions.includes(option.value);
+              
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => handleOptionSelect(option.value)}
+                  style={[
+                    styles.optionCard,
+                    isSelected && styles.selectedOption
+                  ]}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.optionContent}>
+                    {option.icon && (
+                      <Text style={styles.optionIcon}>{option.icon}</Text>
+                    )}
+                    <View style={styles.optionText}>
+                      <Text style={[
+                        styles.optionLabel,
+                        isSelected && styles.selectedOptionLabel
+                      ]}>
+                        {option.label}
+                      </Text>
+                      {option.description && (
+                        <Text style={[
+                          styles.optionDescription,
+                          isSelected && styles.selectedOptionDescription
+                        ]}>
+                          {option.description}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
-
-        {/* Main Stats */}
-        {renderMainStats()}
-
-        {/* Health Milestones */}
-        {renderHealthMilestones()}
-
-        {/* Quick Tools */}
-        {renderQuickTools()}
-
-        {/* Motivational Message */}
-        {renderMotivationalMessage()}
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
       </ScrollView>
+
+      <View style={styles.footer}>
+        <View style={styles.navigationButtons}>
+          {currentStep > 0 && (
+            <Button
+              variant="ghost"
+              size="md"
+              onPress={handleBack}
+              style={styles.backButton}
+            >
+              Back
+            </Button>
+          )}
+          
+          <Button
+            variant="primary"
+            size="lg"
+            onPress={handleNext}
+            disabled={!canContinue}
+            style={styles.nextButton}
+          >
+            {isLastStep ? 'Create My Plan' : 'Continue'}
+          </Button>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -297,197 +318,99 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
   },
+  header: {
+    padding: Theme.layout.screenPadding,
+    paddingBottom: Theme.spacing.md,
+  },
+  progressBar: {
+    marginBottom: Theme.spacing.md,
+  },
+  stepCounter: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
+    textAlign: 'center',
+  },
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: Theme.layout.screenPadding,
+  content: {
+    padding: Theme.layout.screenPadding,
+    paddingTop: 0,
   },
-  header: {
-    paddingTop: Theme.spacing.lg,
+  questionSection: {
     marginBottom: Theme.spacing.xl,
   },
-  greeting: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.secondary,
-    marginBottom: Theme.spacing.xs,
-  },
-  title: {
+  question: {
     ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
-  },
-  
-  // Setup Card Styles
-  setupCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
-  },
-  setupIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.lg,
-  },
-  setupTitle: {
-    ...Theme.typography.title2,
     color: Theme.colors.text.primary,
     textAlign: 'center',
     marginBottom: Theme.spacing.md,
+    lineHeight: 42,
   },
-  setupDescription: {
+  description: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: Theme.spacing.lg,
   },
-  setupButton: {
-    minWidth: 200,
-  },
-
-  // Stats Section Styles
-  statsSection: {
-    marginBottom: Theme.spacing.xl,
-  },
-  primaryStatCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Theme.spacing.md,
-  },
-  primaryStatValue: {
-    ...Theme.typography.largeTitle,
-    fontSize: 36,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.xs,
-    textAlign: 'center',
-  },
-  primaryStatLabel: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-  },
-  streakBadge: {
-    marginTop: Theme.spacing.sm,
-  },
-  secondaryStats: {
-    flexDirection: 'row',
+  optionsContainer: {
     gap: Theme.spacing.md,
   },
-  statCard: {
-    flex: 1,
+  optionCard: {
+    backgroundColor: Theme.colors.dark.surface,
+    borderWidth: 2,
+    borderColor: Theme.colors.dark.border,
+    borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.lg,
+    minHeight: 72,
+  },
+  selectedOption: {
+    backgroundColor: Theme.colors.purple[500] + '15',
+    borderColor: Theme.colors.purple[500],
+  },
+  optionContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  statValue: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-    textAlign: 'center',
-  },
-  statLabel: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-  },
-
-  // Health Milestones Styles
-  healthCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-  },
-  sectionTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
-  },
-  milestonesContainer: {
-    gap: Theme.spacing.md,
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  milestoneIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Theme.colors.dark.border,
+  optionIcon: {
+    fontSize: 28,
     marginRight: Theme.spacing.md,
-    marginTop: 6,
   },
-  milestoneAchieved: {
-    backgroundColor: Theme.colors.success.text,
-  },
-  milestoneContent: {
+  optionText: {
     flex: 1,
   },
-  milestoneTitle: {
-    ...Theme.typography.callout,
-    color: Theme.colors.text.secondary,
+  optionLabel: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
     marginBottom: 2,
   },
-  milestoneAchievedText: {
-    color: Theme.colors.text.primary,
+  selectedOptionLabel: {
+    color: Theme.colors.purple[500],
     fontWeight: '600',
   },
-  milestoneDescription: {
+  optionDescription: {
     ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
+    color: Theme.colors.text.secondary,
     lineHeight: 18,
   },
-
-  // Tools Section Styles
-  toolsCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
+  selectedOptionDescription: {
+    color: Theme.colors.text.primary,
   },
-  toolsGrid: {
+  footer: {
+    padding: Theme.layout.screenPadding,
+    paddingTop: Theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.dark.border,
+  },
+  navigationButtons: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Theme.spacing.md,
+    alignItems: 'center',
   },
-  toolCard: {
+  backButton: {
     flex: 1,
-    minWidth: '45%',
-    padding: Theme.spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
   },
-  toolIcon: {
-    fontSize: 28,
-    marginBottom: Theme.spacing.xs,
-  },
-  toolName: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.xs,
-    fontWeight: '500',
-  },
-  toolUsage: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.tertiary,
-    textAlign: 'center',
-  },
-
-  // Motivation Card Styles
-  motivationCard: {
-    padding: Theme.spacing.lg,
-    alignItems: 'center',
-    backgroundColor: Theme.colors.purple[500] + '10',
-    borderColor: Theme.colors.purple[500] + '30',
-    marginBottom: Theme.spacing.xl,
-  },
-  motivationMessage: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    lineHeight: 24,
-    fontStyle: 'italic',
-  },
-
-  // Spacing
-  bottomSpacing: {
-    height: Theme.spacing.xl,
+  nextButton: {
+    flex: 2,
   },
 });
