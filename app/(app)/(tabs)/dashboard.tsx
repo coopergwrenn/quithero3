@@ -6,21 +6,10 @@ import { useQuitStore } from '@/src/stores/quitStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
 
 export default function DashboardScreen() {
   const { quitData } = useQuitStore();
   const [stats, setStats] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [roiAnalysis, setROIAnalysis] = useState<any>(null);
 
@@ -33,10 +22,6 @@ export default function DashboardScreen() {
       );
       setStats(quitStats);
     }
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
     
     loadAdditionalData();
   }, [quitData]);
