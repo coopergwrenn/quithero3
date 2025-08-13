@@ -11,9 +11,11 @@ import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
 import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
-import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 export default function DashboardScreen() {
+  useFrameworkReady();
   const router = useRouter();
   const { quitData } = useQuitStore();
   const [userRank, setUserRank] = useState<any>(null);
@@ -38,3 +40,6 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
+    }
+  }
+}
