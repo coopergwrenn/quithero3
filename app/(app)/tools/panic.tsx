@@ -66,6 +66,13 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
   const loadAdditionalData = async () => {
     try {
       // Load user's leaderboard rank
