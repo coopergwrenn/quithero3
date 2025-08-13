@@ -27,7 +27,7 @@ export default function OnboardingScreen() {
     setResponses(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // Track step completion
     analytics.trackOnboardingStepCompleted(currentStep, {
       [getQuestionConfig(currentStep).key]: responses[getQuestionConfig(currentStep).key]
