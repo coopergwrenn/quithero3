@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, Card, ProgressBar, PillChoice } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
+import { useAuthStore } from '@/src/stores/authStore';
 import { generatePersonalizedPlan } from '../../src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
 
@@ -12,6 +13,7 @@ const TOTAL_STEPS = 12;
 export default function OnboardingScreen() {
   const router = useRouter();
   const { updateQuitData, completeOnboarding } = useQuitStore();
+  const { syncQuitData } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [responses, setResponses] = useState<Record<string, any>>({});
 
@@ -48,6 +50,14 @@ export default function OnboardingScreen() {
         personalizedPlan,
         quitDate: responses.quitTimeline === 'today' ? new Date() : undefined
       });
+      
+      // Sync to cloud if user is authenticated
+      await syncQuitData({
+        ...responses,
+        personalizedPlan,
+        quitDate: responses.quitTimeline === 'today' ? new Date() : undefined
+      });
+      
       completeOnboarding();
       router.push('/(paywall)/paywall');
     }

@@ -2,16 +2,19 @@ import { useEffect } from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useToolStore } from '@/src/stores/toolStore';
+import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
 import { notifications } from '@/src/services/notifications';
 
 export default function AppLayout() {
   const { loadFromStorage, isOnboardingComplete } = useQuitStore();
   const { loadFromStorage: loadToolData } = useToolStore();
+  const { initialize } = useAuthStore();
 
   useEffect(() => {
     loadFromStorage();
     loadToolData();
+    initialize();
     
     // Initialize services
     initializeServices();
