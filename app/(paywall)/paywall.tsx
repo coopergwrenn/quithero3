@@ -1,356 +1,291 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import Purchases, { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
-import { Button, Card, Badge } from '@/src/design-system/components';
-import { useQuitStore } from '../../src/stores/quitStore';
-import { formatCurrency } from '../../src/utils/calculations';
-import { analytics } from '../../src/services/analytics';
+import { Card, Badge, Button } from '@/src/design-system/components';
+import { useQuitStore } from '@/src/stores/quitStore';
+import { useToolStore } from '@/src/stores/toolStore';
+import { useAuthStore } from '@/src/stores/authStore';
+import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { analytics } from '@/src/services/analytics';
+import { useRouter } from 'expo-router';
 
-export default function PaywallScreen() {
+export default function DashboardScreen() {
   const router = useRouter();
-  const { quitData, setPremium } = useQuitStore();
-  const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
-  const [selectedPackage, setSelectedPackage] = useState<PurchasesPackage | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { quitData } = useQuitStore();
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const { getToolStats } = useToolStore();
+  const { user } = useAuthStore();
+  
+  const [quitStats, setQuitStats] = useState<any>(null);
+  const [toolStats, setToolStats] = useState<any>({});
 
   useEffect(() => {
-    loadOfferings();
+    loadDashboardData();
+    trackDashboardView();
     
-    // Track paywall view with personalization data
-    analytics.trackPaywallViewed(
-      quitData.personalizedPlan?.riskLevel,
-      getPersonalizationType()
-    );
-  }, []);
+    loadAdditionalData();
+  }, [quitData]);
 
-  const getPersonalizationType = () => {
-    if (quitData.personalizedPlan?.riskLevel === 'high') return 'high_risk';
-    if (quitData.primaryMotivation === 'money') return 'financial';
-    if (quitData.quitTimeline === 'today') return 'urgent';
-    return 'standard';
-  };
-
-  const loadOfferings = async () => {
-    try {
-      const offerings = await Purchases.getOfferings();
-      if (offerings.current) {
-        setOfferings(offerings.current);
-        // Default to annual package if available
-        const annualPackage = offerings.current.availablePackages.find(
-          pkg => pkg.identifier === 'annual'
-        );
-        setSelectedPackage(annualPackage || offerings.current.availablePackages[0]);
-      }
-    } catch (error) {
-      console.error('Error loading offerings:', error);
+  const loadAdditionalData = async () => {
+    // Skip restore on web platform
+    if (Platform.OS === 'web') {
+      Alert.alert('Not Available', 'Purchase restoration is only available on mobile devices');
+      return;
     }
-  };
 
-  const handlePurchase = async () => {
-    if (!selectedPackage) return;
-    
-    analytics.trackPaywallPurchaseAttempted(selectedPackage.identifier);
-    
-    setIsLoading(true);
     try {
-      const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
       
-      if (customerInfo.entitlements.active['premium']) {
-        analytics.trackPaywallPurchaseCompleted(
-          selectedPackage.identifier,
-          !selectedPackage.product.title.includes('Lifetime')
-        );
-        setPremium(true);
-        router.push('/(app)/(tabs)/dashboard');
-      }
-    } catch (error: any) {
-      if (!error.userCancelled) {
-        Alert.alert('Purchase Error', 'Unable to complete purchase. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
+      // Load ROI analysis
+  const loadDashboardData = () => {
+    // Calculate quit statistics if we have the necessary data
+    if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
+      const dailyCost = calculateDailyCost();
+      const stats = calculateQuitStats(
+        quitData.quitDate,
+        quitData.usageAmount,
+        dailyCost / quitData.usageAmount * 20 // Approximate cost per pack
+      );
+      setQuitStats(stats);
     }
+
+    // Load tool usage statistics
+    const allToolStats = getToolStats('all');
+    setToolStats(allToolStats);
   };
 
-  const handleTryFree = () => {
-    analytics.trackPaywallDismissed('try_free');
-    router.push('/(app)/(tabs)/dashboard');
-  };
-
-  const handleRestorePurchases = async () => {
-    try {
-      const customerInfo = await Purchases.restorePurchases();
-      if (customerInfo.entitlements.active['premium']) {
-        setPremium(true);
-        router.push('/(app)/(tabs)/dashboard');
-      } else {
-        Alert.alert('No Purchases Found', 'No active subscriptions found to restore.');
-      }
-    } catch (error) {
-      Alert.alert('Restore Error', 'Unable to restore purchases. Please try again.');
-    }
-  };
-
-  // Personalization based on behavioral data
-  const getPersonalizedHeadline = () => {
-    const riskLevel = quitData.personalizedPlan?.riskLevel;
-    const motivation = quitData.primaryMotivation;
+  const calculateDailyCost = () => {
+    if (!quitData.usageAmount || !quitData.substanceType) return 0;
     
-    if (riskLevel === 'high') {
-      return "Your High-Risk Profile Needs Extra Support";
-    } else if (motivation === 'money') {
-      return "Turn Your Quit Into Serious Savings";
-    } else if (motivation === 'health') {
-      return "Accelerate Your Health Recovery";
-    } else if (motivation === 'family') {
-      return "Protect Your Family's Future";
-    }
-    return "Your Personalized Quit Plan is Ready";
-  };
-
-  const getPersonalizedSubheadline = () => {
-    const riskLevel = quitData.personalizedPlan?.riskLevel;
-    const quitTimeline = quitData.quitTimeline;
-    
-    if (riskLevel === 'high') {
-      return "Heavy users need 3x more support to succeed. Get the tools that work.";
-    } else if (quitTimeline === 'today') {
-      return "You're quitting today! Get immediate access to crisis support tools.";
-    } else if (quitTimeline === 'this-week') {
-      return "This week is your moment. Get prepared with proven strategies.";
-    }
-    return "Evidence-based tools and support for your specific quit profile.";
-  };
-
-  const calculateSavings = () => {
-    if (!quitData.usageAmount || !quitData.substanceType) return null;
-    
-    let dailyCost = 0;
     if (quitData.substanceType === 'cigarettes') {
       // Assume $8 per pack, 20 cigarettes per pack
-      dailyCost = (quitData.usageAmount / 20) * 8;
+      return (quitData.usageAmount / 20) * 8;
     } else if (quitData.substanceType === 'vape') {
-      // Assume $15 per pod
-      dailyCost = quitData.usageAmount * 15;
+      // Assume $15 per pod/cartridge
+      return quitData.usageAmount * 15;
     }
-    
-    return {
-      daily: dailyCost,
-      monthly: dailyCost * 30,
-      yearly: dailyCost * 365,
-    };
+    return 0;
   };
 
-  const savings = calculateSavings();
+  const trackDashboardView = () => {
+    analytics.track('dashboard_viewed', {
+      has_quit_data: !!quitData.quitDate,
+      days_since_quit: quitStats?.daysSinceQuit || 0,
+      user_type: user ? 'authenticated' : 'anonymous',
+    });
+  };
+
+  const handleToolPress = (toolRoute: string, toolName: string) => {
+    analytics.track('dashboard_tool_clicked', { tool_name: toolName });
+    router.push(toolRoute as any);
+  };
+
+  const renderMainStats = () => {
+    if (!quitStats) {
+      return (
+        <Card style={styles.setupCard}>
+          <Text style={styles.setupIcon}>🎯</Text>
+          <Text style={styles.setupTitle}>Complete Your Quit Setup</Text>
+          <Text style={styles.setupDescription}>
+            Set your quit date and usage details to see your progress and savings
+          </Text>
+          <Button 
+            variant="primary" 
+            size="md"
+            onPress={() => router.push('/(onboarding)')}
+            style={styles.setupButton}
+          >
+            Complete Setup
+          </Button>
+        </Card>
+      );
+    }
+
+    return (
+      <View style={styles.statsSection}>
+        {/* Primary Stat - Days Smoke Free */}
+        <Card style={styles.primaryStatCard}>
+          <Text style={styles.primaryStatValue}>
+            {formatDuration(quitStats.daysSinceQuit)}
+          </Text>
+          <Text style={styles.primaryStatLabel}>Smoke-Free</Text>
+          {quitStats.daysSinceQuit > 0 && (
+            <Badge variant="success" style={styles.streakBadge}>
+              🔥 {quitStats.daysSinceQuit} day streak
+            </Badge>
+          )}
+        </Card>
+
+        {/* Secondary Stats */}
+        <View style={styles.secondaryStats}>
+          <Card style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {formatCurrency(quitStats.moneySaved)}
+            </Text>
+            <Text style={styles.statLabel}>Money Saved</Text>
+          </Card>
+          
+          <Card style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {quitStats.cigarettesNotSmoked.toLocaleString()}
+            </Text>
+            <Text style={styles.statLabel}>
+              {quitData.substanceType === 'cigarettes' ? 'Cigarettes' : 'Puffs'} Avoided
+            </Text>
+          </Card>
+        </View>
+      </View>
+    );
+  };
+
+  const renderHealthMilestones = () => {
+    if (!quitStats?.healthMilestones) return null;
+
+    const visibleMilestones = quitStats.healthMilestones.slice(0, 4);
+
+    return (
+      <Card style={styles.healthCard}>
+        <Text style={styles.sectionTitle}>🫁 Health Recovery</Text>
+        <View style={styles.milestonesContainer}>
+          {visibleMilestones.map((milestone: any) => (
+            <View key={milestone.id} style={styles.milestoneItem}>
+              <View style={[
+                styles.milestoneIndicator,
+                milestone.achieved && styles.milestoneAchieved
+              ]} />
+              <View style={styles.milestoneContent}>
+                <Text style={[
+                  styles.milestoneTitle,
+                  milestone.achieved && styles.milestoneAchievedText
+                ]}>
+                  {milestone.title}
+                </Text>
+                <Text style={styles.milestoneDescription}>
+                  {milestone.description}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderQuickTools = () => {
+    const tools = [
+      {
+        id: 'panic',
+        name: 'Panic Mode',
+        icon: '🚨',
+        route: '/(app)/tools/panic',
+        color: Theme.colors.error.text,
+      },
+      {
+        id: 'urge-timer',
+        name: 'Urge Timer',
+        icon: '⏱️',
+        route: '/(app)/tools/urge-timer',
+        color: Theme.colors.warning.text,
+      },
+      {
+        id: 'breathwork',
+        name: 'Breathwork',
+        icon: '🫁',
+        route: '/(app)/tools/breathwork',
+        color: Theme.colors.info.text,
+      },
+      {
+        id: 'pledge',
+        name: 'Daily Pledge',
+        icon: '🤝',
+        route: '/(app)/tools/pledge',
+        color: Theme.colors.success.text,
+      },
+    ];
+
+    return (
+      <Card style={styles.toolsCard}>
+        <Text style={styles.sectionTitle}>⚡ Quick Tools</Text>
+        <View style={styles.toolsGrid}>
+          {tools.map((tool) => {
+            const stats = toolStats[tool.id] || { totalUses: 0, currentStreak: 0 };
+            return (
+              <Card 
+                key={tool.id}
+                style={styles.toolCard}
+                onTouchEnd={() => handleToolPress(tool.route, tool.name)}
+              >
+                <Text style={[styles.toolIcon, { color: tool.color }]}>
+                  {tool.icon}
+                </Text>
+                <Text style={styles.toolName}>{tool.name}</Text>
+                {stats.totalUses > 0 && (
+                  <Text style={styles.toolUsage}>
+                    Used {stats.totalUses}x
+                  </Text>
+                )}
+              </Card>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderMotivationalMessage = () => {
+    const messages = [
+      "Every smoke-free moment is a victory! 🏆",
+      "You're building a healthier future, one day at a time. 💪",
+      "Your lungs are thanking you right now. 🫁",
+      "Stay strong - you've got this! ⭐",
+      "Each craving you overcome makes you stronger. 🔥",
+    ];
+
+    const message = messages[Math.floor(Math.random() * messages.length)];
+
+    return (
+      <Card style={styles.motivationCard}>
+        <Text style={styles.motivationMessage}>{message}</Text>
+      </Card>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Personalized Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>
-              {getPersonalizedHeadline()}
-            </Text>
-            
-            <Text style={styles.subtitle}>
-              {getPersonalizedSubheadline()}
-            </Text>
-          </View>
-
-          {/* Savings Calculator (if financial motivation) */}
-          {savings && quitData.primaryMotivation === 'money' && (
-            <Card style={styles.savingsCard}>
-              <Text style={styles.savingsTitle}>Your Savings Potential</Text>
-              <View style={styles.savingsGrid}>
-                <View style={styles.savingItem}>
-                  <Text style={styles.savingAmount}>{formatCurrency(savings.monthly)}</Text>
-                  <Text style={styles.savingPeriod}>per month</Text>
-                </View>
-                <View style={styles.savingItem}>
-                  <Text style={styles.savingAmount}>{formatCurrency(savings.yearly)}</Text>
-                  <Text style={styles.savingPeriod}>per year</Text>
-                </View>
-              </View>
-              <Text style={styles.savingsNote}>
-                Premium costs {formatCurrency(9.99)}/month - you'll save {Math.round(savings.monthly / 9.99)}x more than it costs!
-              </Text>
-            </Card>
-          )}
-
-          {/* Risk-Based Urgency */}
-          {quitData.personalizedPlan?.riskLevel === 'high' && (
-            <Card style={styles.urgencyCard}>
-              <Text style={styles.urgencyIcon}>⚠️</Text>
-              <Text style={styles.urgencyTitle}>High-Risk Quit Profile</Text>
-              <Text style={styles.urgencyText}>
-                Your usage pattern and dependency level put you at higher risk for relapse. 
-                Users with your profile are 3x more successful with premium support tools.
-              </Text>
-            </Card>
-          )}
-
-          {/* Timeline Urgency */}
-          {(quitData.quitTimeline === 'today' || quitData.quitTimeline === 'this-week') && (
-            <Card style={styles.timelineCard}>
-              <Text style={styles.timelineIcon}>⏰</Text>
-              <Text style={styles.timelineTitle}>
-                {quitData.quitTimeline === 'today' ? 'Quitting Today!' : 'Quitting This Week!'}
-              </Text>
-              <Text style={styles.timelineText}>
-                The first 72 hours are critical. Get immediate access to panic protocols 
-                and 24/7 support tools designed for your quit timeline.
-              </Text>
-            </Card>
-          )}
-
-          {/* Value Props */}
-          <View style={styles.features}>
-            <Card style={styles.featureCard}>
-              <Text style={styles.featureIcon}>🚨</Text>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>Panic Mode Protocol</Text>
-                <Text style={styles.featureDescription}>
-                  60-second emergency support for intense cravings
-                </Text>
-              </View>
-            </Card>
-
-            <Card style={styles.featureCard}>
-              <Text style={styles.featureIcon}>🧠</Text>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>Personalized Coaching</Text>
-                <Text style={styles.featureDescription}>
-                  AI coach trained on your specific triggers and patterns
-                </Text>
-              </View>
-            </Card>
-
-            <Card style={styles.featureCard}>
-              <Text style={styles.featureIcon}>👥</Text>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>Support Community</Text>
-                <Text style={styles.featureDescription}>
-                  Connect with others who share your quit timeline
-                </Text>
-              </View>
-            </Card>
-
-            <Card style={styles.featureCard}>
-              <Text style={styles.featureIcon}>📊</Text>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>Advanced Analytics</Text>
-                <Text style={styles.featureDescription}>
-                  Track patterns, predict challenges, optimize success
-                </Text>
-              </View>
-            </Card>
-          </View>
-
-          {/* Social Proof */}
-          <Card style={styles.socialProofCard}>
-            <Text style={styles.socialProofStat}>50,000+</Text>
-            <Text style={styles.socialProofLabel}>people have quit with QuitHero</Text>
-            <Text style={styles.socialProofSource}>
-              Based on research from JAMA Network and NIH studies
-            </Text>
-          </Card>
-
-          {/* Pricing */}
-          {offerings && (
-            <View style={styles.pricing}>
-              <Text style={styles.pricingTitle}>Choose Your Plan</Text>
-              
-              <View style={styles.packages}>
-                {offerings.availablePackages.map((pkg) => {
-                  const isSelected = selectedPackage?.identifier === pkg.identifier;
-                  const isAnnual = pkg.identifier === 'annual';
-                  const isLifetime = pkg.identifier === 'lifetime';
-                  
-                  return (
-                    <Card 
-                      key={pkg.identifier}
-                      style={[
-                        styles.packageCard,
-                        isSelected && styles.selectedPackage
-                      ]}
-                      onTouchEnd={() => setSelectedPackage(pkg)}
-                    >
-                      {isAnnual && (
-                        <Badge variant="primary" style={styles.popularBadge}>
-                          Most Popular
-                        </Badge>
-                      )}
-                      
-                      <Text style={styles.packageTitle}>
-                        {pkg.product.title}
-                      </Text>
-                      
-                      <Text style={styles.packagePrice}>
-                        {pkg.product.priceString}
-                        {!isLifetime && (
-                          <Text style={styles.packagePeriod}>
-                            /{pkg.identifier === 'monthly' ? 'month' : 'year'}
-                          </Text>
-                        )}
-                      </Text>
-                      
-                      {isAnnual && (
-                        <Text style={styles.packageSavings}>Save 50%</Text>
-                      )}
-                      
-                      {!isLifetime && (
-                        <Text style={styles.packageTrial}>7-day free trial</Text>
-                      )}
-                    </Card>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* CTAs */}
-          <View style={styles.actions}>
-            <Button 
-              variant="primary" 
-              size="lg" 
-              fullWidth
-              onPress={handlePurchase}
-              loading={isLoading}
-              disabled={!selectedPackage}
-            >
-              {selectedPackage?.product.title.includes('Lifetime') 
-                ? 'Get Lifetime Access' 
-                : 'Start Free Trial'
-              }
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              onPress={handleTryFree}
-              style={styles.tryFreeButton}
-            >
-              Continue with Limited Features
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              onPress={handleRestorePurchases}
-              style={styles.restoreButton}
-            >
-              Restore Purchases
-            </Button>
-          </View>
-
-          <Text style={styles.terms}>
-            {selectedPackage?.product.title.includes('Lifetime') 
-              ? 'One-time payment • No subscription • Lifetime updates'
-              : '7-day free trial • Cancel anytime • No commitment'
-            }
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.greeting}>
+            {user ? `Welcome back!` : 'Welcome to QuitHero!'}
           </Text>
+          <Text style={styles.title}>Your Quit Journey</Text>
         </View>
+
+        {/* Main Stats */}
+        {renderMainStats()}
+
+        {/* Health Milestones */}
+        {renderHealthMilestones()}
+
+        {/* Quick Tools */}
+        {renderQuickTools()}
+
+        {/* Motivational Message */}
+        {renderMotivationalMessage()}
+
+        {/* Bottom Spacing */}
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -364,224 +299,194 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: Theme.layout.screenPadding,
-    paddingTop: Theme.spacing.xl,
+  scrollContent: {
+    paddingHorizontal: Theme.layout.screenPadding,
   },
   header: {
-    alignItems: 'center',
+    paddingTop: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
+  },
+  greeting: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
   },
   title: {
     ...Theme.typography.largeTitle,
     color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.lg,
-    lineHeight: 42,
   },
-  subtitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 28,
-    fontWeight: '400',
-  },
-  savingsCard: {
+  
+  // Setup Card Styles
+  setupCard: {
     padding: Theme.spacing.xl,
     alignItems: 'center',
     marginBottom: Theme.spacing.xl,
-    backgroundColor: Theme.colors.success.background,
-    borderColor: Theme.colors.success.border,
   },
-  savingsTitle: {
+  setupIcon: {
+    fontSize: 48,
+    marginBottom: Theme.spacing.lg,
+  },
+  setupTitle: {
     ...Theme.typography.title2,
     color: Theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  setupDescription: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
     marginBottom: Theme.spacing.lg,
   },
-  savingsGrid: {
-    flexDirection: 'row',
-    gap: Theme.spacing.xl,
-    marginBottom: Theme.spacing.lg,
+  setupButton: {
+    minWidth: 200,
   },
-  savingItem: {
+
+  // Stats Section Styles
+  statsSection: {
+    marginBottom: Theme.spacing.xl,
+  },
+  primaryStatCard: {
+    padding: Theme.spacing.xl,
     alignItems: 'center',
+    marginBottom: Theme.spacing.md,
   },
-  savingAmount: {
+  primaryStatValue: {
     ...Theme.typography.largeTitle,
-    color: Theme.colors.success.text,
+    fontSize: 36,
+    color: Theme.colors.purple[500],
     marginBottom: Theme.spacing.xs,
-  },
-  savingPeriod: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
-  },
-  savingsNote: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
     textAlign: 'center',
-    fontStyle: 'italic',
   },
-  urgencyCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
-    backgroundColor: Theme.colors.warning.background,
-    borderColor: Theme.colors.warning.border,
-  },
-  urgencyIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.md,
-  },
-  urgencyTitle: {
+  primaryStatLabel: {
     ...Theme.typography.title3,
     color: Theme.colors.text.primary,
     marginBottom: Theme.spacing.md,
-    textAlign: 'center',
   },
-  urgencyText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 24,
+  streakBadge: {
+    marginTop: Theme.spacing.sm,
   },
-  timelineCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
-    backgroundColor: Theme.colors.info.background,
-    borderColor: Theme.colors.info.border,
-  },
-  timelineIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.md,
-  },
-  timelineTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-    textAlign: 'center',
-  },
-  timelineText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  features: {
+  secondaryStats: {
+    flexDirection: 'row',
     gap: Theme.spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+  },
+  statValue: {
+    ...Theme.typography.title2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+    textAlign: 'center',
+  },
+  statLabel: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+
+  // Health Milestones Styles
+  healthCard: {
+    padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
   },
-  featureCard: {
+  sectionTitle: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+  },
+  milestonesContainer: {
+    gap: Theme.spacing.md,
+  },
+  milestoneItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: Theme.spacing.lg,
   },
-  featureIcon: {
-    fontSize: 28,
+  milestoneIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.dark.border,
     marginRight: Theme.spacing.md,
-    marginTop: 2,
+    marginTop: 6,
   },
-  featureContent: {
+  milestoneAchieved: {
+    backgroundColor: Theme.colors.success.text,
+  },
+  milestoneContent: {
     flex: 1,
   },
-  featureTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-  },
-  featureDescription: {
-    ...Theme.typography.body,
+  milestoneTitle: {
+    ...Theme.typography.callout,
     color: Theme.colors.text.secondary,
-    lineHeight: 22,
+    marginBottom: 2,
   },
-  socialProofCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
+  milestoneAchievedText: {
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+  },
+  milestoneDescription: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
+    lineHeight: 18,
+  },
+
+  // Tools Section Styles
+  toolsCard: {
+    padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
   },
-  socialProofStat: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.xs,
-    fontWeight: '700',
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Theme.spacing.md,
   },
-  socialProofLabel: {
-    ...Theme.typography.headline,
+  toolCard: {
+    flex: 1,
+    minWidth: '45%',
+    padding: Theme.spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.border,
+  },
+  toolIcon: {
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
+  },
+  toolName: {
+    ...Theme.typography.footnote,
     color: Theme.colors.text.primary,
     textAlign: 'center',
     marginBottom: Theme.spacing.xs,
+    fontWeight: '500',
   },
-  socialProofSource: {
-    ...Theme.typography.footnote,
+  toolUsage: {
+    ...Theme.typography.caption1,
     color: Theme.colors.text.tertiary,
     textAlign: 'center',
   },
-  pricing: {
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
-  },
-  pricingTitle: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
-  },
-  packages: {
-    width: '100%',
-    gap: Theme.spacing.md,
-  },
-  packageCard: {
+
+  // Motivation Card Styles
+  motivationCard: {
     padding: Theme.spacing.lg,
     alignItems: 'center',
-    position: 'relative',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  selectedPackage: {
-    borderColor: Theme.colors.purple[500],
     backgroundColor: Theme.colors.purple[500] + '10',
+    borderColor: Theme.colors.purple[500] + '30',
+    marginBottom: Theme.spacing.xl,
   },
-  popularBadge: {
-    position: 'absolute',
-    top: -8,
-    alignSelf: 'center',
-  },
-  packageTitle: {
-    ...Theme.typography.headline,
+  motivationMessage: {
+    ...Theme.typography.body,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
-    marginTop: Theme.spacing.md,
-  },
-  packagePrice: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.xs,
-  },
-  packagePeriod: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.secondary,
-  },
-  packageSavings: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.success.text,
-    marginBottom: Theme.spacing.xs,
-  },
-  packageTrial: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.tertiary,
-  },
-  actions: {
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.lg,
-  },
-  tryFreeButton: {
-    marginTop: Theme.spacing.xs,
-  },
-  restoreButton: {
-    marginTop: Theme.spacing.xs,
-  },
-  terms: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.tertiary,
     textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+
+  // Spacing
+  bottomSpacing: {
+    height: Theme.spacing.xl,
   },
 });
