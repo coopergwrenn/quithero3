@@ -9,28 +9,12 @@ import { useAuthStore } from '@/src/stores/authStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
 import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const { getToolStats } = useToolStore();
@@ -52,48 +36,6 @@ export default function DashboardScreen() {
     loadAdditionalData();
   }, [quitData]);
 
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
   const loadAdditionalData = async () => {
     try {
       // Load user's leaderboard rank

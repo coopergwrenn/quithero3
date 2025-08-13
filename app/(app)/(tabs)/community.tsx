@@ -9,33 +9,12 @@ import { useAuthStore } from '@/src/stores/authStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
 import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const { getToolStats } = useToolStore();
@@ -47,14 +26,6 @@ export default function DashboardScreen() {
   useEffect(() => {
     loadDashboardData();
     trackDashboardView();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
     
     loadAdditionalData();
   }, [quitData]);
