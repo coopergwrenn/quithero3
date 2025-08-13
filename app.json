@@ -1,0 +1,94 @@
+{
+  "expo": {
+    "name": "QuitHero",
+    "slug": "quithero",
+    "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "quithero",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "privacy": {
+      "analyticsEnabled": false
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.quithero.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This app uses analytics to improve your quit success rate and personalize your experience.",
+        "NSHealthShareUsageDescription": "QuitHero can integrate with Health app to track your smoke-free progress.",
+        "NSHealthUpdateUsageDescription": "QuitHero can update your Health app with quit milestones and progress.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": ["tel", "mailto"]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.quithero.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#000000"
+      },
+      "permissions": [
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "QuitHero - Personalized Quit Smoking Support",
+      "shortName": "QuitHero",
+      "description": "Evidence-based tools and personalized support to help you quit smoking and vaping permanently.",
+      "themeColor": "#8B5CF6",
+      "backgroundColor": "#000000"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "newArchEnabled": true
+          },
+          "android": {
+            "newArchEnabled": true,
+            "minSdkVersion": 23
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "TBD"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/TBD"
+    }
+  }
+}

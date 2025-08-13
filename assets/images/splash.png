@@ -1,0 +1,4 @@
+// This is a placeholder for the splash screen image
+// In a real project, you would add a 1242x2436 PNG image here
+// The image should have a black background with the QuitHero logo centered
+// For now, this file serves as a placeholder to prevent build errors
