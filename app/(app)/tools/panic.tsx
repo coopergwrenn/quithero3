@@ -1,386 +1,370 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Vibration, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
-import { Button, Card, ProgressBar } from '@/src/design-system/components';
-import { useToolStore } from '@/src/stores/toolStore';
+import { Card, Badge, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
+import { useToolStore } from '@/src/stores/toolStore';
+import { useAuthStore } from '@/src/stores/authStore';
+import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
+import { useRouter } from 'expo-router';
 
-const PANIC_PHASES = [
-  {
-    id: 'grounding',
-    duration: 15,
-    title: 'Ground Yourself',
-    instruction: 'You\'re safe. This feeling will pass.',
-    detail: 'Name 5 things you can see around you right now',
-    breathingPattern: null,
-  },
-  {
-    id: 'breathing',
-    duration: 30,
-    title: 'Breathe With Me',
-    instruction: 'Follow the breathing rhythm',
-    detail: 'In for 4... Hold for 4... Out for 4... Hold for 4',
-    breathingPattern: [4, 4, 4, 4], // inhale, hold, exhale, hold
-  },
-  {
-    id: 'values',
-    duration: 15,
-    title: 'Remember Your Why',
-    instruction: 'Connect with your deeper motivation',
-    detail: 'This craving will pass. Your commitment is stronger.',
-    breathingPattern: null,
-  },
-];
-
-const BREATHING_PHASES = ['Breathe In', 'Hold', 'Breathe Out', 'Hold'];
-
-export default function PanicModeScreen() {
+export default function DashboardScreen() {
   const router = useRouter();
-  const { recordToolUse } = useToolStore();
   const { quitData } = useQuitStore();
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const { getToolStats } = useToolStore();
+  const { user } = useAuthStore();
   
-  const [isActive, setIsActive] = useState(false);
-  const [currentPhase, setCurrentPhase] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  
-  // Breathing animation state
-  const [breathingPhase, setBreathingPhase] = useState(0);
-  const [breathingTime, setBreathingTime] = useState(0);
+  const [quitStats, setQuitStats] = useState<any>(null);
+  const [toolStats, setToolStats] = useState<any>({});
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    loadDashboardData();
+    trackDashboardView();
     
-    if (isActive && timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            // Move to next phase or complete
-            if (currentPhase < PANIC_PHASES.length - 1) {
-              const nextPhase = currentPhase + 1;
-              setCurrentPhase(nextPhase);
-              setBreathingPhase(0);
-              setBreathingTime(0);
-              return PANIC_PHASES[nextPhase].duration;
-            } else {
-              // Complete the session
-              setIsActive(false);
-              setIsComplete(true);
-              
-              // Track completion
-              const duration = startTime ? (Date.now() - startTime.getTime()) / 1000 : 60;
-              analytics.trackToolCompleted('panic', duration);
-              recordToolUse('panic');
-              
-              // Success haptic feedback
-              if (Platform.OS !== 'web') {
-                Vibration.vibrate([100, 50, 100, 50, 100]);
-              }
-              return 0;
-            }
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isActive, timeRemaining, currentPhase]);
-
-  // Breathing animation for phase 2
-  useEffect(() => {
-    let breathingInterval: NodeJS.Timeout;
+    loadAdditionalData();
     
-    if (isActive && currentPhase === 1 && PANIC_PHASES[1].breathingPattern) {
-      const pattern = PANIC_PHASES[1].breathingPattern!;
+    loadAdditionalData();
+    
+    loadAdditionalData();
+    
+    loadAdditionalData();
+    
+    loadAdditionalData();
+  }, [quitData]);
+
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
       
-      breathingInterval = setInterval(() => {
-        setBreathingTime(prev => {
-          const currentPhaseDuration = pattern[breathingPhase];
-          
-          if (prev >= currentPhaseDuration) {
-            // Move to next breathing phase
-            const nextBreathingPhase = (breathingPhase + 1) % pattern.length;
-            setBreathingPhase(nextBreathingPhase);
-            
-            // Haptic feedback for breathing transitions
-            if (Platform.OS !== 'web') {
-              Vibration.vibrate(50);
-            }
-            
-            return 0;
-          }
-          
-          return prev + 0.1;
-        });
-      }, 100);
+      // Load ROI analysis
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
+  const loadDashboardData = () => {
+    // Calculate quit statistics if we have the necessary data
+    if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
+      const dailyCost = calculateDailyCost();
+      const stats = calculateQuitStats(
+        quitData.quitDate,
+        quitData.usageAmount,
+        dailyCost / quitData.usageAmount * 20 // Approximate cost per pack
+      );
+      setQuitStats(stats);
     }
 
-    return () => clearInterval(breathingInterval);
-  }, [isActive, currentPhase, breathingPhase]);
-
-  const startPanicMode = () => {
-    setStartTime(new Date());
-    setIsActive(true);
-    setCurrentPhase(0);
-    setTimeRemaining(PANIC_PHASES[0].duration);
-    setIsComplete(false);
-    setBreathingPhase(0);
-    setBreathingTime(0);
-    
-    analytics.trackToolOpened('panic', 'panic_button');
+    // Load tool usage statistics
+    const allToolStats = getToolStats('all');
+    setToolStats(allToolStats);
   };
 
-  const stopPanicMode = () => {
-    // Track abandonment
-    if (startTime) {
-      const duration = (Date.now() - startTime.getTime()) / 1000;
-      const totalDuration = PANIC_PHASES.reduce((sum, phase) => sum + phase.duration, 0);
-      const completionPercentage = (duration / totalDuration) * 100;
-      analytics.trackToolAbandoned('panic', completionPercentage);
+  const calculateDailyCost = () => {
+    if (!quitData.usageAmount || !quitData.substanceType) return 0;
+    
+    if (quitData.substanceType === 'cigarettes') {
+      // Assume $8 per pack, 20 cigarettes per pack
+      return (quitData.usageAmount / 20) * 8;
+    } else if (quitData.substanceType === 'vape') {
+      // Assume $15 per pod/cartridge
+      return quitData.usageAmount * 15;
     }
-    
-    setIsActive(false);
-    setTimeRemaining(0);
-    setCurrentPhase(0);
-    setBreathingPhase(0);
-    setBreathingTime(0);
+    return 0;
   };
 
-  const resetPanicMode = () => {
-    setIsActive(false);
-    setCurrentPhase(0);
-    setTimeRemaining(0);
-    setIsComplete(false);
-    setBreathingPhase(0);
-    setBreathingTime(0);
+  const trackDashboardView = () => {
+    analytics.track('dashboard_viewed', {
+      has_quit_data: !!quitData.quitDate,
+      days_since_quit: quitStats?.daysSinceQuit || 0,
+      user_type: user ? 'authenticated' : 'anonymous',
+    });
   };
 
-  const getUserMotivation = () => {
-    const motivationMap = {
-      health: 'your health and breathing better',
-      money: 'saving money for what matters',
-      family: 'your family and loved ones',
-      control: 'taking back control of your life',
-    };
-    
-    return motivationMap[quitData.primaryMotivation as keyof typeof motivationMap] || 'your freedom from addiction';
+  const handleToolPress = (toolRoute: string, toolName: string) => {
+    analytics.track('dashboard_tool_clicked', { tool_name: toolName });
+    router.push(toolRoute as any);
   };
 
-  if (isComplete) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.completionContent}>
-          <Text style={styles.completionIcon}>🎉</Text>
-          <Text style={styles.completionTitle}>You Did It!</Text>
-          <Text style={styles.completionMessage}>
-            You successfully worked through that craving using proven techniques. 
-            Every time you use these tools instead of smoking, you're rewiring your brain for freedom.
+  const renderMainStats = () => {
+    if (!quitStats) {
+      return (
+        <Card style={styles.setupCard}>
+          <Text style={styles.setupIcon}>🎯</Text>
+          <Text style={styles.setupTitle}>Complete Your Quit Setup</Text>
+          <Text style={styles.setupDescription}>
+            Set your quit date and usage details to see your progress and savings
           </Text>
-          
-          <Card style={styles.completionStats}>
-            <Text style={styles.completionStatsTitle}>What Just Happened</Text>
-            <Text style={styles.completionStatsText}>
-              • You practiced mindful awareness{'\n'}
-              • You activated your body's relaxation response{'\n'}
-              • You reconnected with your deeper values{'\n'}
-              • You proved cravings are temporary and manageable
+          <Button 
+            variant="primary" 
+            size="md"
+            onPress={() => router.push('/(onboarding)')}
+            style={styles.setupButton}
+          >
+            Complete Setup
+          </Button>
+        </Card>
+      );
+    }
+
+    return (
+      <View style={styles.statsSection}>
+        {/* Primary Stat - Days Smoke Free */}
+        <Card style={styles.primaryStatCard}>
+          <Text style={styles.primaryStatValue}>
+            {formatDuration(quitStats.daysSinceQuit)}
+          </Text>
+          <Text style={styles.primaryStatLabel}>Smoke-Free</Text>
+          {quitStats.daysSinceQuit > 0 && (
+            <Badge variant="success" style={styles.streakBadge}>
+              🔥 {quitStats.daysSinceQuit} day streak
+            </Badge>
+          )}
+        </Card>
+
+        {/* Secondary Stats */}
+        <View style={styles.secondaryStats}>
+          <Card style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {formatCurrency(quitStats.moneySaved)}
             </Text>
+            <Text style={styles.statLabel}>Money Saved</Text>
           </Card>
           
-          <View style={styles.completionActions}>
-            <Button 
-              variant="primary" 
-              size="lg" 
-              fullWidth
-              onPress={() => router.back()}
-            >
-              Back to Tools
-            </Button>
-            <Button 
-              variant="ghost" 
-              onPress={resetPanicMode}
-              style={styles.againButton}
-            >
-              Use Again
-            </Button>
-          </View>
+          <Card style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {quitStats.cigarettesNotSmoked.toLocaleString()}
+            </Text>
+            <Text style={styles.statLabel}>
+              {quitData.substanceType === 'cigarettes' ? 'Cigarettes' : 'Puffs'} Avoided
+            </Text>
+          </Card>
         </View>
-      </SafeAreaView>
+      </View>
     );
-  }
+  };
 
-  if (isActive) {
-    const currentPanicPhase = PANIC_PHASES[currentPhase];
-    const totalDuration = PANIC_PHASES.reduce((sum, phase) => sum + phase.duration, 0);
-    const elapsed = PANIC_PHASES.slice(0, currentPhase).reduce((sum, phase) => sum + phase.duration, 0) + 
-                   (currentPanicPhase.duration - timeRemaining);
-    const progress = elapsed / totalDuration;
+  const renderHealthMilestones = () => {
+    if (!quitStats?.healthMilestones) return null;
 
-    // Breathing animation scale for phase 2
-    let breathingScale = 1;
-    if (currentPhase === 1 && currentPanicPhase.breathingPattern) {
-      const pattern = currentPanicPhase.breathingPattern;
-      const phaseDuration = pattern[breathingPhase];
-      const phaseProgress = breathingTime / phaseDuration;
-      
-      if (breathingPhase === 0) { // Inhale
-        breathingScale = 0.8 + (phaseProgress * 0.4);
-      } else if (breathingPhase === 2) { // Exhale
-        breathingScale = 1.2 - (phaseProgress * 0.4);
-      } else { // Hold phases
-        breathingScale = breathingPhase === 1 ? 1.2 : 0.8;
-      }
-    }
+    const visibleMilestones = quitStats.healthMilestones.slice(0, 4);
 
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.activeContent}>
-          {/* Progress Bar */}
-          <View style={styles.progressSection}>
-            <Text style={styles.phaseCounter}>
-              Phase {currentPhase + 1} of {PANIC_PHASES.length}
-            </Text>
-            <ProgressBar 
-              progress={progress}
-              height={6}
-              style={styles.progressBar}
-            />
-          </View>
-          
-          <View style={styles.phaseContent}>
-            <Text style={styles.phaseTitle}>{currentPanicPhase.title}</Text>
-            <Text style={styles.phaseInstruction}>{currentPanicPhase.instruction}</Text>
-            
-            {/* Breathing Circle for Phase 2 */}
-            {currentPhase === 1 ? (
-              <View style={styles.breathingContainer}>
-                <View style={[
-                  styles.breathingCircle,
-                  { transform: [{ scale: breathingScale }] }
+      <Card style={styles.healthCard}>
+        <Text style={styles.sectionTitle}>🫁 Health Recovery</Text>
+        <View style={styles.milestonesContainer}>
+          {visibleMilestones.map((milestone: any) => (
+            <View key={milestone.id} style={styles.milestoneItem}>
+              <View style={[
+                styles.milestoneIndicator,
+                milestone.achieved && styles.milestoneAchieved
+              ]} />
+              <View style={styles.milestoneContent}>
+                <Text style={[
+                  styles.milestoneTitle,
+                  milestone.achieved && styles.milestoneAchievedText
                 ]}>
-                  <Text style={styles.breathingPhaseText}>
-                    {BREATHING_PHASES[breathingPhase]}
-                  </Text>
-                  <Text style={styles.breathingCountText}>
-                    {Math.ceil(currentPanicPhase.breathingPattern![breathingPhase] - breathingTime)}
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <Text style={styles.phaseDetail}>{currentPanicPhase.detail}</Text>
-            )}
-            
-            {/* Values Phase - Show User's Motivation */}
-            {currentPhase === 2 && (
-              <Card style={styles.motivationCard}>
-                <Text style={styles.motivationText}>
-                  You're quitting for {getUserMotivation()}
+                  {milestone.title}
                 </Text>
-              </Card>
-            )}
-            
-            <View style={styles.timer}>
-              <Text style={styles.timerText}>{timeRemaining}</Text>
-              <Text style={styles.timerLabel}>seconds remaining</Text>
+                <Text style={styles.milestoneDescription}>
+                  {milestone.description}
+                </Text>
+              </View>
             </View>
-          </View>
-
-          <Button 
-            variant="ghost" 
-            onPress={stopPanicMode}
-            style={styles.stopButton}
-          >
-            I'm Feeling Better
-          </Button>
+          ))}
         </View>
-      </SafeAreaView>
+      </Card>
     );
-  }
+  };
+
+  const renderQuickTools = () => {
+    const tools = [
+      {
+        id: 'panic',
+        name: 'Panic Mode',
+        icon: '🚨',
+        route: '/(app)/tools/panic',
+        color: Theme.colors.error.text,
+      },
+      {
+        id: 'urge-timer',
+        name: 'Urge Timer',
+        icon: '⏱️',
+        route: '/(app)/tools/urge-timer',
+        color: Theme.colors.warning.text,
+      },
+      {
+        id: 'breathwork',
+        name: 'Breathwork',
+        icon: '🫁',
+        route: '/(app)/tools/breathwork',
+        color: Theme.colors.info.text,
+      },
+      {
+        id: 'pledge',
+        name: 'Daily Pledge',
+        icon: '🤝',
+        route: '/(app)/tools/pledge',
+        color: Theme.colors.success.text,
+      },
+    ];
+
+    return (
+      <Card style={styles.toolsCard}>
+        <Text style={styles.sectionTitle}>⚡ Quick Tools</Text>
+        <View style={styles.toolsGrid}>
+          {tools.map((tool) => {
+            const stats = toolStats[tool.id] || { totalUses: 0, currentStreak: 0 };
+            return (
+              <Card 
+                key={tool.id}
+                style={styles.toolCard}
+                onTouchEnd={() => handleToolPress(tool.route, tool.name)}
+              >
+                <Text style={[styles.toolIcon, { color: tool.color }]}>
+                  {tool.icon}
+                </Text>
+                <Text style={styles.toolName}>{tool.name}</Text>
+                {stats.totalUses > 0 && (
+                  <Text style={styles.toolUsage}>
+                    Used {stats.totalUses}x
+                  </Text>
+                )}
+              </Card>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderMotivationalMessage = () => {
+    const messages = [
+      "Every smoke-free moment is a victory! 🏆",
+      "You're building a healthier future, one day at a time. 💪",
+      "Your lungs are thanking you right now. 🫁",
+      "Stay strong - you've got this! ⭐",
+      "Each craving you overcome makes you stronger. 🔥",
+    ];
+
+    const message = messages[Math.floor(Math.random() * messages.length)];
+
+    return (
+      <Card style={styles.motivationCard}>
+        <Text style={styles.motivationMessage}>{message}</Text>
+      </Card>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.backButton} onPress={() => router.back()}>
-            ← Back
+          <Text style={styles.greeting}>
+            {user ? `Welcome back!` : 'Welcome to QuitHero!'}
           </Text>
-          <Text style={styles.toolTitle}>🚨 Panic Mode</Text>
-          <Text style={styles.toolSubtitle}>
-            60-second emergency protocol for intense cravings
-          </Text>
+          <Text style={styles.title}>Your Quit Journey</Text>
         </View>
 
-        <Card style={styles.crisisCard}>
-          <Text style={styles.crisisIcon}>🆘</Text>
-          <Text style={styles.crisisTitle}>Having an Intense Craving?</Text>
-          <Text style={styles.crisisDescription}>
-            This 60-second guided sequence will help you work through the urge using proven techniques.
-          </Text>
-        </Card>
+        {/* Main Stats */}
+        {renderMainStats()}
 
-        <Card style={styles.howItWorksCard}>
-          <Text style={styles.howItWorksTitle}>How It Works</Text>
-          <View style={styles.phasesList}>
-            <View style={styles.phaseItem}>
-              <Text style={styles.phaseNumber}>1</Text>
-              <View style={styles.phaseInfo}>
-                <Text style={styles.phaseItemTitle}>Ground Yourself (15s)</Text>
-                <Text style={styles.phaseItemDescription}>
-                  Mindful awareness to interrupt automatic behavior
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.phaseItem}>
-              <Text style={styles.phaseNumber}>2</Text>
-              <View style={styles.phaseInfo}>
-                <Text style={styles.phaseItemTitle}>Box Breathing (30s)</Text>
-                <Text style={styles.phaseItemDescription}>
-                  Activate your body's natural relaxation response
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.phaseItem}>
-              <Text style={styles.phaseNumber}>3</Text>
-              <View style={styles.phaseInfo}>
-                <Text style={styles.phaseItemTitle}>Remember Your Why (15s)</Text>
-                <Text style={styles.phaseItemDescription}>
-                  Reconnect with your deeper motivation to quit
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Card>
+        {/* Health Milestones */}
+        {renderHealthMilestones()}
 
-        <Card style={styles.scienceCard}>
-          <Text style={styles.scienceTitle}>The Science</Text>
-          <Text style={styles.scienceText}>
-            This protocol combines ACT mindfulness techniques with controlled breathing. 
-            Research shows that cravings peak within 3-5 minutes and then naturally fade. 
-            By riding out the wave with structured support, you build resilience and confidence.
-          </Text>
-        </Card>
+        {/* Quick Tools */}
+        {renderQuickTools()}
 
-        <View style={styles.startSection}>
-          <Button 
-            variant="primary" 
-            size="lg" 
-            fullWidth
-            onPress={startPanicMode}
-            style={styles.startButton}
-          >
-            Start Panic Protocol
-          </Button>
-          <Text style={styles.startNote}>
-            Find a quiet space where you can focus for 60 seconds
-          </Text>
-        </View>
-      </View>
+        {/* Motivational Message */}
+        {renderMotivationalMessage()}
+
+        {/* Bottom Spacing */}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -390,278 +374,197 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
   },
-  content: {
+  scrollView: {
     flex: 1,
-    padding: Theme.layout.screenPadding,
-    paddingTop: Theme.spacing.xl,
+  },
+  scrollContent: {
+    paddingHorizontal: Theme.layout.screenPadding,
   },
   header: {
+    paddingTop: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
   },
-  backButton: {
-    ...Theme.typography.body,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.lg,
+  greeting: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
   },
-  toolTitle: {
+  title: {
     ...Theme.typography.largeTitle,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
-    textAlign: 'center',
-  },
-  toolSubtitle: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 24,
   },
   
-  // Crisis Card
-  crisisCard: {
+  // Setup Card Styles
+  setupCard: {
     padding: Theme.spacing.xl,
-    marginBottom: Theme.spacing.lg,
     alignItems: 'center',
-    backgroundColor: Theme.colors.error.background,
-    borderColor: Theme.colors.error.border,
+    marginBottom: Theme.spacing.xl,
   },
-  crisisIcon: {
+  setupIcon: {
     fontSize: 48,
-    marginBottom: Theme.spacing.md,
+    marginBottom: Theme.spacing.lg,
   },
-  crisisTitle: {
+  setupTitle: {
     ...Theme.typography.title2,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
     textAlign: 'center',
+    marginBottom: Theme.spacing.md,
   },
-  crisisDescription: {
+  setupDescription: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
-  },
-  
-  // How It Works
-  howItWorksCard: {
-    padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.lg,
   },
-  howItWorksTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
+  setupButton: {
+    minWidth: 200,
+  },
+
+  // Stats Section Styles
+  statsSection: {
+    marginBottom: Theme.spacing.xl,
+  },
+  primaryStatCard: {
+    padding: Theme.spacing.xl,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  primaryStatValue: {
+    ...Theme.typography.largeTitle,
+    fontSize: 36,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
     textAlign: 'center',
   },
-  phasesList: {
-    gap: Theme.spacing.lg,
+  primaryStatLabel: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.md,
   },
-  phaseItem: {
+  streakBadge: {
+    marginTop: Theme.spacing.sm,
+  },
+  secondaryStats: {
+    flexDirection: 'row',
+    gap: Theme.spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+  },
+  statValue: {
+    ...Theme.typography.title2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+    textAlign: 'center',
+  },
+  statLabel: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+
+  // Health Milestones Styles
+  healthCard: {
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.xl,
+  },
+  sectionTitle: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+  },
+  milestonesContainer: {
+    gap: Theme.spacing.md,
+  },
+  milestoneItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  phaseNumber: {
-    ...Theme.typography.title3,
-    color: Theme.colors.purple[500],
-    fontWeight: '700',
+  milestoneIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.dark.border,
     marginRight: Theme.spacing.md,
-    marginTop: 2,
-    minWidth: 24,
+    marginTop: 6,
   },
-  phaseInfo: {
+  milestoneAchieved: {
+    backgroundColor: Theme.colors.success.text,
+  },
+  milestoneContent: {
     flex: 1,
   },
-  phaseItemTitle: {
+  milestoneTitle: {
     ...Theme.typography.callout,
-    color: Theme.colors.text.primary,
-    fontWeight: '600',
+    color: Theme.colors.text.secondary,
     marginBottom: 2,
   },
-  phaseItemDescription: {
+  milestoneAchievedText: {
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+  },
+  milestoneDescription: {
     ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
+    color: Theme.colors.text.tertiary,
     lineHeight: 18,
   },
-  
-  // Science Card
-  scienceCard: {
+
+  // Tools Section Styles
+  toolsCard: {
     padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
   },
-  scienceTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-  },
-  scienceText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    lineHeight: 24,
-  },
-  
-  // Start Section
-  startSection: {
-    alignItems: 'center',
-  },
-  startButton: {
-    backgroundColor: Theme.colors.error.text,
-    borderColor: Theme.colors.error.text,
-  },
-  startNote: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
-    textAlign: 'center',
-    marginTop: Theme.spacing.md,
-  },
-  
-  // Active Session Styles
-  activeContent: {
-    flex: 1,
-    padding: Theme.layout.screenPadding,
-    justifyContent: 'space-between',
-  },
-  progressSection: {
-    marginBottom: Theme.spacing.xl,
-  },
-  phaseCounter: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.sm,
-  },
-  progressBar: {
-    marginBottom: Theme.spacing.sm,
-  },
-  phaseContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  phaseTitle: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.lg,
-  },
-  phaseInstruction: {
-    ...Theme.typography.title2,
-    color: Theme.colors.purple[500],
-    textAlign: 'center',
-    marginBottom: Theme.spacing.xl,
-    lineHeight: 32,
-  },
-  phaseDetail: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.xxxl,
-    lineHeight: 24,
-  },
-  
-  // Breathing Animation
-  breathingContainer: {
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xxxl,
-  },
-  breathingCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Theme.colors.purple[500] + '20',
-    borderWidth: 3,
-    borderColor: Theme.colors.purple[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  breathingPhaseText: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-  },
-  breathingCountText: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.purple[500],
-    fontWeight: '300',
-  },
-  
-  // Motivation Card
-  motivationCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-    backgroundColor: Theme.colors.purple[500] + '15',
-    borderColor: Theme.colors.purple[500] + '50',
-  },
-  motivationText: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  
-  // Timer
-  timer: {
-    alignItems: 'center',
-    marginBottom: Theme.spacing.xxxl,
-  },
-  timerText: {
-    ...Theme.typography.largeTitle,
-    fontSize: 48,
-    color: Theme.colors.text.primary,
-    fontWeight: '300',
-  },
-  timerLabel: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
-  },
-  
-  stopButton: {
-    alignSelf: 'center',
-  },
-  
-  // Completion Styles
-  completionContent: {
-    flex: 1,
-    padding: Theme.layout.screenPadding,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  completionIcon: {
-    fontSize: 64,
-    marginBottom: Theme.spacing.xl,
-  },
-  completionTitle: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.lg,
-  },
-  completionMessage: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: Theme.spacing.xl,
-  },
-  completionStats: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-    width: '100%',
-  },
-  completionStatsTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-    textAlign: 'center',
-  },
-  completionStatsText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    lineHeight: 24,
-  },
-  completionActions: {
-    width: '100%',
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Theme.spacing.md,
   },
-  againButton: {
-    marginTop: Theme.spacing.sm,
+  toolCard: {
+    flex: 1,
+    minWidth: '45%',
+    padding: Theme.spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.border,
+  },
+  toolIcon: {
+    fontSize: 28,
+    marginBottom: Theme.spacing.xs,
+  },
+  toolName: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.xs,
+    fontWeight: '500',
+  },
+  toolUsage: {
+    ...Theme.typography.caption1,
+    color: Theme.colors.text.tertiary,
+    textAlign: 'center',
+  },
+
+  // Motivation Card Styles
+  motivationCard: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    backgroundColor: Theme.colors.purple[500] + '10',
+    borderColor: Theme.colors.purple[500] + '30',
+    marginBottom: Theme.spacing.xl,
+  },
+  motivationMessage: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+
+  // Spacing
+  bottomSpacing: {
+    height: Theme.spacing.xl,
   },
 });
