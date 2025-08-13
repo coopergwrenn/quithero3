@@ -38,13 +38,6 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
   const loadDashboardData = () => {
     // Calculate quit statistics if we have the necessary data
     if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
