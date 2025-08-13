@@ -85,7 +85,7 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
     console.log('Restore purchases called');
   },
 
-  loadFromStorage: () => {
+  loadFromStorage: async () => {
     try {
       const quitDataString = storage.getString('quitData');
       const quitData = quitDataString ? JSON.parse(quitDataString) : {};

@@ -16,8 +16,8 @@ export default function AppLayout() {
     const initializeApp = async () => {
       try {
         // Load synchronous data first
-        loadFromStorage();
-        loadToolData();
+        await loadFromStorage();
+        await loadToolData();
         
         // Initialize auth (async)
         await initialize();

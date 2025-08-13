@@ -122,7 +122,7 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     return get().pledgeData;
   },
 
-  loadFromStorage: () => {
+  loadFromStorage: async () => {
     try {
       const usagesString = toolStorage.getString('toolUsages');
       const usages = usagesString ? JSON.parse(usagesString) : [];
