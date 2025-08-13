@@ -1,94 +1,65 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import { Theme } from '@/src/design-system/theme';
-import { Card, Badge, Button, TextField } from '@/src/design-system/components';
-import { useCommunityStore } from '@/src/stores/communityStore';
-import { useAuthStore } from '@/src/stores/authStore';
-import { Heart } from 'lucide-react-native';
-import { useState, useEffect } from 'react';
+import { Card, Badge, ProgressBar } from '@/src/design-system/components';
+import { useQuitStore } from '@/src/stores/quitStore';
+import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
 
-export default function CommunityScreen() {
-  const router = useRouter();
-  const { user } = useAuthStore();
-  const { posts, loading, userLikes, loadPosts, createPost, likePost, unlikePost, loadUserLikes } = useCommunityStore();
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPostContent, setNewPostContent] = useState('');
-  const [selectedPostType, setSelectedPostType] = useState<'milestone' | 'struggle' | 'tip' | 'celebration'>('tip');
+export default function DashboardScreen() {
+  const { quitData } = useQuitStore();
+  const [stats, setStats] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
 
   useEffect(() => {
-    loadPosts();
-    if (user) {
-      loadUserLikes(user.id);
+    if (quitData.quitDate && quitData.cigarettesPerDay && quitData.costPerPack) {
+      const quitStats = calculateQuitStats(
+        quitData.quitDate,
+        quitData.cigarettesPerDay,
+        quitData.costPerPack
+      );
+      setStats(quitStats);
     }
-  }, [user]);
+    
+    loadAdditionalData();
+    
+    loadAdditionalData();
+  }, [quitData]);
 
-  const handleCreatePost = async () => {
-    if (!user) {
-      Alert.alert('Sign In Required', 'Please sign in to share with the community', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => router.push('/(auth)/signin') }
-      ]);
-      return;
-    }
-
-    if (!newPostContent.trim()) {
-      Alert.alert('Error', 'Please enter some content for your post');
-      return;
-    }
-
+  const loadAdditionalData = async () => {
     try {
-      // Get user's current streak (mock for now)
-      const streakDays = 5; // This would come from user profile
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
       
-      await createPost(newPostContent.trim(), selectedPostType, streakDays);
-      setNewPostContent('');
-      setShowCreatePost(false);
-      Alert.alert('Success', 'Your post has been shared with the community!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to create post. Please try again.');
+      // Load ROI analysis
     }
   };
 
-  const handleLikeToggle = async (postId: string) => {
-    if (!user) {
-      Alert.alert('Sign In Required', 'Please sign in to like posts', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign In', onPress: () => router.push('/(auth)/signin') }
-      ]);
-      return;
-    }
-
+  const loadAdditionalData = async () => {
     try {
-      if (userLikes.has(postId)) {
-        await unlikePost(postId);
-      } else {
-        await likePost(postId);
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.calculateROI();
+      setROIAnalysis(roi);
+      
+      // Update leaderboard with current streak
+      if (stats?.daysSinceQuit) {
+        await socialCompetition.updateLeaderboard('streak', stats.daysSinceQuit);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update like. Please try again.');
-    }
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${Math.floor(diffInHours)}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    return `${Math.floor(diffInDays / 7)}w ago`;
-  };
-
-  const getPostTypeEmoji = (type: string) => {
-    switch (type) {
-      case 'milestone': return '🎉';
-      case 'struggle': return '💪';
-      case 'tip': return '💡';
-      case 'celebration': return '🌟';
-      default: return '💬';
+      console.error('Error loading additional data:', error);
     }
   };
 
@@ -96,149 +67,148 @@ export default function CommunityScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
+          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Community</Text>
-            <Text style={styles.subtitle}>
-              {user ? 'Share your journey with others' : 'Connect with others on their quit journey'}
-            </Text>
+            <Text style={styles.greeting}>Welcome back!</Text>
+            <Text style={styles.title}>Your Quit Journey</Text>
           </View>
 
-          {/* Success Stories */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Success Stories</Text>
-            
-            <Card style={styles.storyCard}>
-              <View style={styles.storyHeader}>
-                <Text style={styles.userName}>Alex M.</Text>
-                <Badge variant="success" size="sm">6 months</Badge>
-              </View>
-            </Card>
+          {/* Leaderboard Toggle */}
+          <View style={styles.toggleSection}>
+            <Button
+              variant={showLeaderboard ? "primary" : "ghost"}
+              onPress={() => setShowLeaderboard(!showLeaderboard)}
+              style={styles.toggleButton}
+            >
+              {showLeaderboard ? "Show Posts" : "Show Leaderboard"}
+            </Button>
           </View>
 
-          {/* Create Post Modal */}
-          {showCreatePost && (
-            <Card style={styles.createPostCard}>
-              <Text style={styles.createPostTitle}>Share with the Community</Text>
-              
-              <View style={styles.postTypeSelector}>
-                {(['milestone', 'struggle', 'tip', 'celebration'] as const).map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.postTypeOption,
-                      selectedPostType === type && styles.selectedPostType
-                    ]}
-                    onPress={() => setSelectedPostType(type)}
-                  >
-                    <Text style={styles.postTypeEmoji}>{getPostTypeEmoji(type)}</Text>
-                    <Text style={styles.postTypeLabel}>{type}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              
-              <TextField
-                placeholder="Share your experience, tip, or milestone..."
-                value={newPostContent}
-                onChangeText={setNewPostContent}
-                multiline
-                numberOfLines={4}
-                style={styles.postInput}
-              />
-              
-              <View style={styles.createPostActions}>
-                <Button
-                  variant="ghost"
-                  onPress={() => setShowCreatePost(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  onPress={handleCreatePost}
-                  disabled={!newPostContent.trim()}
-                >
-                  Share
-                </Button>
-              </View>
+          {/* Leaderboard */}
+          {showLeaderboard && (
+            <Card style={styles.leaderboardCard}>
+              <Text style={styles.leaderboardTitle}>🏆 Top Streaks</Text>
+              {leaderboard.map((entry, index) => (
+                <View key={entry.id} style={styles.leaderboardEntry}>
+                  <Text style={styles.leaderboardRank}>#{entry.rank}</Text>
+                  <Text style={styles.leaderboardName}>{entry.anonymousName}</Text>
+                  <Text style={styles.leaderboardScore}>{entry.score} days</Text>
+                </View>
+              ))}
             </Card>
           )}
 
-          {/* Community Posts */}
-          {loading ? (
-            <Card style={styles.loadingCard}>
-              <Text style={styles.loadingText}>Loading community posts...</Text>
-            </Card>
-          ) : posts.length === 0 ? (
-            <Card style={styles.emptyCard}>
-              <Text style={styles.emptyIcon}>💬</Text>
-              <Text style={styles.emptyTitle}>No posts yet</Text>
-              <Text style={styles.emptyDescription}>
-                Be the first to share your quit journey with the community!
-              </Text>
-            </Card>
-          ) : (
-            <View style={styles.postsContainer}>
-              {posts.map((post) => (
-                <Card key={post.id} style={styles.postCard}>
-                  <View style={styles.postHeader}>
-                    <View style={styles.postAuthor}>
-                      <Text style={styles.postTypeEmoji}>
-                        {getPostTypeEmoji(post.post_type)}
-                      </Text>
-                      <View>
-                        <Text style={styles.authorName}>{post.anonymous_name}</Text>
-                        <View style={styles.postMeta}>
-                          <Badge variant="success" size="sm">
-                            {post.streak_days} days
-                          </Badge>
-                          <Text style={styles.postTime}>
-                            {formatTimeAgo(post.created_at)}
-                          </Text>
-                        </View>
+          {/* Main Stats */}
+          {stats ? (
+            <>
+              <View style={styles.mainStats}>
+                <Card style={styles.primaryCard}>
+                  <Text style={styles.primaryStat}>
+                    {formatDuration(stats.daysSinceQuit)}
+                  </Text>
+                  <Text style={styles.primaryLabel}>Smoke-Free</Text>
+                  <Badge variant="success" style={styles.streakBadge}>
+                    🔥 {stats.daysSinceQuit} day streak
+                  </Badge>
+                </Card>
+
+                <View style={styles.secondaryStats}>
+                  <Card style={styles.statCard}>
+                    <Text style={styles.statValue}>
+                      {formatCurrency(stats.moneySaved)}
+                    </Text>
+                    <Text style={styles.statLabel}>Saved</Text>
+                  </Card>
+                  
+                  <Card style={styles.statCard}>
+                    <Text style={styles.statValue}>
+                      {stats.cigarettesNotSmoked}
+                    </Text>
+                    <Text style={styles.statLabel}>Not Smoked</Text>
+                  </Card>
+                </View>
+              </View>
+
+              {/* Health Progress */}
+              <Card style={styles.healthCard}>
+                <Text style={styles.sectionTitle}>Health Recovery</Text>
+                <View style={styles.healthMilestones}>
+                  {stats.healthMilestones.slice(0, 3).map((milestone: any) => (
+                    <View key={milestone.id} style={styles.milestone}>
+                      <View style={[
+                        styles.milestoneIndicator,
+                        milestone.achieved && styles.milestoneAchieved
+                      ]} />
+                      <View style={styles.milestoneContent}>
+                        <Text style={[
+                          styles.milestoneTitle,
+                          milestone.achieved && styles.milestoneAchievedText
+                        ]}>
+                          {milestone.title}
+                        </Text>
+                        <Text style={styles.milestoneDescription}>
+                          {milestone.description}
+                        </Text>
                       </View>
                     </View>
-                  </View>
-                  
-                  <Text style={styles.postContent}>{post.content}</Text>
-                  
-                  <View style={styles.postActions}>
-                    <TouchableOpacity
-                      style={styles.likeButton}
-                      onPress={() => handleLikeToggle(post.id)}
-                    >
-                      <Heart
-                        size={16}
-                        color={userLikes.has(post.id) ? Theme.colors.error.text : Theme.colors.text.tertiary}
-                        fill={userLikes.has(post.id) ? Theme.colors.error.text : 'none'}
-                      />
-                      <Text style={[
-                        styles.likeCount,
-                        userLikes.has(post.id) && styles.likedText
-                      ]}>
-                        {post.likes_count}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </Card>
-              ))}
-            </View>
-          )}
-
-          {!user && (
-            <Card style={styles.signInPrompt}>
-              <Text style={styles.signInTitle}>Join the Community</Text>
-              <Text style={styles.signInDescription}>
-                Sign in to share your story and connect with others
+                  ))}
+                </View>
+              </Card>
+            </>
+          ) : (
+            /* Placeholder for no quit data */
+            <Card style={styles.setupCard}>
+              <Text style={styles.setupTitle}>Complete Your Setup</Text>
+              <Text style={styles.setupDescription}>
+                Finish your personalized assessment to see your progress and savings
               </Text>
-              <Button
-                variant="primary"
-                size="md"
-                onPress={() => router.push('/(auth)/signin')}
-              >
-                Sign In
-              </Button>
             </Card>
           )}
+
+          {/* Leaderboard Rank */}
+          {userRank && (
+            <Card style={styles.rankCard}>
+              <Text style={styles.rankTitle}>🏆 Your Rank</Text>
+              <Text style={styles.rankPosition}>#{userRank.rank}</Text>
+              <Text style={styles.rankDescription}>
+                out of all users with {stats?.daysSinceQuit || 0} day streaks
+              </Text>
+            </Card>
+          )}
+
+          {/* ROI Analysis */}
+          {roiAnalysis && roiAnalysis.totalSaved > 0 && (
+            <Card style={styles.roiCard}>
+              <Text style={styles.roiTitle}>💰 Return on Investment</Text>
+              <Text style={styles.roiValue}>{roiAnalysis.roi.toFixed(0)}%</Text>
+              <Text style={styles.roiDescription}>
+                You've saved {formatCurrency(roiAnalysis.netSavings)} more than the app costs
+              </Text>
+            </Card>
+          )}
+
+          {/* Quick Actions */}
+          <Card style={styles.quickActions}>
+            <Text style={styles.sectionTitle}>Quick Tools</Text>
+            <View style={styles.toolsGrid}>
+              <View style={styles.toolCard}>
+                <Text style={styles.toolIcon}>🚨</Text>
+                <Text style={styles.toolName}>Panic Mode</Text>
+              </View>
+              <View style={styles.toolCard}>
+                <Text style={styles.toolIcon}>⏱️</Text>
+                <Text style={styles.toolName}>Urge Timer</Text>
+              </View>
+              <View style={styles.toolCard}>
+                <Text style={styles.toolIcon}>🫁</Text>
+                <Text style={styles.toolName}>Breathwork</Text>
+              </View>
+              <View style={styles.toolCard}>
+                <Text style={styles.toolIcon}>🤝</Text>
+                <Text style={styles.toolName}>Pledge</Text>
+              </View>
+            </View>
+          </Card>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -260,182 +230,219 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: Theme.spacing.xl,
   },
+  greeting: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
+  },
   title: {
     ...Theme.typography.largeTitle,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
   },
-  subtitle: {
-    ...Theme.typography.body,
+  mainStats: {
+    marginBottom: Theme.spacing.xl,
+  },
+  primaryCard: {
+    padding: Theme.spacing.xl,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  primaryStat: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
+  },
+  primaryLabel: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.md,
+  },
+  streakBadge: {
+    marginTop: Theme.spacing.sm,
+  },
+  secondaryStats: {
+    flexDirection: 'row',
+    gap: Theme.spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+  },
+  statValue: {
+    ...Theme.typography.title2,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.xs,
+  },
+  statLabel: {
+    ...Theme.typography.footnote,
     color: Theme.colors.text.secondary,
-    lineHeight: 24,
-    marginBottom: Theme.spacing.lg,
   },
-  section: {
+  healthCard: {
+    padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.xl,
   },
   sectionTitle: {
     ...Theme.typography.title3,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-  },
-  storyCard: {
-    padding: Theme.spacing.lg,
-  },
-  storyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  userName: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-  },
-  createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.xs,
-  },
-  createPostCard: {
-    padding: Theme.spacing.xl,
-    marginBottom: Theme.spacing.xl,
-  },
-  createPostTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
     marginBottom: Theme.spacing.lg,
-    textAlign: 'center',
   },
-  postTypeSelector: {
+  healthMilestones: {
+    gap: Theme.spacing.md,
+  },
+  milestone: {
     flexDirection: 'row',
-    gap: Theme.spacing.sm,
-    marginBottom: Theme.spacing.lg,
-    flexWrap: 'wrap',
+    alignItems: 'flex-start',
   },
-  postTypeOption: {
+  milestoneIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.dark.border,
+    marginRight: Theme.spacing.md,
+    marginTop: 6,
+  },
+  milestoneAchieved: {
+    backgroundColor: Theme.colors.success.text,
+  },
+  milestoneContent: {
     flex: 1,
-    minWidth: '22%',
-    alignItems: 'center',
-    padding: Theme.spacing.sm,
-    borderRadius: Theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
   },
-  selectedPostType: {
-    borderColor: Theme.colors.purple[500],
-    backgroundColor: Theme.colors.purple[500] + '10',
-  },
-  postTypeEmoji: {
-    fontSize: 20,
-    marginBottom: Theme.spacing.xs,
-  },
-  postTypeLabel: {
-    ...Theme.typography.caption1,
+  milestoneTitle: {
+    ...Theme.typography.callout,
     color: Theme.colors.text.secondary,
-    textTransform: 'capitalize',
+    marginBottom: 2,
   },
-  postInput: {
-    marginBottom: Theme.spacing.lg,
-  },
-  createPostActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: Theme.spacing.md,
-  },
-  loadingCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-  },
-  loadingText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-  },
-  emptyCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.md,
-  },
-  emptyTitle: {
-    ...Theme.typography.title3,
+  milestoneAchievedText: {
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
+    fontWeight: '600',
   },
-  emptyDescription: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-  },
-  postsContainer: {
-    gap: Theme.spacing.md,
-  },
-  postCard: {
-    padding: Theme.spacing.lg,
-  },
-  postHeader: {
-    marginBottom: Theme.spacing.md,
-  },
-  postAuthor: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.md,
-  },
-  authorName: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-  },
-  postMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.sm,
-  },
-  postTime: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.tertiary,
-  },
-  postContent: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.primary,
-    lineHeight: 24,
-    marginBottom: Theme.spacing.md,
-  },
-  postActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Theme.spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Theme.colors.dark.border,
-  },
-  likeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Theme.spacing.xs,
-    padding: Theme.spacing.xs,
-  },
-  likeCount: {
+  milestoneDescription: {
     ...Theme.typography.footnote,
     color: Theme.colors.text.tertiary,
   },
-  likedText: {
-    color: Theme.colors.error.text,
-  },
-  signInPrompt: {
+  setupCard: {
     padding: Theme.spacing.xl,
     alignItems: 'center',
-    marginTop: Theme.spacing.xl,
+    marginBottom: Theme.spacing.xl,
   },
-  signInTitle: {
-    ...Theme.typography.title3,
+  setupTitle: {
+    ...Theme.typography.title2,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
+    marginBottom: Theme.spacing.md,
+    textAlign: 'center',
   },
-  signInDescription: {
+  setupDescription: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
+    lineHeight: 22,
+  },
+  quickActions: {
+    padding: Theme.spacing.lg,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Theme.spacing.md,
+  },
+  toolCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: Theme.colors.dark.surfaceElevated,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.border,
+  },
+  toolIcon: {
+    fontSize: 24,
+    marginBottom: Theme.spacing.xs,
+  },
+  toolName: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  rankCard: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
     marginBottom: Theme.spacing.lg,
+  },
+  rankTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.sm,
+  },
+  rankPosition: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
+  },
+  rankDescription: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  roiCard: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+    backgroundColor: Theme.colors.success.background,
+    borderColor: Theme.colors.success.border,
+  },
+  roiTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.sm,
+  },
+  roiValue: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.success.text,
+    marginBottom: Theme.spacing.xs,
+  },
+  roiDescription: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  toggleSection: {
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  toggleButton: {
+    paddingHorizontal: Theme.spacing.xl,
+  },
+  leaderboardCard: {
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
+  },
+  leaderboardTitle: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.lg,
+    textAlign: 'center',
+  },
+  leaderboardEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.colors.dark.border,
+  },
+  leaderboardRank: {
+    ...Theme.typography.headline,
+    color: Theme.colors.purple[500],
+    width: 40,
+  },
+  leaderboardName: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.primary,
+    flex: 1,
+  },
+  leaderboardScore: {
+    ...Theme.typography.headline,
+    color: Theme.colors.success.text,
   },
 });

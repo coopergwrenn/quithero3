@@ -4,10 +4,15 @@ import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, ProgressBar } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
 
 export default function DashboardScreen() {
   const { quitData } = useQuitStore();
   const [stats, setStats] = useState<any>(null);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (quitData.quitDate && quitData.cigarettesPerDay && quitData.costPerPack) {
@@ -18,7 +23,28 @@ export default function DashboardScreen() {
       );
       setStats(quitStats);
     }
+    
+    loadAdditionalData();
   }, [quitData]);
+
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
+      const roi = await financialIncentives.calculateROI();
+      setROIAnalysis(roi);
+      
+      // Update leaderboard with current streak
+      if (stats?.daysSinceQuit) {
+        await socialCompetition.updateLeaderboard('streak', stats.daysSinceQuit);
+      }
+    } catch (error) {
+      console.error('Error loading additional data:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -93,6 +119,28 @@ export default function DashboardScreen() {
               <Text style={styles.setupTitle}>Complete Your Setup</Text>
               <Text style={styles.setupDescription}>
                 Finish your personalized assessment to see your progress and savings
+              </Text>
+            </Card>
+          )}
+
+          {/* Leaderboard Rank */}
+          {userRank && (
+            <Card style={styles.rankCard}>
+              <Text style={styles.rankTitle}>🏆 Your Rank</Text>
+              <Text style={styles.rankPosition}>#{userRank.rank}</Text>
+              <Text style={styles.rankDescription}>
+                out of all users with {stats?.daysSinceQuit || 0} day streaks
+              </Text>
+            </Card>
+          )}
+
+          {/* ROI Analysis */}
+          {roiAnalysis && roiAnalysis.totalSaved > 0 && (
+            <Card style={styles.roiCard}>
+              <Text style={styles.roiTitle}>💰 Return on Investment</Text>
+              <Text style={styles.roiValue}>{roiAnalysis.roi.toFixed(0)}%</Text>
+              <Text style={styles.roiDescription}>
+                You've saved {formatCurrency(roiAnalysis.netSavings)} more than the app costs
               </Text>
             </Card>
           )}
@@ -271,6 +319,48 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.xs,
   },
   toolName: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  rankCard: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  rankTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.sm,
+  },
+  rankPosition: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
+  },
+  rankDescription: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  roiCard: {
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+    backgroundColor: Theme.colors.success.background,
+    borderColor: Theme.colors.success.border,
+  },
+  roiTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.sm,
+  },
+  roiValue: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.success.text,
+    marginBottom: Theme.spacing.xs,
+  },
+  roiDescription: {
     ...Theme.typography.footnote,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
