@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import { Theme } from '@/src/design-system/theme';
-import { Card, Badge, ProgressBar } from '@/src/design-system/components';
+import { Card, Badge, ProgressBar, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
 
 export default function DashboardScreen() {
   const { quitData } = useQuitStore();
   const [stats, setStats] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
   useEffect(() => {
     if (quitData.quitDate && quitData.cigarettesPerDay && quitData.costPerPack) {
@@ -30,19 +26,7 @@ export default function DashboardScreen() {
     }
     
     loadAdditionalData();
-    
-    loadAdditionalData();
   }, [quitData]);
-
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-    }
-  };
 
   const loadAdditionalData = async () => {
     try {
@@ -53,6 +37,10 @@ export default function DashboardScreen() {
       // Load ROI analysis
       const roi = await financialIncentives.calculateROI();
       setROIAnalysis(roi);
+      
+      // Load leaderboard data
+      const leaderboardData = await socialCompetition.getLeaderboard('streak', 'weekly');
+      setLeaderboard(leaderboardData);
       
       // Update leaderboard with current streak
       if (stats?.daysSinceQuit) {
@@ -72,31 +60,6 @@ export default function DashboardScreen() {
             <Text style={styles.greeting}>Welcome back!</Text>
             <Text style={styles.title}>Your Quit Journey</Text>
           </View>
-
-          {/* Leaderboard Toggle */}
-          <View style={styles.toggleSection}>
-            <Button
-              variant={showLeaderboard ? "primary" : "ghost"}
-              onPress={() => setShowLeaderboard(!showLeaderboard)}
-              style={styles.toggleButton}
-            >
-              {showLeaderboard ? "Show Posts" : "Show Leaderboard"}
-            </Button>
-          </View>
-
-          {/* Leaderboard */}
-          {showLeaderboard && (
-            <Card style={styles.leaderboardCard}>
-              <Text style={styles.leaderboardTitle}>🏆 Top Streaks</Text>
-              {leaderboard.map((entry, index) => (
-                <View key={entry.id} style={styles.leaderboardEntry}>
-                  <Text style={styles.leaderboardRank}>#{entry.rank}</Text>
-                  <Text style={styles.leaderboardName}>{entry.anonymousName}</Text>
-                  <Text style={styles.leaderboardScore}>{entry.score} days</Text>
-                </View>
-              ))}
-            </Card>
-          )}
 
           {/* Main Stats */}
           {stats ? (
@@ -406,43 +369,5 @@ const styles = StyleSheet.create({
     ...Theme.typography.footnote,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
-  },
-  toggleSection: {
-    alignItems: 'center',
-    marginBottom: Theme.spacing.lg,
-  },
-  toggleButton: {
-    paddingHorizontal: Theme.spacing.xl,
-  },
-  leaderboardCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.lg,
-  },
-  leaderboardTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
-    textAlign: 'center',
-  },
-  leaderboardEntry: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.dark.border,
-  },
-  leaderboardRank: {
-    ...Theme.typography.headline,
-    color: Theme.colors.purple[500],
-    width: 40,
-  },
-  leaderboardName: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.primary,
-    flex: 1,
-  },
-  leaderboardScore: {
-    ...Theme.typography.headline,
-    color: Theme.colors.success.text,
   },
 });
