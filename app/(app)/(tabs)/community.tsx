@@ -45,13 +45,13 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
+      const roi = await financialIncentives.calculateROI(user?.id);
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Error loading additional data:', error);
+    }
+  };
+  
   const loadDashboardData = () => {
     // Calculate quit statistics if we have the necessary data
     if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
