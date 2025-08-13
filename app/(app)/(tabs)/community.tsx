@@ -115,6 +115,18 @@ export default function CommunityScreen() {
             </Card>
           </View>
 
+          {/* Create Post Button */}
+          {user && (
+            <Button
+              variant="primary"
+              size="md"
+              onPress={() => setShowCreatePost(true)}
+              style={styles.createButton}
+            >
+              Share Your Story
+            </Button>
+          )}
+
           {/* Create Post Modal */}
           {showCreatePost && (
             <Card style={styles.createPostCard}>
@@ -286,6 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: Theme.spacing.md,
   },
   userName: {
     ...Theme.typography.headline,
@@ -295,6 +308,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Theme.spacing.xs,
+    marginBottom: Theme.spacing.xl,
   },
   createPostCard: {
     padding: Theme.spacing.xl,
