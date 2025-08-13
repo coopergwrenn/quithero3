@@ -111,6 +111,10 @@ export default function CommunityScreen() {
               <View style={styles.storyHeader}>
                 <Text style={styles.userName}>Alex M.</Text>
                 <Badge variant="success" size="sm">6 months</Badge>
+              </View>
+            </Card>
+          </View>
+
           {/* Create Post Modal */}
           {showCreatePost && (
             <Card style={styles.createPostCard}>
@@ -266,6 +270,26 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.secondary,
     lineHeight: 24,
     marginBottom: Theme.spacing.lg,
+  },
+  section: {
+    marginBottom: Theme.spacing.xl,
+  },
+  sectionTitle: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.md,
+  },
+  storyCard: {
+    padding: Theme.spacing.lg,
+  },
+  storyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  userName: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
   },
   createButton: {
     flexDirection: 'row',
