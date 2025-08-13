@@ -11,9 +11,11 @@ import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
 import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
-import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 export default function DashboardScreen() {
+  useFrameworkReady();
   const router = useRouter();
   const { quitData } = useQuitStore();
   const [userRank, setUserRank] = useState<any>(null);
@@ -38,6 +40,13 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Failed to load additional data:', error);
+    }
+  };
+  
   const loadDashboardData = () => {
     // Calculate quit statistics if we have the necessary data
     if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
