@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, Button } from '@/src/design-system/components';
@@ -44,6 +44,13 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
+      const roi = await financialIncentives.getROIAnalysis();
+      setROIAnalysis(roi);
+    } catch (error) {
+      console.error('Error loading additional data:', error);
+    }
+  };
+  
   const loadDashboardData = () => {
     // Calculate quit statistics if we have the necessary data
     if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
