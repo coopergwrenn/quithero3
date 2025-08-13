@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import { Theme } from '@/src/design-system/theme';
-import { Card, Badge, ProgressBar, Button } from '@/src/design-system/components';
+import { Card, Badge, ProgressBar } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
+import { socialCompetition } from '@/src/services/socialCompetition';
+import { financialIncentives } from '@/src/services/financialIncentives';
+import { useState } from 'react';
 
 export default function DashboardScreen() {
   const { quitData } = useQuitStore();
   const [stats, setStats] = useState<any>(null);
   const [userRank, setUserRank] = useState<any>(null);
   const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (quitData.quitDate && quitData.cigarettesPerDay && quitData.costPerPack) {
@@ -26,6 +30,8 @@ export default function DashboardScreen() {
     }
     
     loadAdditionalData();
+    
+    loadAdditionalData();
   }, [quitData]);
 
   const loadAdditionalData = async () => {
@@ -35,12 +41,15 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
+  const loadAdditionalData = async () => {
+    try {
+      // Load user's leaderboard rank
+      const rank = await socialCompetition.getUserRank('streak');
+      setUserRank(rank);
+      
+      // Load ROI analysis
       const roi = await financialIncentives.calculateROI();
       setROIAnalysis(roi);
-      
-      // Load leaderboard data
-      const leaderboardData = await socialCompetition.getLeaderboard('streak', 'weekly');
-      setLeaderboard(leaderboardData);
       
       // Update leaderboard with current streak
       if (stats?.daysSinceQuit) {
