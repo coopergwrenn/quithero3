@@ -29,7 +29,10 @@
         "NSHealthShareUsageDescription": "QuitHero can integrate with Health app to track your smoke-free progress.",
         "NSHealthUpdateUsageDescription": "QuitHero can update your Health app with quit milestones and progress.",
         "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["tel", "mailto"]
+        "LSApplicationQueriesSchemes": [
+          "tel",
+          "mailto"
+        ]
       },
       "config": {
         "usesNonExemptEncryption": false
@@ -74,7 +77,8 @@
             "minSdkVersion": 23
           }
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

@@ -5,11 +5,17 @@
 
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { MMKV } from 'react-native-mmkv';
+// import { MMKV } from 'react-native-mmkv';
 import { analytics } from './analytics';
 
-// Initialize notification storage
-const notificationStorage = new MMKV({ id: 'notification-storage' });
+// Initialize notification storage - temporarily disabled
+// const notificationStorage = new MMKV({ id: 'notification-storage' });
+const notificationStorage = {
+  set: (key: string, value: any) => {},
+  getString: (key: string) => undefined,
+  getBoolean: (key: string) => false,
+  delete: (key: string) => {},
+};
 
 export interface NotificationPreferences {
   morningPledge: boolean;

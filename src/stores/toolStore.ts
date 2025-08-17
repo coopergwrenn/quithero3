@@ -1,8 +1,15 @@
 import { create } from 'zustand';
-import { MMKV } from 'react-native-mmkv';
+// import { MMKV } from 'react-native-mmkv';
 
-// Initialize MMKV storage for tool data
-const toolStorage = new MMKV({ id: 'tool-storage' });
+// Initialize MMKV storage for tool data - temporarily disabled
+// const toolStorage = new MMKV({ id: 'tool-storage' });
+const toolStorage = {
+  set: (key: string, value: any) => {},
+  getString: (key: string) => undefined,
+  getNumber: (key: string) => 0,
+  delete: (key: string) => {},
+  clearAll: () => {},
+};
 
 interface ToolUsage {
   toolId: string;

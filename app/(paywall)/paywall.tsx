@@ -47,27 +47,32 @@ export default function PaywallScreen() {
   };
 
   const handlePurchase = async (productId: string) => {
-    if (Platform.OS === 'web') {
-      // Mock purchase for web development
-      setPremium(true);
-      router.replace('/(app)/(tabs)/dashboard');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const purchaseResult = await Purchases.purchaseProduct(productId);
-      if (purchaseResult.customerInfo.entitlements.active['premium']) {
-        setPremium(true);
-        analytics.trackPaywallPurchaseCompleted(productId, true);
-        router.replace('/(app)/(tabs)/dashboard');
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      analytics.track('purchase_error', { product_id: productId });
-    } finally {
-      setLoading(false);
-    }
+    // Mock purchase for development (RevenueCat disabled)
+    setPremium(true);
+    analytics.trackPaywallPurchaseCompleted(productId, true);
+    router.replace('/(app)/(tabs)/dashboard');
+    return;
+    
+    // Original RevenueCat code (commented out for development)
+    // if (Platform.OS === 'web') {
+    //   setPremium(true);
+    //   router.replace('/(app)/(tabs)/dashboard');
+    //   return;
+    // }
+    // setLoading(true);
+    // try {
+    //   const purchaseResult = await Purchases.purchaseProduct(productId);
+    //   if (purchaseResult.customerInfo.entitlements.active['premium']) {
+    //     setPremium(true);
+    //     analytics.trackPaywallPurchaseCompleted(productId, true);
+    //     router.replace('/(app)/(tabs)/dashboard');
+    //   }
+    // } catch (error) {
+    //   console.error('Purchase error:', error);
+    //   analytics.track('purchase_error', { product_id: productId });
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   const handleSkip = () => {

@@ -1,47 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Vibration, Platform } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Vibration, Platform, ScrollView, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, Card, PillChoice } from '@/src/design-system/components';
 import { useToolStore } from '@/src/stores/toolStore';
+import { useQuitStore } from '@/src/stores/quitStore';
+import { analytics } from '@/src/services/analytics';
 
 const BREATHING_PATTERNS = {
   'box': {
     name: 'Box Breathing',
-    description: 'Equal counts for calm focus',
+    description: 'Equal counts for calm focus - best for general anxiety',
     pattern: [4, 4, 4, 4], // inhale, hold, exhale, hold
-    cycles: 8,
     icon: '📦',
+    benefits: 'Perfect for moments of stress and anxiety. Balances your nervous system.',
+    whenToUse: 'Use when feeling anxious, before important meetings, or for general stress relief.',
   },
   '478': {
     name: '4-7-8 Relaxation',
-    description: 'Longer exhale for deep calm',
+    description: 'Inhale 4, hold 7, exhale 8 - best for deep calm and sleep',
     pattern: [4, 7, 8, 0],
-    cycles: 6,
     icon: '😴',
+    benefits: 'Activates your parasympathetic nervous system for deep relaxation.',
+    whenToUse: 'Great before bed, after high stress, or when you need immediate calm.',
   },
   'quick': {
     name: 'Quick Reset',
-    description: '2-minute focused breathing',
-    pattern: [3, 2, 4, 1],
-    cycles: 12,
+    description: '2-minute focused breathing for immediate relief',
+    pattern: [2, 2, 4, 2],
     icon: '⚡',
+    benefits: 'Rapid nervous system reset in just 2 minutes.',
+    whenToUse: 'When you need immediate relief from cravings or sudden stress.',
   },
 };
 
 const BREATHING_PHASES = ['Breathe In', 'Hold', 'Breathe Out', 'Hold'];
+const DURATION_OPTIONS = [1, 3, 5, 10]; // minutes
 
 export default function BreathworkScreen() {
   const router = useRouter();
-  const { recordToolUse } = useToolStore();
+  const { recordToolUse, getToolStats } = useToolStore();
+  const { quitData } = useQuitStore();
   const [selectedPattern, setSelectedPattern] = useState<keyof typeof BREATHING_PATTERNS>('box');
+  const [selectedDuration, setSelectedDuration] = useState(3);
   const [isActive, setIsActive] = useState(false);
   const [currentCycle, setCurrentCycle] = useState(0);
   const [currentPhase, setCurrentPhase] = useState(0);
   const [timeInPhase, setTimeInPhase] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+
+  // Animation values
+  const breathingScale = new Animated.Value(0.8);
+  const breathingOpacity = new Animated.Value(1);
+  const glowScale = new Animated.Value(1);
 
   const pattern = BREATHING_PATTERNS[selectedPattern];
+  const breathworkStats = getToolStats('breathwork');
+  const totalSessions = breathworkStats?.totalUses || 0;
+  const totalMinutes = Math.round(((breathworkStats as any)?.totalDuration || 0) / 60);
+
+  // Calculate total cycles needed for selected duration
+  const cycleTime = pattern.pattern.reduce((sum, time) => sum + time, 0);
+  const totalCycles = Math.ceil((selectedDuration * 60) / cycleTime);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -50,19 +72,21 @@ export default function BreathworkScreen() {
       interval = setInterval(() => {
         setTimeInPhase(prev => {
           const currentPhaseDuration = pattern.pattern[currentPhase];
+          const newTimeInPhase = prev + 0.1;
           
-          if (prev >= currentPhaseDuration) {
+          // Update total time
+          setTotalTime(prevTotal => prevTotal + 0.1);
+          
+          if (newTimeInPhase >= currentPhaseDuration) {
             // Move to next phase
             const nextPhase = (currentPhase + 1) % pattern.pattern.length;
             
             if (nextPhase === 0) {
               // Completed a full cycle
               const nextCycle = currentCycle + 1;
-              if (nextCycle >= pattern.cycles) {
+              if (nextCycle >= totalCycles) {
                 // Completed all cycles
-                setIsActive(false);
-                setIsComplete(true);
-                recordToolUse('breathwork');
+                completeSession();
                 return 0;
               }
               setCurrentCycle(nextCycle);
@@ -72,33 +96,132 @@ export default function BreathworkScreen() {
             
             // Haptic feedback for phase transitions
             if (Platform.OS !== 'web') {
-              Vibration.vibrate(50);
+              if (nextPhase === 0) {
+                // Stronger vibration for cycle completion
+                Vibration.vibrate([100, 50, 100]);
+              } else {
+                // Gentle vibration for phase transition
+                Vibration.vibrate(50);
+              }
             }
+            
+            // Trigger breathing animation
+            animateBreathing(nextPhase);
             
             return 0;
           }
           
-          return prev + 0.1;
+          return newTimeInPhase;
         });
       }, 100);
     }
 
     return () => clearInterval(interval);
-  }, [isActive, currentPhase, currentCycle, pattern]);
+  }, [isActive, currentPhase, currentCycle, pattern, totalCycles]);
+
+  const animateBreathing = (phase: number) => {
+    const phaseName = BREATHING_PHASES[phase];
+    
+    if (phaseName === 'Breathe In') {
+      // Inhale animation - dramatic expansion
+      Animated.parallel([
+        Animated.timing(breathingScale, {
+          toValue: 1.6,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(breathingOpacity, {
+          toValue: 1,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowScale, {
+          toValue: 1.3,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (phaseName === 'Breathe Out') {
+      // Exhale animation - dramatic contraction
+      Animated.parallel([
+        Animated.timing(breathingScale, {
+          toValue: 0.6,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(breathingOpacity, {
+          toValue: 1,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowScale, {
+          toValue: 0.8,
+          duration: pattern.pattern[phase] * 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+    // Hold phases maintain current scale
+  };
+
+  const completeSession = () => {
+    setIsActive(false);
+    setIsComplete(true);
+    
+    // Track completion
+    const duration = totalTime;
+    analytics.trackToolCompleted('breathwork', duration);
+    recordToolUse('breathwork');
+    
+    // Celebration haptic
+    if (Platform.OS !== 'web') {
+      Vibration.vibrate([200, 100, 200, 100, 300]);
+    }
+  };
 
   const startBreathing = () => {
+    setStartTime(new Date());
     setIsActive(true);
     setCurrentCycle(0);
     setCurrentPhase(0);
     setTimeInPhase(0);
+    setTotalTime(0);
     setIsComplete(false);
+    
+    // Reset animations
+    breathingScale.setValue(0.8);
+    breathingOpacity.setValue(1);
+    glowScale.setValue(1);
+    
+    // Start first phase animation
+    animateBreathing(0);
+    
+    analytics.track('tool_started', { tool: 'breathwork', pattern: selectedPattern, duration: selectedDuration });
+    
+    // Initial haptic
+    if (Platform.OS !== 'web') {
+      Vibration.vibrate(50);
+    }
   };
 
   const stopBreathing = () => {
+    // Track early completion
+    if (startTime) {
+      const duration = (Date.now() - startTime.getTime()) / 1000;
+      const completionPercentage = (currentCycle / totalCycles) * 100;
+      analytics.track('tool_early_completion', { 
+        tool: 'breathwork', 
+        pattern: selectedPattern,
+        duration,
+        completion_percentage: completionPercentage 
+      });
+    }
+    
     setIsActive(false);
     setCurrentCycle(0);
     setCurrentPhase(0);
     setTimeInPhase(0);
+    setTotalTime(0);
   };
 
   const resetBreathing = () => {
@@ -106,7 +229,11 @@ export default function BreathworkScreen() {
     setCurrentCycle(0);
     setCurrentPhase(0);
     setTimeInPhase(0);
+    setTotalTime(0);
     setIsComplete(false);
+    breathingScale.setValue(0.8);
+    breathingOpacity.setValue(0.3);
+    glowScale.setValue(1);
   };
 
   const getCurrentPhaseProgress = () => {
@@ -114,24 +241,66 @@ export default function BreathworkScreen() {
     return phaseDuration > 0 ? timeInPhase / phaseDuration : 0;
   };
 
+  const getOverallProgress = () => {
+    const phaseProgress = getCurrentPhaseProgress();
+    return (currentCycle * pattern.pattern.length + currentPhase + phaseProgress) / 
+           (totalCycles * pattern.pattern.length);
+  };
+
+  const getMotivationalMessage = () => {
+    if (quitData?.motivation) {
+      return `Remember: ${quitData.motivation}`;
+    }
+    const messages = [
+      "Each breath makes you stronger",
+      "You're building resilience with every cycle",
+      "This is your moment of peace",
+      "Breathe in strength, breathe out stress"
+    ];
+    return messages[currentCycle % messages.length];
+  };
+
   if (isComplete) {
+    const sessionMinutes = Math.round(totalTime / 60);
+    
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.completionContent}>
-          <Text style={styles.completionIcon}>🌟</Text>
+          <Animated.View style={[styles.completionIconContainer, { transform: [{ scale: glowScale }] }]}>
+            <Text style={styles.completionIcon}>🌟</Text>
+          </Animated.View>
           <Text style={styles.completionTitle}>Breathing Complete</Text>
           <Text style={styles.completionMessage}>
-            You've activated your parasympathetic nervous system and reduced stress hormones. 
-            Your body is now in a calmer state, making it easier to resist cravings.
+            Well done! You've just activated your body's natural relaxation response. 
+            Your nervous system is now in a calmer state, making it easier to resist cravings.
           </Text>
           
+          <Card style={styles.sessionStats}>
+            <Text style={styles.sessionStatsTitle}>Your Session</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{sessionMinutes}</Text>
+                <Text style={styles.statLabel}>Minutes</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{currentCycle}</Text>
+                <Text style={styles.statLabel}>Cycles</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{totalSessions + 1}</Text>
+                <Text style={styles.statLabel}>Total Sessions</Text>
+              </View>
+            </View>
+          </Card>
+          
           <Card style={styles.completionBenefits}>
-            <Text style={styles.benefitsTitle}>What You Just Did</Text>
+            <Text style={styles.benefitsTitle}>What You Just Accomplished</Text>
             <Text style={styles.benefitsText}>
-              • Lowered cortisol (stress hormone){'\n'}
-              • Activated vagus nerve for calm{'\n'}
+              • Activated your parasympathetic nervous system{'\n'}
+              • Reduced cortisol and stress hormones{'\n'}
               • Increased oxygen to your brain{'\n'}
-              • Strengthened mindful awareness
+              • Strengthened mindful awareness{'\n'}
+              • Built resilience against cravings
             </Text>
           </Card>
           
@@ -159,48 +328,91 @@ export default function BreathworkScreen() {
 
   if (isActive) {
     const currentPhaseName = BREATHING_PHASES[currentPhase];
-    const phaseProgress = getCurrentPhaseProgress();
-    const overallProgress = (currentCycle * pattern.pattern.length + currentPhase + phaseProgress) / 
-                           (pattern.cycles * pattern.pattern.length);
+    const overallProgress = getOverallProgress();
+    const remainingTime = Math.max(0, (selectedDuration * 60) - totalTime);
+    const remainingMinutes = Math.floor(remainingTime / 60);
+    const remainingSeconds = Math.floor(remainingTime % 60);
 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.activeContent}>
           <View style={styles.progressSection}>
-            <Text style={styles.cycleCounter}>
-              Cycle {currentCycle + 1} of {pattern.cycles}
+            <Text style={styles.sessionInfo}>
+              {pattern.name} • {remainingMinutes}:{remainingSeconds.toString().padStart(2, '0')} remaining
             </Text>
-            <ProgressBar 
-              progress={overallProgress}
-              height={6}
-              style={styles.progressBar}
-            />
+            <View style={styles.progressBarContainer}>
+              <View style={[styles.progressBar, { width: `${overallProgress * 100}%` }]} />
+            </View>
           </View>
           
           <View style={styles.breathingContent}>
-            <View style={[
-              styles.breathingCircle,
-              { transform: [{ scale: 0.8 + (phaseProgress * 0.4) }] }
-            ]}>
-              <Text style={styles.phaseText}>{currentPhaseName}</Text>
-              <Text style={styles.countText}>
-                {Math.ceil(pattern.pattern[currentPhase] - timeInPhase)}
-              </Text>
+            <Text style={styles.motivationalText}>
+              {getMotivationalMessage()}
+            </Text>
+            
+            <View style={styles.breathingVisual}>
+              {/* Outer glow ring */}
+              <Animated.View 
+                style={[
+                  styles.glowRing,
+                  { 
+                    transform: [{ scale: glowScale }],
+                    opacity: breathingOpacity,
+                  }
+                ]} 
+              />
+              
+              {/* Main breathing circle */}
+              <Animated.View
+                style={[
+                  styles.breathingCircle,
+                  { 
+                    transform: [{ scale: breathingScale }],
+                    opacity: breathingOpacity,
+                  }
+                ]}
+              >
+                <Text style={styles.phaseText}>{currentPhaseName}</Text>
+                <Text style={styles.countText}>
+                  {Math.ceil(pattern.pattern[currentPhase] - timeInPhase)}
+                </Text>
+              </Animated.View>
             </View>
             
-            <Text style={styles.patternName}>{pattern.name}</Text>
             <Text style={styles.breathingInstruction}>
-              Follow the circle and breathe naturally
+              {currentPhaseName === 'Breathe In' && 'Slowly fill your lungs'}
+              {currentPhaseName === 'Hold' && 'Hold gently, stay relaxed'}
+              {currentPhaseName === 'Breathe Out' && 'Release slowly and completely'}
             </Text>
+            
+            <View style={styles.cycleIndicator}>
+              <Text style={styles.cycleText}>
+                Cycle {currentCycle + 1} of {totalCycles}
+              </Text>
+              <View style={styles.cycleDotsContainer}>
+                {Array.from({ length: Math.min(totalCycles, 10) }).map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.cycleDot,
+                      index <= currentCycle && styles.cycleDotActive
+                    ]}
+                  />
+                ))}
+                {totalCycles > 10 && <Text style={styles.cycleDotOverflow}>...</Text>}
+              </View>
+            </View>
           </View>
 
-          <Button 
-            variant="ghost" 
-            onPress={stopBreathing}
-            style={styles.stopButton}
-          >
-            Stop Session
-          </Button>
+          <View style={styles.activeActions}>
+            <Button 
+              variant="ghost" 
+              onPress={stopBreathing}
+              style={styles.stopButton}
+            >
+              End Session
+            </Button>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -220,6 +432,22 @@ export default function BreathworkScreen() {
             </Text>
           </View>
 
+          {totalSessions > 0 && (
+            <Card style={styles.progressCard}>
+              <Text style={styles.progressTitle}>Your Progress</Text>
+              <View style={styles.progressStats}>
+                <View style={styles.progressStat}>
+                  <Text style={styles.progressNumber}>{totalSessions}</Text>
+                  <Text style={styles.progressLabel}>Sessions Completed</Text>
+                </View>
+                <View style={styles.progressStat}>
+                  <Text style={styles.progressNumber}>{totalMinutes}</Text>
+                  <Text style={styles.progressLabel}>Minutes Practiced</Text>
+                </View>
+              </View>
+            </Card>
+          )}
+
           <Card style={styles.patternSelector}>
             <Text style={styles.selectorTitle}>Choose Your Pattern</Text>
             <View style={styles.patternOptions}>
@@ -236,6 +464,22 @@ export default function BreathworkScreen() {
             </View>
           </Card>
 
+          <Card style={styles.durationSelector}>
+            <Text style={styles.selectorTitle}>Session Duration</Text>
+            <View style={styles.durationOptions}>
+              {DURATION_OPTIONS.map((duration) => (
+                <PillChoice
+                  key={duration}
+                  selected={selectedDuration === duration}
+                  onPress={() => setSelectedDuration(duration)}
+                  style={styles.durationPill}
+                >
+                  {duration} min
+                </PillChoice>
+              ))}
+            </View>
+          </Card>
+
           <Card style={styles.patternInfo}>
             <Text style={styles.patternTitle}>
               {pattern.icon} {pattern.name}
@@ -243,24 +487,20 @@ export default function BreathworkScreen() {
             <Text style={styles.patternDescription}>
               {pattern.description}
             </Text>
+            <Text style={styles.patternBenefits}>
+              {pattern.benefits}
+            </Text>
             <View style={styles.patternDetails}>
               <Text style={styles.patternDetail}>
                 Pattern: {pattern.pattern.join('-')} seconds
               </Text>
               <Text style={styles.patternDetail}>
-                Duration: ~{Math.ceil((pattern.cycles * pattern.pattern.reduce((a, b) => a + b, 0)) / 60)} minutes
+                Duration: {selectedDuration} minute{selectedDuration > 1 ? 's' : ''}
+              </Text>
+              <Text style={styles.patternWhenToUse}>
+                {pattern.whenToUse}
               </Text>
             </View>
-          </Card>
-
-          <Card style={styles.benefitsCard}>
-            <Text style={styles.benefitsTitle}>Benefits</Text>
-            <Text style={styles.benefitsText}>
-              • Activates your body's relaxation response{'\n'}
-              • Reduces cortisol and stress hormones{'\n'}
-              • Improves focus and emotional regulation{'\n'}
-              • Provides healthy coping mechanism
-            </Text>
           </Card>
 
           <View style={styles.startSection}>
@@ -270,7 +510,7 @@ export default function BreathworkScreen() {
               fullWidth
               onPress={startBreathing}
             >
-              Start {pattern.name}
+              Start {pattern.name} ({selectedDuration} min)
             </Button>
             <Text style={styles.startNote}>
               Find a comfortable position and breathe naturally
@@ -333,6 +573,19 @@ const styles = StyleSheet.create({
   patternPill: {
     marginBottom: Theme.spacing.sm,
   },
+  durationSelector: {
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
+  },
+  durationOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Theme.spacing.sm,
+    justifyContent: 'center',
+  },
+  durationPill: {
+    marginBottom: Theme.spacing.sm,
+  },
   patternInfo: {
     padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.lg,
@@ -349,6 +602,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: Theme.spacing.md,
   },
+  patternBenefits: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+  },
   patternDetails: {
     gap: Theme.spacing.xs,
     alignItems: 'center',
@@ -356,6 +615,12 @@ const styles = StyleSheet.create({
   patternDetail: {
     ...Theme.typography.footnote,
     color: Theme.colors.text.tertiary,
+  },
+  patternWhenToUse: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    marginTop: Theme.spacing.sm,
   },
   benefitsCard: {
     padding: Theme.spacing.lg,
@@ -389,25 +654,50 @@ const styles = StyleSheet.create({
   progressSection: {
     marginBottom: Theme.spacing.xl,
   },
-  cycleCounter: {
-    ...Theme.typography.footnote,
+  sessionInfo: {
+    ...Theme.typography.body,
     color: Theme.colors.text.tertiary,
     textAlign: 'center',
     marginBottom: Theme.spacing.sm,
   },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: Theme.colors.purple[500] + '10',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
   progressBar: {
-    marginBottom: Theme.spacing.sm,
+    height: '100%',
+    backgroundColor: Theme.colors.purple[500],
+    borderRadius: 3,
   },
   breathingContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  activeTitle: {
-    ...Theme.typography.title2,
+  motivationalText: {
+    ...Theme.typography.title3,
     color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: Theme.spacing.xxxl,
+    marginBottom: Theme.spacing.xl,
+  },
+  breathingVisual: {
+    position: 'relative',
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.xl,
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 3,
+    borderColor: Theme.colors.purple[500] + '50',
+    opacity: 0.5,
   },
   breathingCircle: {
     width: 200,
@@ -418,7 +708,6 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.purple[500],
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
   },
   phaseText: {
     ...Theme.typography.headline,
@@ -430,15 +719,39 @@ const styles = StyleSheet.create({
     color: Theme.colors.purple[500],
     fontWeight: '300',
   },
-  patternName: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
-  },
   breathingInstruction: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  cycleIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Theme.spacing.md,
+  },
+  cycleText: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
+    marginRight: Theme.spacing.xs,
+  },
+  cycleDotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cycleDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Theme.colors.purple[500] + '30',
+    marginHorizontal: 2,
+  },
+  cycleDotActive: {
+    backgroundColor: Theme.colors.purple[500],
+  },
+  cycleDotOverflow: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
   },
   activeActions: {
     alignItems: 'center',
@@ -453,9 +766,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  completionIconContainer: {
+    marginBottom: Theme.spacing.xl,
+  },
   completionIcon: {
     fontSize: 64,
-    marginBottom: Theme.spacing.xl,
   },
   completionTitle: {
     ...Theme.typography.largeTitle,
@@ -592,4 +907,75 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.secondary,
     lineHeight: 24,
   },
+  sessionStats: {
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.xl,
+    width: '100%',
+  },
+  sessionStatsTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.md,
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: Theme.spacing.md,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    ...Theme.typography.title2,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
+  },
+  statLabel: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
+  },
+  progressCard: {
+    padding: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
+  },
+  progressTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    marginBottom: Theme.spacing.md,
+    textAlign: 'center',
+  },
+  progressStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: Theme.spacing.md,
+  },
+  progressStat: {
+    alignItems: 'center',
+  },
+  progressNumber: {
+    ...Theme.typography.title2,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.xs,
+  },
+     progressLabel: {
+     ...Theme.typography.footnote,
+     color: Theme.colors.text.tertiary,
+   },
+   // Additional styles that may have been missed
+   benefitsCard: {
+     padding: Theme.spacing.lg,
+     marginBottom: Theme.spacing.xl,
+   },
+   benefitsTitle: {
+     ...Theme.typography.headline,
+     color: Theme.colors.text.primary,
+     marginBottom: Theme.spacing.md,
+     textAlign: 'center',
+   },
+   benefitsText: {
+     ...Theme.typography.body,
+     color: Theme.colors.text.secondary,
+     lineHeight: 24,
+   },
 });

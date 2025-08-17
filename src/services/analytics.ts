@@ -3,10 +3,16 @@
  * Local-first approach with optional cloud sync
  */
 
-import { MMKV } from 'react-native-mmkv';
+// import { MMKV } from 'react-native-mmkv';
 
-// Initialize analytics storage
-const analyticsStorage = new MMKV({ id: 'analytics-storage' });
+// Initialize analytics storage - temporarily disabled due to TurboModules issue
+// const analyticsStorage = new MMKV({ id: 'analytics-storage' });
+const analyticsStorage = {
+  set: (key: string, value: string) => {},
+  getString: (key: string) => undefined,
+  delete: (key: string) => {},
+  getAllKeys: () => [],
+};
 
 export interface AnalyticsEvent {
   event: string;

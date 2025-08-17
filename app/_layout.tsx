@@ -11,13 +11,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Initialize RevenueCat only on native platforms
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      Purchases.configure({
-        apiKey: Platform.OS === 'ios' 
-          ? 'your-ios-api-key' 
-          : 'your-android-api-key',
-      });
-    }
+    // TODO: Add real RevenueCat API keys when ready for production
+    // if (Platform.OS === 'ios' || Platform.OS === 'android') {
+    //   Purchases.configure({
+    //     apiKey: Platform.OS === 'ios' 
+    //       ? 'your-ios-api-key' 
+    //       : 'your-android-api-key',
+    //   });
+    // }
   }, []);
 
   return (

@@ -1,10 +1,20 @@
 import { create } from 'zustand';
-import { MMKV } from 'react-native-mmkv';
+// import { MMKV } from 'react-native-mmkv';
 import { PersonalizedPlan } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
 
-// Initialize MMKV storage
-const storage = new MMKV();
+// Initialize MMKV storage - temporarily disabled
+// const storage = new MMKV();
+const mockStorage: { [key: string]: any } = {};
+const storage = {
+  setItem: (key: string, value: string) => { mockStorage[key] = value; },
+  getItem: (key: string) => mockStorage[key] || null,
+  removeItem: (key: string) => { delete mockStorage[key]; },
+  set: (key: string, value: any) => { mockStorage[key] = value; },
+  getString: (key: string) => mockStorage[key] || undefined,
+  getBoolean: (key: string) => mockStorage[key] === 'true' || mockStorage[key] === true,
+  clearAll: () => { Object.keys(mockStorage).forEach(key => delete mockStorage[key]); },
+};
 
 interface QuitData {
   quitDate?: Date;

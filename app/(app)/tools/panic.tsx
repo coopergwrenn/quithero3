@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
@@ -9,53 +10,22 @@ import { useAuthStore } from '@/src/stores/authStore';
 import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
 import { socialCompetition } from '@/src/services/socialCompetition';
 import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
-import { useState } from 'react';
 import { analytics } from '@/src/services/analytics';
-import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const { getToolStats } = useToolStore();
   const { user } = useAuthStore();
   
+  const [userRank, setUserRank] = useState<any>(null);
+  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
   const [quitStats, setQuitStats] = useState<any>(null);
   const [toolStats, setToolStats] = useState<any>({});
 
   useEffect(() => {
     loadDashboardData();
     trackDashboardView();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
-    
-    loadAdditionalData();
-    
     loadAdditionalData();
   }, [quitData]);
 
@@ -66,63 +36,7 @@ export default function DashboardScreen() {
       setUserRank(rank);
       
       // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.getROIAnalysis();
+      const roi = await financialIncentives.calculateROI();
       setROIAnalysis(roi);
     } catch (error) {
       console.error('Failed to load additional data:', error);
@@ -302,21 +216,22 @@ export default function DashboardScreen() {
           {tools.map((tool) => {
             const stats = toolStats[tool.id] || { totalUses: 0, currentStreak: 0 };
             return (
-              <Card 
+              <TouchableOpacity 
                 key={tool.id}
-                style={styles.toolCard}
-                onTouchEnd={() => handleToolPress(tool.route, tool.name)}
+                onPress={() => handleToolPress(tool.route, tool.name)}
               >
-                <Text style={[styles.toolIcon, { color: tool.color }]}>
-                  {tool.icon}
-                </Text>
-                <Text style={styles.toolName}>{tool.name}</Text>
-                {stats.totalUses > 0 && (
-                  <Text style={styles.toolUsage}>
-                    Used {stats.totalUses}x
+                <Card style={styles.toolCard}>
+                  <Text style={[styles.toolIcon, { color: tool.color }]}>
+                    {tool.icon}
                   </Text>
-                )}
-              </Card>
+                  <Text style={styles.toolName}>{tool.name}</Text>
+                  {stats.totalUses > 0 && (
+                    <Text style={styles.toolUsage}>
+                      Used {stats.totalUses}x
+                    </Text>
+                  )}
+                </Card>
+              </TouchableOpacity>
             );
           })}
         </View>
