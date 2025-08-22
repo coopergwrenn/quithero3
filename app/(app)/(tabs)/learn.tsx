@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Dimensions, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, Button } from '@/src/design-system/components';
@@ -26,6 +26,93 @@ export default function LearnScreen() {
     { id: 'science', title: 'Science', icon: '🧠' },
     { id: 'strategies', title: 'Strategies', icon: '🎯' }
   ];
+
+  // Health Recovery Timeline Milestones with Personalization
+  const getRecoveryMilestones = () => {
+    const quitDate = quitData?.quitDate;
+    const now = new Date();
+    
+    const timeSinceQuit = quitDate ? now.getTime() - new Date(quitDate).getTime() : 0;
+    const minutesSinceQuit = Math.floor(timeSinceQuit / (1000 * 60));
+    const hoursSinceQuit = Math.floor(timeSinceQuit / (1000 * 60 * 60));
+    const daysSinceQuit = Math.floor(timeSinceQuit / (1000 * 60 * 60 * 24));
+    const yearsSinceQuit = daysSinceQuit / 365;
+
+    return [
+      { 
+        time: '20 minutes', 
+        title: 'Heart Rate Normalizes', 
+        description: 'Heart rate and blood pressure drop to normal levels',
+        achieved: minutesSinceQuit >= 20,
+        timeframe: 20 * 60 * 1000, // 20 minutes in milliseconds
+        emoji: '❤️'
+      },
+      { 
+        time: '12 hours', 
+        title: 'Carbon Monoxide Clears', 
+        description: 'CO levels drop, oxygen levels increase to normal',
+        achieved: hoursSinceQuit >= 12,
+        timeframe: 12 * 60 * 60 * 1000, // 12 hours
+        emoji: '🫁'
+      },
+      { 
+        time: '2 weeks', 
+        title: 'Circulation Improves', 
+        description: 'Circulation improves, lung function increases up to 30%',
+        achieved: daysSinceQuit >= 14,
+        timeframe: 14 * 24 * 60 * 60 * 1000, // 2 weeks
+        emoji: '🩸'
+      },
+      { 
+        time: '1 month', 
+        title: 'Lung Function Boost', 
+        description: 'Coughing and shortness of breath decrease significantly',
+        achieved: daysSinceQuit >= 30,
+        timeframe: 30 * 24 * 60 * 60 * 1000, // 1 month
+        emoji: '💨'
+      },
+      { 
+        time: '3 months', 
+        title: 'Major Recovery', 
+        description: 'Circulation dramatically improves, lung function increases',
+        achieved: daysSinceQuit >= 90,
+        timeframe: 90 * 24 * 60 * 60 * 1000, // 3 months
+        emoji: '⚡'
+      },
+      { 
+        time: '1 year', 
+        title: 'Heart Disease Risk Halved', 
+        description: 'Risk of coronary heart disease is cut in half',
+        achieved: yearsSinceQuit >= 1,
+        timeframe: 365 * 24 * 60 * 60 * 1000, // 1 year
+        emoji: '💪'
+      },
+      { 
+        time: '5 years', 
+        title: 'Stroke Risk Normalized', 
+        description: 'Stroke risk reduced to that of a non-smoker',
+        achieved: yearsSinceQuit >= 5,
+        timeframe: 5 * 365 * 24 * 60 * 60 * 1000, // 5 years
+        emoji: '🧠'
+      },
+      { 
+        time: '10 years', 
+        title: 'Lung Cancer Risk Halved', 
+        description: 'Lung cancer death rate is half that of a smoker',
+        achieved: yearsSinceQuit >= 10,
+        timeframe: 10 * 365 * 24 * 60 * 60 * 1000, // 10 years
+        emoji: '🏆'
+      },
+      { 
+        time: '15 years', 
+        title: 'Full Recovery', 
+        description: 'Heart disease risk is the same as a non-smoker',
+        achieved: yearsSinceQuit >= 15,
+        timeframe: 15 * 365 * 24 * 60 * 60 * 1000, // 15 years
+        emoji: '👑'
+      }
+    ];
+  };
 
   const quickStartContent = [
     {
@@ -388,7 +475,116 @@ Remember: NRT is a tool, not a magic cure. Success rates double when NRT is used
     analytics.track('learn_article_completed', { article_id: articleId });
   };
 
+  // Interactive Health Recovery Timeline Component
+  const renderHealthTimeline = () => {
+    const milestones = getRecoveryMilestones();
+    const quitDate = quitData?.quitDate;
+    
+    if (!quitDate) {
+      return (
+        <Card style={styles.timelineCard}>
+          <View style={styles.timelineHeader}>
+            <Text style={styles.timelineTitle}>🫁 Your Recovery Timeline</Text>
+            <Text style={styles.timelineSubtitle}>Set your quit date to see your personalized progress</Text>
+          </View>
+        </Card>
+      );
+    }
+
+    const achievedCount = milestones.filter(m => m.achieved).length;
+    const nextMilestone = milestones.find(m => !m.achieved);
+
+    return (
+      <Card style={styles.timelineCard}>
+        <View style={styles.timelineHeader}>
+          <Text style={styles.timelineTitle}>🫁 Your Recovery Timeline</Text>
+          <Text style={styles.timelineSubtitle}>
+            {achievedCount} of {milestones.length} milestones achieved!
+          </Text>
+          {nextMilestone && (
+            <Text style={styles.nextMilestone}>
+              Next: {nextMilestone.title} in {nextMilestone.time}
+            </Text>
+          )}
+        </View>
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timelineScroll}>
+          {milestones.map((milestone, index) => (
+            <View key={index} style={styles.milestoneContainer}>
+              <View style={[
+                styles.milestoneNode,
+                milestone.achieved ? styles.milestoneAchieved : styles.milestonePending
+              ]}>
+                <Text style={styles.milestoneEmoji}>{milestone.emoji}</Text>
+              </View>
+              
+              <View style={styles.milestoneContent}>
+                <Text style={styles.milestoneTime}>{milestone.time}</Text>
+                <Text style={[
+                  styles.milestoneTitle,
+                  milestone.achieved ? styles.achievedText : styles.pendingText
+                ]}>
+                  {milestone.title}
+                </Text>
+                <Text style={styles.milestoneDescription}>
+                  {milestone.description}
+                </Text>
+              </View>
+              
+              {index < milestones.length - 1 && (
+                <View style={[
+                  styles.timelineConnector,
+                  milestone.achieved ? styles.connectorAchieved : styles.connectorPending
+                ]} />
+              )}
+            </View>
+          ))}
+        </ScrollView>
+        
+        <View style={styles.timelineFooter}>
+          <Text style={styles.disclaimer}>
+            ⚠️ Medical Disclaimer: This timeline is for educational purposes only. 
+            Individual recovery varies. Consult your healthcare provider for personalized advice.
+          </Text>
+        </View>
+      </Card>
+    );
+  };
+
   const renderContent = () => {
+    // Show interactive timeline for health category
+    if (selectedCategory === 'health') {
+      return (
+        <View>
+          {renderHealthTimeline()}
+          <View style={styles.sectionSpacer} />
+          {healthContent.map(article => (
+            <TouchableOpacity 
+              key={article.id} 
+              onPress={() => openArticle(article)}
+              style={styles.articleCard}
+            >
+              <Card style={styles.articleCardInner}>
+                <View style={styles.articleHeader}>
+                  <Text style={styles.articleTitle}>{article.title || 'Untitled'}</Text>
+                  {article.id && readArticles.has(article.id) && (
+                    <Badge variant="success" style={styles.readBadge}>
+                      ✓ Read
+                    </Badge>
+                  )}
+                </View>
+                <Text style={styles.articlePreview}>{article.preview || 'No preview available'}</Text>
+                <View style={styles.articleMeta}>
+                  <Text style={styles.readTime}>{article.readTime || '5 min read'}</Text>
+                </View>
+              </Card>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
+    // Default content for other categories
     const content = getAllContent();
     
     return content.map(article => (
@@ -657,5 +853,110 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.tertiary,
     fontStyle: 'italic',
     textAlign: 'center',
+  },
+  
+  // Timeline styles
+  timelineCard: {
+    marginHorizontal: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
+    padding: Theme.spacing.lg,
+  },
+  timelineHeader: {
+    marginBottom: Theme.spacing.lg,
+  },
+  timelineTitle: {
+    ...Theme.typography.title2,
+    color: Theme.colors.text.primary,
+    fontWeight: '700',
+    marginBottom: Theme.spacing.xs,
+  },
+  timelineSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.xs,
+  },
+  nextMilestone: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.purple[500],
+    fontWeight: '600',
+  },
+  timelineScroll: {
+    marginBottom: Theme.spacing.lg,
+  },
+  milestoneContainer: {
+    alignItems: 'center',
+    marginRight: Theme.spacing.lg,
+    width: 120,
+  },
+  milestoneNode: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    marginBottom: Theme.spacing.sm,
+  },
+  milestoneAchieved: {
+    backgroundColor: Theme.colors.success.background,
+    borderColor: Theme.colors.success.text,
+  },
+  milestonePending: {
+    backgroundColor: Theme.colors.dark.surfaceElevated,
+    borderColor: Theme.colors.dark.border,
+  },
+  milestoneEmoji: {
+    fontSize: 24,
+  },
+  milestoneContent: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  milestoneTime: {
+    ...Theme.typography.caption1,
+    color: Theme.colors.text.tertiary,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  milestoneTitle: {
+    ...Theme.typography.footnote,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  achievedText: {
+    color: Theme.colors.success.text,
+  },
+  pendingText: {
+    color: Theme.colors.text.secondary,
+  },
+  milestoneDescription: {
+    ...Theme.typography.caption2,
+    color: Theme.colors.text.tertiary,
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  timelineConnector: {
+    position: 'absolute',
+    top: 30,
+    right: -Theme.spacing.lg,
+    width: Theme.spacing.lg,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  connectorAchieved: {
+    backgroundColor: Theme.colors.success.text,
+  },
+  connectorPending: {
+    backgroundColor: Theme.colors.dark.border,
+  },
+  timelineFooter: {
+    paddingTop: Theme.spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.dark.border,
+  },
+  sectionSpacer: {
+    height: Theme.spacing.lg,
   },
 });
