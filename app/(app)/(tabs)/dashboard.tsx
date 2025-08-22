@@ -296,7 +296,7 @@ export default function DashboardScreen() {
   // Navigate to tool
   const navigateToTool = (toolId: string) => {
     analytics.track('tool_accessed_from_dashboard', { tool: toolId });
-    router.push(`/(app)/tools/${toolId}`);
+    router.push(`/(app)/tools/${toolId}` as any);
   };
 
   // Calendar functions
@@ -520,7 +520,7 @@ export default function DashboardScreen() {
                       onPress={() => openDayModal(day)}
                     >
                       <Text style={[
-                        styles.dayNumber,
+                        styles.calendarDayNumber,
                         { color: isCurrentMonth ? Theme.colors.text.primary : Theme.colors.text.tertiary }
                       ]}>
                         {day.getDate()}
@@ -633,6 +633,34 @@ export default function DashboardScreen() {
                   <Text style={styles.toolUses}>{tool.uses} uses</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </Card>
+
+          {/* AI Coach Support */}
+          <Card style={styles.supportCard}>
+            <Text style={styles.supportTitle}>🤖 Need Support?</Text>
+            <Text style={styles.supportDescription}>
+              Talk to your AI quit coach for personalized guidance and 24/7 support
+            </Text>
+            <View style={styles.supportButtons}>
+              <TouchableOpacity 
+                style={styles.coachButton}
+                onPress={() => {
+                  analytics.track('dashboard_coach_clicked');
+                  router.push('/(app)/(tabs)/coach');
+                }}
+              >
+                <Text style={styles.coachButtonText}>💬 Chat with AI Coach</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.crisisButton}
+                onPress={() => {
+                  analytics.track('dashboard_crisis_clicked');
+                  router.push('/(app)/tools/panic' as any);
+                }}
+              >
+                <Text style={styles.crisisButtonText}>🚨 Crisis Support</Text>
+              </TouchableOpacity>
             </View>
           </Card>
 
@@ -998,6 +1026,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Theme.colors.text.secondary,
   },
+  supportCard: {
+    padding: 24,
+    marginBottom: 32,
+    backgroundColor: '#2A1A4C',
+    borderColor: '#8B5CF6',
+    borderWidth: 1,
+  },
+  supportTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B5CF6',
+    marginBottom: 8,
+  },
+  supportDescription: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  supportButtons: {
+    gap: 12,
+  },
+  coachButton: {
+    backgroundColor: '#8B5CF6',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  coachButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+  },
+  crisisButton: {
+    backgroundColor: '#EF4444',
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  crisisButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+  },
   healthFactCard: {
     padding: 24,
     marginBottom: 32,
@@ -1097,7 +1169,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     position: 'relative',
   },
-  dayNumber: {
+  calendarDayNumber: {
     fontSize: 14,
     fontWeight: '500',
   },

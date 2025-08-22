@@ -1,291 +1,289 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
-import { Card, Badge, Button } from '@/src/design-system/components';
+import { Card, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useToolStore } from '@/src/stores/toolStore';
-import { useAuthStore } from '@/src/stores/authStore';
-import { calculateQuitStats, formatDuration, formatCurrency } from '@/src/utils/calculations';
-import { socialCompetition } from '@/src/services/socialCompetition';
-import { financialIncentives } from '@/src/services/financialIncentives';
 import { analytics } from '@/src/services/analytics';
 
-export default function DashboardScreen() {
+// Immediate crisis strategies
+const CRISIS_STRATEGIES = [
+  {
+    id: 'breathing',
+    title: '4-7-8 Breathing',
+    description: 'Inhale for 4, hold for 7, exhale for 8',
+    icon: '🫁',
+    duration: '2 minutes',
+    action: 'Start Breathing Exercise'
+  },
+  {
+    id: 'distraction',
+    title: 'Immediate Distraction',
+    description: 'Call someone, go for a walk, drink water',
+    icon: '🚶‍♂️',
+    duration: '5-10 minutes',
+    action: 'Get Ideas'
+  },
+  {
+    id: 'countdown',
+    title: 'Urge Countdown',
+    description: 'Cravings peak at 3-5 minutes then fade',
+    icon: '⏰',
+    duration: '5 minutes',
+    action: 'Start Timer'
+  },
+  {
+    id: 'why',
+    title: 'Remember Your Why',
+    description: 'Recall your reasons for quitting',
+    icon: '🎯',
+    duration: '1 minute',
+    action: 'Review Goals'
+  }
+];
+
+// Emergency mantras
+const EMERGENCY_MANTRAS = [
+  "This craving will pass in just a few minutes",
+  "I am stronger than this urge",
+  "Every craving I resist makes me stronger",
+  "I choose my health over cigarettes",
+  "This feeling is temporary, my quit is forever",
+  "I've survived cravings before, I can do this again"
+];
+
+export default function PanicModeScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
-  const { getToolStats } = useToolStore();
-  const { user } = useAuthStore();
+  const { recordToolUse } = useToolStore();
   
-  const [userRank, setUserRank] = useState<any>(null);
-  const [roiAnalysis, setROIAnalysis] = useState<any>(null);
-  const [quitStats, setQuitStats] = useState<any>(null);
-  const [toolStats, setToolStats] = useState<any>({});
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [currentMantra, setCurrentMantra] = useState(0);
+  const [isInSession, setIsInSession] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
-    trackDashboardView();
-    loadAdditionalData();
-  }, [quitData]);
-
-  const loadAdditionalData = async () => {
-    try {
-      // Load user's leaderboard rank
-      const rank = await socialCompetition.getUserRank('streak');
-      setUserRank(rank);
-      
-      // Load ROI analysis
-      const roi = await financialIncentives.calculateROI();
-      setROIAnalysis(roi);
-    } catch (error) {
-      console.error('Failed to load additional data:', error);
-    }
-  };
-  
-  const loadDashboardData = () => {
-    // Calculate quit statistics if we have the necessary data
-    if (quitData.quitDate && quitData.usageAmount && quitData.substanceType) {
-      const dailyCost = calculateDailyCost();
-      const stats = calculateQuitStats(
-        quitData.quitDate,
-        quitData.usageAmount,
-        dailyCost / quitData.usageAmount * 20 // Approximate cost per pack
-      );
-      setQuitStats(stats);
-    }
-
-    // Load tool usage statistics
-    const allToolStats = getToolStats('all');
-    setToolStats(allToolStats);
-  };
-
-  const calculateDailyCost = () => {
-    if (!quitData.usageAmount || !quitData.substanceType) return 0;
+    analytics.track('panic_mode_opened');
     
-    if (quitData.substanceType === 'cigarettes') {
-      // Assume $8 per pack, 20 cigarettes per pack
-      return (quitData.usageAmount / 20) * 8;
-    } else if (quitData.substanceType === 'vape') {
-      // Assume $15 per pod/cartridge
-      return quitData.usageAmount * 15;
-    }
-    return 0;
-  };
+    // Cycle through mantras every 5 seconds
+    const mantraInterval = setInterval(() => {
+      setCurrentMantra((prev) => (prev + 1) % EMERGENCY_MANTRAS.length);
+    }, 5000);
 
-  const trackDashboardView = () => {
-    analytics.track('dashboard_viewed', {
-      has_quit_data: !!quitData.quitDate,
-      days_since_quit: quitStats?.daysSinceQuit || 0,
-      user_type: user ? 'authenticated' : 'anonymous',
+    return () => clearInterval(mantraInterval);
+  }, []);
+
+  const handleStrategySelect = (strategyId: string) => {
+    const strategy = CRISIS_STRATEGIES.find(s => s.id === strategyId);
+    if (!strategy) return;
+
+    setSelectedStrategy(strategyId);
+    setIsInSession(true);
+    setSessionStartTime(new Date());
+
+    analytics.track('panic_strategy_selected', { 
+      strategy: strategyId,
+      strategy_name: strategy.title 
     });
+
+    // Navigate to specific tools
+    switch (strategyId) {
+      case 'breathing':
+        router.push('/(app)/tools/breathwork');
+        break;
+      case 'countdown':
+        router.push('/(app)/tools/urge-timer');
+        break;
+      default:
+        // Stay in panic mode for other strategies
+        break;
+    }
   };
 
-  const handleToolPress = (toolRoute: string, toolName: string) => {
-    analytics.track('dashboard_tool_clicked', { tool_name: toolName });
-    router.push(toolRoute as any);
-  };
+  const handleSessionComplete = () => {
+    if (sessionStartTime) {
+      const duration = Math.floor((Date.now() - sessionStartTime.getTime()) / 1000);
+      recordToolUse('panic-mode', duration);
+      
+      analytics.track('panic_session_completed', {
+        strategy: selectedStrategy,
+        duration_seconds: duration
+      });
 
-  const renderMainStats = () => {
-    if (!quitStats) {
-      return (
-        <Card style={styles.setupCard}>
-          <Text style={styles.setupIcon}>🎯</Text>
-          <Text style={styles.setupTitle}>Complete Your Quit Setup</Text>
-          <Text style={styles.setupDescription}>
-            Set your quit date and usage details to see your progress and savings
-          </Text>
-          <Button 
-            variant="primary" 
-            size="md"
-            onPress={() => router.push('/(onboarding)')}
-            style={styles.setupButton}
-          >
-            Complete Setup
-          </Button>
-        </Card>
+      Alert.alert(
+        'Crisis Survived! 💪',
+        'You made it through a tough moment. Every time you resist, you get stronger.',
+        [
+          { text: 'Continue', style: 'default' },
+          { 
+            text: 'Talk to Coach', 
+            style: 'default',
+            onPress: () => router.push('/(app)/(tabs)/coach')
+          }
+        ]
       );
     }
 
-    return (
-      <View style={styles.statsSection}>
-        {/* Primary Stat - Days Smoke Free */}
-        <Card style={styles.primaryStatCard}>
-          <Text style={styles.primaryStatValue}>
-            {formatDuration(quitStats.daysSinceQuit)}
-          </Text>
-          <Text style={styles.primaryStatLabel}>Smoke-Free</Text>
-          {quitStats.daysSinceQuit > 0 && (
-            <Badge variant="success" style={styles.streakBadge}>
-              🔥 {quitStats.daysSinceQuit} day streak
-            </Badge>
-          )}
-        </Card>
+    setIsInSession(false);
+    setSelectedStrategy(null);
+    setSessionStartTime(null);
+  };
 
-        {/* Secondary Stats */}
-        <View style={styles.secondaryStats}>
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {formatCurrency(quitStats.moneySaved)}
-            </Text>
-            <Text style={styles.statLabel}>Money Saved</Text>
-          </Card>
-          
-          <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
-              {quitStats.cigarettesNotSmoked.toLocaleString()}
-            </Text>
-            <Text style={styles.statLabel}>
-              {quitData.substanceType === 'cigarettes' ? 'Cigarettes' : 'Puffs'} Avoided
-            </Text>
-          </Card>
-        </View>
+  const handleEmergencyCoach = () => {
+    analytics.track('panic_coach_requested');
+    router.push('/(app)/(tabs)/coach');
+  };
+
+  const handleCommunityHelp = () => {
+    analytics.track('panic_community_requested');
+    router.push('/(app)/(tabs)/community');
+  };
+
+  const renderEmergencyHeader = () => (
+    <View style={styles.emergencyHeader}>
+      <Text style={styles.emergencyTitle}>🚨 Crisis Mode</Text>
+      <Text style={styles.emergencySubtitle}>
+        You're having a tough moment. Let's get through this together.
+      </Text>
+      
+      <Card style={styles.mantraCard}>
+        <Text style={styles.mantraText}>
+          {EMERGENCY_MANTRAS[currentMantra]}
+        </Text>
+      </Card>
+    </View>
+  );
+
+  const renderQuickActions = () => (
+    <Card style={styles.quickActionsCard}>
+      <Text style={styles.quickActionsTitle}>🆘 Immediate Help</Text>
+      <View style={styles.quickActionButtons}>
+        <TouchableOpacity 
+          style={styles.coachButton}
+          onPress={handleEmergencyCoach}
+        >
+          <Text style={styles.coachButtonIcon}>🤖</Text>
+          <Text style={styles.coachButtonText}>Talk to AI Coach</Text>
+          <Text style={styles.coachButtonSubtext}>Instant crisis support</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.communityButton}
+          onPress={handleCommunityHelp}
+        >
+          <Text style={styles.communityButtonIcon}>💬</Text>
+          <Text style={styles.communityButtonText}>Ask Community</Text>
+          <Text style={styles.communityButtonSubtext}>Post for peer support</Text>
+        </TouchableOpacity>
       </View>
-    );
-  };
+    </Card>
+  );
 
-  const renderHealthMilestones = () => {
-    if (!quitStats?.healthMilestones) return null;
-
-    const visibleMilestones = quitStats.healthMilestones.slice(0, 4);
-
-    return (
-      <Card style={styles.healthCard}>
-        <Text style={styles.sectionTitle}>🫁 Health Recovery</Text>
-        <View style={styles.milestonesContainer}>
-          {visibleMilestones.map((milestone: any) => (
-            <View key={milestone.id} style={styles.milestoneItem}>
-              <View style={[
-                styles.milestoneIndicator,
-                milestone.achieved && styles.milestoneAchieved
-              ]} />
-              <View style={styles.milestoneContent}>
-                <Text style={[
-                  styles.milestoneTitle,
-                  milestone.achieved && styles.milestoneAchievedText
-                ]}>
-                  {milestone.title}
-                </Text>
-                <Text style={styles.milestoneDescription}>
-                  {milestone.description}
-                </Text>
-              </View>
+  const renderStrategies = () => (
+    <Card style={styles.strategiesCard}>
+      <Text style={styles.strategiesTitle}>💪 Crisis Strategies</Text>
+      <Text style={styles.strategiesSubtitle}>
+        Choose what feels right for you right now
+      </Text>
+      
+      <View style={styles.strategiesList}>
+        {CRISIS_STRATEGIES.map((strategy) => (
+          <TouchableOpacity
+            key={strategy.id}
+            style={[
+              styles.strategyCard,
+              selectedStrategy === strategy.id && styles.selectedStrategyCard
+            ]}
+            onPress={() => handleStrategySelect(strategy.id)}
+          >
+            <Text style={styles.strategyIcon}>{strategy.icon}</Text>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyTitle}>{strategy.title}</Text>
+              <Text style={styles.strategyDescription}>{strategy.description}</Text>
+              <Text style={styles.strategyDuration}>⏱️ {strategy.duration}</Text>
             </View>
-          ))}
-        </View>
+            <View style={styles.strategyAction}>
+              <Text style={styles.strategyActionText}>{strategy.action}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </Card>
+  );
+
+  const renderSessionProgress = () => {
+    if (!isInSession || !selectedStrategy) return null;
+
+    const strategy = CRISIS_STRATEGIES.find(s => s.id === selectedStrategy);
+    if (!strategy) return null;
+
+    return (
+      <Card style={styles.sessionCard}>
+        <Text style={styles.sessionTitle}>🎯 Active Session</Text>
+        <Text style={styles.sessionStrategy}>{strategy.title}</Text>
+        <Text style={styles.sessionDescription}>{strategy.description}</Text>
+        
+        <Button
+          onPress={handleSessionComplete}
+          style={styles.completeButton}
+        >
+          I Feel Better Now
+        </Button>
       </Card>
     );
   };
 
-  const renderQuickTools = () => {
-    const tools = [
-      {
-        id: 'panic',
-        name: 'Panic Mode',
-        icon: '🚨',
-        route: '/(app)/tools/panic',
-        color: Theme.colors.error.text,
-      },
-      {
-        id: 'urge-timer',
-        name: 'Urge Timer',
-        icon: '⏱️',
-        route: '/(app)/tools/urge-timer',
-        color: Theme.colors.warning.text,
-      },
-      {
-        id: 'breathwork',
-        name: 'Breathwork',
-        icon: '🫁',
-        route: '/(app)/tools/breathwork',
-        color: Theme.colors.info.text,
-      },
-      {
-        id: 'pledge',
-        name: 'Daily Pledge',
-        icon: '🤝',
-        route: '/(app)/tools/pledge',
-        color: Theme.colors.success.text,
-      },
-    ];
+  const renderSuccessStats = () => {
+    // Mock some encouraging stats
+    const stats = {
+      crisesHandled: 12,
+      successRate: 94,
+      avgRecoveryTime: 4.2
+    };
 
     return (
-      <Card style={styles.toolsCard}>
-        <Text style={styles.sectionTitle}>⚡ Quick Tools</Text>
-        <View style={styles.toolsGrid}>
-          {tools.map((tool) => {
-            const stats = toolStats[tool.id] || { totalUses: 0, currentStreak: 0 };
-            return (
-              <TouchableOpacity 
-                key={tool.id}
-                onPress={() => handleToolPress(tool.route, tool.name)}
-              >
-                <Card style={styles.toolCard}>
-                  <Text style={[styles.toolIcon, { color: tool.color }]}>
-                    {tool.icon}
-                  </Text>
-                  <Text style={styles.toolName}>{tool.name}</Text>
-                  {stats.totalUses > 0 && (
-                    <Text style={styles.toolUsage}>
-                      Used {stats.totalUses}x
-                    </Text>
-                  )}
-                </Card>
-              </TouchableOpacity>
-            );
-          })}
+      <Card style={styles.statsCard}>
+        <Text style={styles.statsTitle}>🏆 Your Crisis Stats</Text>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.crisesHandled}</Text>
+            <Text style={styles.statLabel}>Crises Handled</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.successRate}%</Text>
+            <Text style={styles.statLabel}>Success Rate</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.avgRecoveryTime}m</Text>
+            <Text style={styles.statLabel}>Avg Recovery</Text>
+          </View>
         </View>
-      </Card>
-    );
-  };
-
-  const renderMotivationalMessage = () => {
-    const messages = [
-      "Every smoke-free moment is a victory! 🏆",
-      "You're building a healthier future, one day at a time. 💪",
-      "Your lungs are thanking you right now. 🫁",
-      "Stay strong - you've got this! ⭐",
-      "Each craving you overcome makes you stronger. 🔥",
-    ];
-
-    const message = messages[Math.floor(Math.random() * messages.length)];
-
-    return (
-      <Card style={styles.motivationCard}>
-        <Text style={styles.motivationMessage}>{message}</Text>
+        <Text style={styles.statsEncouragement}>
+          You're getting stronger with every crisis you overcome! 💪
+        </Text>
       </Card>
     );
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView} 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.greeting}>
-            {user ? `Welcome back!` : 'Welcome to QuitHero!'}
-          </Text>
-          <Text style={styles.title}>Your Quit Journey</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+
+          {renderEmergencyHeader()}
+          {renderQuickActions()}
+          {renderSessionProgress()}
+          {renderStrategies()}
+          {renderSuccessStats()}
         </View>
-
-        {/* Main Stats */}
-        {renderMainStats()}
-
-        {/* Health Milestones */}
-        {renderHealthMilestones()}
-
-        {/* Quick Tools */}
-        {renderQuickTools()}
-
-        {/* Motivational Message */}
-        {renderMotivationalMessage()}
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -299,194 +297,250 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: Theme.layout.screenPadding,
+  content: {
+    padding: 20,
   },
-  header: {
-    paddingTop: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
+  backButton: {
+    alignSelf: 'flex-start',
+    padding: 8,
+    marginBottom: 16,
   },
-  greeting: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.secondary,
-    marginBottom: Theme.spacing.xs,
-  },
-  title: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
+  backButtonText: {
+    fontSize: 16,
+    color: Theme.colors.purple[500],
+    fontWeight: '600',
   },
   
-  // Setup Card Styles
-  setupCard: {
-    padding: Theme.spacing.xl,
+  // Emergency Header
+  emergencyHeader: {
     alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
+    marginBottom: 24,
   },
-  setupIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.lg,
-  },
-  setupTitle: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
+  emergencyTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#EF4444',
     textAlign: 'center',
-    marginBottom: Theme.spacing.md,
+    marginBottom: 8,
   },
-  setupDescription: {
-    ...Theme.typography.body,
+  emergencySubtitle: {
+    fontSize: 16,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: Theme.spacing.lg,
+    marginBottom: 20,
   },
-  setupButton: {
+  mantraCard: {
+    width: '100%',
+    padding: 20,
+    backgroundColor: '#4C1D95',
+    borderColor: '#8B5CF6',
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  mantraText: {
+    fontSize: 18,
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 26,
+  },
+
+  // Quick Actions
+  quickActionsCard: {
+    padding: 20,
+    marginBottom: 24,
+    backgroundColor: '#7F1D1D',
+    borderColor: '#EF4444',
+    borderWidth: 1,
+  },
+  quickActionsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FEF2F2',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  quickActionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  coachButton: {
+    flex: 1,
+    backgroundColor: '#8B5CF6',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  coachButtonIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  coachButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  coachButtonSubtext: {
+    fontSize: 12,
+    color: '#D1D5DB',
+    textAlign: 'center',
+  },
+  communityButton: {
+    flex: 1,
+    backgroundColor: '#059669',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  communityButtonIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  communityButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  communityButtonSubtext: {
+    fontSize: 12,
+    color: '#D1D5DB',
+    textAlign: 'center',
+  },
+
+  // Strategies
+  strategiesCard: {
+    padding: 20,
+    marginBottom: 24,
+  },
+  strategiesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  strategiesSubtitle: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    marginBottom: 16,
+  },
+  strategiesList: {
+    gap: 12,
+  },
+  strategyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2A2A2A',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedStrategyCard: {
+    backgroundColor: '#4C1D95',
+    borderColor: '#8B5CF6',
+  },
+  strategyIcon: {
+    fontSize: 32,
+    marginRight: 16,
+  },
+  strategyContent: {
+    flex: 1,
+  },
+  strategyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  strategyDescription: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    marginBottom: 4,
+  },
+  strategyDuration: {
+    fontSize: 12,
+    color: Theme.colors.text.tertiary,
+  },
+  strategyAction: {
+    marginLeft: 12,
+  },
+  strategyActionText: {
+    fontSize: 12,
+    color: '#8B5CF6',
+    fontWeight: '600',
+  },
+
+  // Session Progress
+  sessionCard: {
+    padding: 20,
+    marginBottom: 24,
+    backgroundColor: '#1E3A8A',
+    borderColor: '#3B82F6',
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  sessionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#60A5FA',
+    marginBottom: 8,
+  },
+  sessionStrategy: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Theme.colors.text.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  sessionDescription: {
+    fontSize: 16,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  completeButton: {
+    backgroundColor: '#22C55E',
     minWidth: 200,
   },
 
-  // Stats Section Styles
-  statsSection: {
-    marginBottom: Theme.spacing.xl,
+  // Stats
+  statsCard: {
+    padding: 20,
+    marginBottom: 24,
   },
-  primaryStatCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-    marginBottom: Theme.spacing.md,
-  },
-  primaryStatValue: {
-    ...Theme.typography.largeTitle,
-    fontSize: 36,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.xs,
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Theme.colors.text.primary,
+    marginBottom: 16,
     textAlign: 'center',
   },
-  primaryStatLabel: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-  },
-  streakBadge: {
-    marginTop: Theme.spacing.sm,
-  },
-  secondaryStats: {
+  statsGrid: {
     flexDirection: 'row',
-    gap: Theme.spacing.md,
+    justifyContent: 'space-around',
+    marginBottom: 16,
   },
-  statCard: {
-    flex: 1,
-    padding: Theme.spacing.lg,
+  statItem: {
     alignItems: 'center',
   },
-  statValue: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-    textAlign: 'center',
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#22C55E',
+    marginBottom: 4,
   },
   statLabel: {
-    ...Theme.typography.footnote,
+    fontSize: 12,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
   },
-
-  // Health Milestones Styles
-  healthCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-  },
-  sectionTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.lg,
-  },
-  milestonesContainer: {
-    gap: Theme.spacing.md,
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  milestoneIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Theme.colors.dark.border,
-    marginRight: Theme.spacing.md,
-    marginTop: 6,
-  },
-  milestoneAchieved: {
-    backgroundColor: Theme.colors.success.text,
-  },
-  milestoneContent: {
-    flex: 1,
-  },
-  milestoneTitle: {
-    ...Theme.typography.callout,
+  statsEncouragement: {
+    fontSize: 14,
     color: Theme.colors.text.secondary,
-    marginBottom: 2,
-  },
-  milestoneAchievedText: {
-    color: Theme.colors.text.primary,
-    fontWeight: '600',
-  },
-  milestoneDescription: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
-    lineHeight: 18,
-  },
-
-  // Tools Section Styles
-  toolsCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-  },
-  toolsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Theme.spacing.md,
-  },
-  toolCard: {
-    flex: 1,
-    minWidth: '45%',
-    padding: Theme.spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
-  },
-  toolIcon: {
-    fontSize: 28,
-    marginBottom: Theme.spacing.xs,
-  },
-  toolName: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: Theme.spacing.xs,
-    fontWeight: '500',
-  },
-  toolUsage: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.tertiary,
-    textAlign: 'center',
-  },
-
-  // Motivation Card Styles
-  motivationCard: {
-    padding: Theme.spacing.lg,
-    alignItems: 'center',
-    backgroundColor: Theme.colors.purple[500] + '10',
-    borderColor: Theme.colors.purple[500] + '30',
-    marginBottom: Theme.spacing.xl,
-  },
-  motivationMessage: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    lineHeight: 24,
     fontStyle: 'italic',
-  },
-
-  // Spacing
-  bottomSpacing: {
-    height: Theme.spacing.xl,
   },
 });
