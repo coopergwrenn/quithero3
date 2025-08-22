@@ -1,415 +1,503 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
-import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
-import { getContentCategories, type ContentCategory, type Article } from '@/src/data/educationalContent';
+
+const { width } = Dimensions.get('window');
 
 export default function LearnScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('foundation');
-  const [completedModules, setCompletedModules] = useState<string[]>([]);
-  const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>([]);
-  const [expandedCards, setExpandedCards] = useState<string[]>([]);
-  
+  const [selectedCategory, setSelectedCategory] = useState('quick-start');
+  const [readArticles, setReadArticles] = useState(new Set());
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+  const [showArticleModal, setShowArticleModal] = useState(false);
   const { quitData } = useQuitStore();
-  const { user } = useAuthStore();
-  const router = useRouter();
-
-  // Calculate days since quit for content unlocking
-  const daysSinceQuit = quitData.quitDate 
-    ? Math.floor((new Date().getTime() - new Date(quitData.quitDate).getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
-
-  // Get content categories with personalized unlocking
-  const contentCategories = getContentCategories(daysSinceQuit, quitData);
 
   useEffect(() => {
-    analytics.track('learn_tab_opened', {
-      days_since_quit: daysSinceQuit,
-      categories_unlocked: contentCategories.filter(cat => cat.unlocked).length
-    });
-    
-    // Load saved progress from storage
-    loadUserProgress();
+    analytics.track('learn_tab_opened');
   }, []);
 
-  const loadUserProgress = () => {
-    // In a real app, this would load from AsyncStorage or server
-    // For demo, using some mock data
-    const mockCompleted = ['why-quitting-hard', 'quit-timeline'];
-    const mockBookmarked = ['understanding-cravings', 'nrt-options'];
-    setCompletedModules(mockCompleted);
-    setBookmarkedArticles(mockBookmarked);
+  const categories = [
+    { id: 'quick-start', title: 'Quick Start', icon: '🚀' },
+    { id: 'health', title: 'Health Recovery', icon: '🫁' },
+    { id: 'nrt', title: 'NRT Guide', icon: '💊' },
+    { id: 'science', title: 'Science', icon: '🧠' },
+    { id: 'strategies', title: 'Strategies', icon: '🎯' }
+  ];
+
+  const quickStartContent = [
+    {
+      id: 'first-24-hours',
+      title: 'Your First 24 Hours',
+      readTime: '5 min read',
+      preview: 'Essential survival guide for your first day smoke-free',
+      content: `Your First 24 Hours Smoke-Free
+
+Congratulations on taking the first step! The first 24 hours are crucial for setting the foundation of your quit journey.
+
+What to Expect
+
+Physical symptoms:
+• Cravings every 15-30 minutes (lasting 3-5 minutes each)
+• Slight anxiety or restlessness  
+• Possible mild headache
+• Increased appetite
+
+Emotional symptoms:
+• Mood swings
+• Irritability
+• Feeling of loss or grief
+• Excitement about quitting
+
+Hour-by-Hour Guide
+
+Hours 1-4: The Decision Phase
+• Cravings are manageable
+• Focus on your reasons for quitting
+• Remove all smoking materials from your environment
+
+Hours 4-8: Peak Initial Withdrawal
+• Cravings intensify
+• Use your panic mode tool
+• Stay busy with hands-on activities
+
+Hours 8-16: Habit Disruption
+• Strongest urges during usual smoking times
+• Change your routine
+• Avoid triggers when possible
+
+Hours 16-24: First Milestone Approaching
+• Physical symptoms peak then begin to fade
+• Celebrate making it through the hardest part
+• Plan rewards for completing day 1
+
+Emergency Strategies
+
+When cravings hit:
+1. Use the 4-7-8 breathing technique
+2. Drink cold water slowly
+3. Go for a 5-minute walk
+4. Call a supportive friend
+5. Use your urge timer tool
+
+Tips for Success
+
+• Stay hydrated: Drink water every hour
+• Keep hands busy: Stress ball, pen, toothpick
+• Change environment: Avoid smoking areas
+• Reward yourself: Plan something special for completing day 1
+
+Remember: Every craving you overcome makes you stronger. You can do this!`
+    },
+    {
+      id: 'week-1-survival',
+      title: 'Week 1 Survival Guide', 
+      readTime: '7 min read',
+      preview: 'Navigate the most challenging week of your quit journey',
+      content: `Week 1 Survival Guide
+
+The first week is the most challenging but also the most important for long-term success.
+
+Day 1-3: Peak Withdrawal
+These are typically the hardest days as nicotine leaves your system.
+
+What's happening in your body:
+• Nicotine levels drop to zero
+• Acetylcholine receptors are readjusting
+• Dopamine production is irregular
+
+Strategies:
+• Use NRT if planned (patch, gum, lozenge)
+• Stay extremely busy
+• Avoid alcohol and caffeine late in day
+• Go to bed early to avoid evening cravings
+
+Day 4-7: Habit Reconstruction
+Physical withdrawal eases, but psychological habits remain strong.
+
+Focus areas:
+• Breaking routine triggers
+• Developing new coping mechanisms
+• Building confidence in your quit
+
+Daily activities:
+• Morning: Set daily quit intention
+• Afternoon: Practice breathing exercises
+• Evening: Reflect on daily victories
+
+Common Week 1 Challenges
+
+"I can't concentrate"
+• Normal - brain is readjusting to functioning without nicotine
+• Try 10-minute focused work sessions
+• Take frequent breaks
+• Use peppermint tea or gum for mental clarity
+
+"I'm incredibly irritable"
+• Expected response to breaking addiction
+• Warn family/friends in advance
+• Practice patience with yourself
+• Use physical exercise to release tension
+
+Week 1 Milestones to Celebrate
+
+• Day 1: You chose your health
+• Day 2: Nicotine is leaving your system
+• Day 3: You're through the hardest part
+• Day 4: New habits are forming
+• Day 5: You're proving you can do this
+• Day 6: Almost at one week!
+• Day 7: You're officially a non-smoker for a full week!
+
+You're building the foundation for lifelong freedom. Every hour matters!`
+    }
+  ];
+
+  const healthContent = [
+    {
+      id: 'recovery-timeline',
+      title: 'Health Recovery Timeline',
+      readTime: '6 min read', 
+      preview: 'Discover how your body heals after quitting smoking',
+      content: `Your Body's Amazing Recovery Timeline
+
+Your body begins healing within minutes of your last cigarette. Here's the science-backed timeline:
+
+Immediate Recovery (0-72 Hours)
+
+20 Minutes:
+• Heart rate drops to normal levels
+• Blood pressure begins to decrease
+• Circulation to hands and feet improves
+• Body temperature of hands and feet increases
+
+12 Hours:
+• Carbon monoxide level drops to normal
+• Blood oxygen level increases to normal
+• Risk of heart attack begins to decrease
+
+24 Hours:
+• Anxiety peaks and then begins to decrease
+• Chance of heart attack decreases significantly
+
+48 Hours:
+• Nerve endings begin to regenerate
+• Sense of smell and taste start to improve
+• Ability to smell and taste is enhanced
+
+72 Hours:
+• Bronchial tubes relax, breathing becomes easier
+• Lung capacity increases
+• Nicotine is completely eliminated from the body
+
+Short-term Recovery (1 Week - 3 Months)
+
+1 Week:
+• Risk of relapse decreases significantly
+• Confidence in quit ability increases
+• Sleep patterns normalize
+
+2 Weeks:
+• Circulation continues to improve
+• Walking becomes easier
+• Lung function increases up to 30%
+• Withdrawal symptoms largely subside
+
+1 Month:
+• Coughing and shortness of breath decrease
+• Energy levels increase noticeably
+• Immune system function improves
+• Risk of infection decreases
+
+3 Months:
+• Circulation improves significantly
+• Lung function increases by up to 30%
+• Cough and breathing problems continue to improve
+• Overall physical fitness improves
+
+Long-term Recovery (1+ Years)
+
+1 Year:
+• Risk of coronary heart disease is cut in half
+• Risk of stroke decreases significantly
+• Lung function and circulation improve dramatically
+• Cancer risk begins to decrease
+
+5 Years:
+• Risk of stroke reduces to that of non-smokers
+• Risk of mouth, throat, esophagus, and bladder cancer is cut in half
+• Cervical cancer risk falls to that of non-smokers
+
+10 Years:
+• Risk of lung cancer falls to half that of smokers
+• Risk of pancreatic and kidney cancer decreases significantly
+• Pre-cancerous cells are replaced with healthy cells
+
+15 Years:
+• Risk of coronary heart disease equals that of non-smokers
+• Risk of death returns to nearly the level of people who have never smoked
+• Life expectancy approaches that of non-smokers
+
+What You Can Do to Accelerate Healing
+
+Nutrition:
+• Eat antioxidant-rich foods (berries, leafy greens)
+• Increase vitamin C intake
+• Stay hydrated with 8+ glasses of water daily
+• Reduce inflammatory foods
+
+Exercise:
+• Start with light cardio (walking, swimming)
+• Focus on breathing exercises
+• Gradually increase intensity as lung function improves
+• Include strength training after first month
+
+Environment:
+• Avoid secondhand smoke completely
+• Use air purifiers if possible
+• Spend time in clean, outdoor air
+• Avoid other pollutants when possible
+
+Your body is incredibly resilient and wants to heal. Every day smoke-free is a gift to your future self!`
+    }
+  ];
+
+  const nrtContent = [
+    {
+      id: 'nrt-guide',
+      title: 'Complete NRT Guide',
+      readTime: '10 min read',
+      preview: 'Everything you need to know about nicotine replacement therapy',
+      content: `Complete Guide to Nicotine Replacement Therapy (NRT)
+
+MEDICAL DISCLAIMER: This information is for educational purposes only. Always consult your healthcare provider before starting any NRT. This is not a substitute for professional medical advice.
+
+What is NRT?
+
+Nicotine Replacement Therapy provides controlled doses of nicotine without the harmful chemicals found in cigarettes. It helps manage withdrawal symptoms while you break behavioral habits.
+
+Types of NRT
+
+Nicotine Patches
+• Deliver steady nicotine through skin over 16-24 hours
+• Reduce overall withdrawal symptoms
+• Most convenient option - apply once daily
+
+Dosing guidelines:
+• 21mg patch: For heavy smokers (20+ cigarettes/day)
+• 14mg patch: For moderate smokers (10-19 cigarettes/day)
+• 7mg patch: For light smokers (<10 cigarettes/day) or step-down
+
+Step-down protocol:
+• Start with appropriate dose for 6-8 weeks
+• Step down to next lower dose for 2-4 weeks
+• Step down to lowest dose for 2-4 weeks
+• Total treatment: 10-16 weeks
+
+Nicotine Gum
+• Fast-acting nicotine absorption through mouth lining
+• User controls timing and amount
+• Helps with hand-to-mouth habit
+
+Dosing:
+• 4mg gum: For heavy smokers or strong cravings
+• 2mg gum: For light-moderate smokers
+
+Proper technique:
+• Chew slowly until peppery taste appears
+• "Park" between cheek and gum for 20-30 minutes
+• Do NOT continuously chew like regular gum
+• Avoid eating/drinking 15 minutes before and during use
+
+Nicotine Lozenges
+• Dissolve slowly in mouth for steady nicotine release
+• No chewing required
+• Discrete and convenient
+
+Dosing:
+• 4mg lozenge: If you smoke within 30 minutes of waking
+• 2mg lozenge: If you smoke more than 30 minutes after waking
+
+Combination Therapy
+
+Patch + Fast-Acting NRT:
+• Patch provides steady baseline nicotine
+• Gum/lozenge handles breakthrough cravings
+• Studies show 15-25% higher success rates
+• Always consult healthcare provider first
+
+Choosing the Right NRT
+
+Consider patches if you:
+• Want convenience (once daily)
+• Have steady cravings throughout day
+• Don't want to think about timing
+• Have jaw problems preventing gum use
+
+Consider gum/lozenges if you:
+• Have irregular smoking patterns
+• Want control over timing and dose
+• Have skin sensitivity to patches
+• Need help with hand-to-mouth habit
+
+Success Tips
+
+• Start on quit day: Don't wait for cravings to begin
+• Use full recommended duration: Don't stop early
+• Combine with behavioral support: Apps, counseling, support groups
+• Be patient: NRT reduces but doesn't eliminate all cravings
+• Step down gradually: Sudden stopping may trigger relapse
+
+Remember: NRT is a tool, not a magic cure. Success rates double when NRT is used properly compared to willpower alone!`
+    }
+  ];
+
+  const getAllContent = () => {
+    switch(selectedCategory) {
+      case 'quick-start':
+        return quickStartContent;
+      case 'health':
+        return healthContent;
+      case 'nrt':
+        return nrtContent;
+      case 'science':
+        return quickStartContent; // Placeholder
+      case 'strategies':
+        return quickStartContent; // Placeholder
+      default:
+        return quickStartContent;
+    }
   };
 
-  const openArticle = (article: Article) => {
-    if (!article.unlocked) {
-      Alert.alert(
-        'Content Locked',
-        `This article will unlock after ${article.unlockDays || 0} days of being smoke-free.`,
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    analytics.track('learn_article_opened', {
+  const openArticle = (article: any) => {
+    setSelectedArticle(article);
+    setShowArticleModal(true);
+    analytics.track('learn_article_opened', { 
       article_id: article.id,
-      category: selectedCategory,
-      difficulty: article.difficulty
+      article_title: article.title 
     });
-
-    // In a real app, would navigate to article detail screen
-    Alert.alert(
-      article.title,
-      `This would open the full article: "${article.description}"\n\nFeatures:\n• ${article.readTime} read\n• ${article.difficulty} level\n• ${article.sections.length} sections`,
-      [
-        { text: 'Bookmark', onPress: () => toggleBookmark(article.id) },
-        { text: 'Mark Complete', onPress: () => markCompleted(article.id) },
-        { text: 'Close' }
-      ]
-    );
   };
 
-  const toggleBookmark = (articleId: string) => {
-    setBookmarkedArticles(prev => 
-      prev.includes(articleId) 
-        ? prev.filter(id => id !== articleId)
-        : [...prev, articleId]
-    );
+  const markAsRead = (articleId: string) => {
+    if (!articleId) return;
+    const newReadArticles = new Set(readArticles);
+    newReadArticles.add(articleId);
+    setReadArticles(newReadArticles);
+    analytics.track('learn_article_completed', { article_id: articleId });
+  };
+
+  const renderContent = () => {
+    const content = getAllContent();
     
-    analytics.track('learn_article_bookmarked', { article_id: articleId });
-  };
-
-  const markCompleted = (articleId: string) => {
-    if (!completedModules.includes(articleId)) {
-      setCompletedModules(prev => [...prev, articleId]);
-      analytics.track('learn_article_completed', { article_id: articleId });
-    }
-  };
-
-  const toggleCardExpansion = (articleId: string) => {
-    setExpandedCards(prev => 
-      prev.includes(articleId)
-        ? prev.filter(id => id !== articleId)
-        : [...prev, articleId]
-    );
-  };
-
-  const renderProgressOverview = () => {
-    const totalArticles = contentCategories.reduce((sum, cat) => sum + cat.articles.length, 0);
-    const unlockedArticles = contentCategories.reduce((sum, cat) => 
-      sum + cat.articles.filter(article => article.unlocked).length, 0
-    );
-
-    return (
-      <Card style={styles.progressCard}>
-        <Text style={styles.progressTitle}>Your Learning Progress</Text>
-        <View style={styles.progressStats}>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{completedModules.length}</Text>
-            <Text style={styles.progressLabel}>Completed</Text>
-          </View>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{bookmarkedArticles.length}</Text>
-            <Text style={styles.progressLabel}>Bookmarked</Text>
-          </View>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{unlockedArticles}</Text>
-            <Text style={styles.progressLabel}>Available</Text>
-          </View>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{totalArticles}</Text>
-            <Text style={styles.progressLabel}>Total</Text>
-          </View>
-        </View>
-        
-        {daysSinceQuit > 0 && (
-          <View style={styles.unlockProgress}>
-            <Text style={styles.unlockProgressText}>
-              🗓️ Day {daysSinceQuit} • Next unlock: {getNextUnlockInfo()}
-            </Text>
-          </View>
-        )}
-      </Card>
-    );
-  };
-
-  const getNextUnlockInfo = () => {
-    if (daysSinceQuit < 3) return `Behavioral Strategies in ${3 - daysSinceQuit} days`;
-    if (daysSinceQuit < 7) return `Advanced Stress Management in ${7 - daysSinceQuit} days`;
-    if (daysSinceQuit < 30) return `Long-term Success Guide in ${30 - daysSinceQuit} days`;
-    return 'All content unlocked! 🎉';
-  };
-
-  const renderCategoryCard = (category: ContentCategory) => (
-    <TouchableOpacity
-      key={category.id}
-      onPress={() => category.unlocked && setSelectedCategory(category.id)}
-      style={[
-        styles.categoryCard,
-        selectedCategory === category.id && styles.selectedCategory,
-        !category.unlocked && styles.lockedCategory
-      ]}
-    >
-      <Text style={styles.categoryIcon}>{category.icon}</Text>
-      <View style={styles.categoryContent}>
-        <Text style={[
-          styles.categoryTitle,
-          !category.unlocked && styles.lockedText
-        ]}>
-          {category.title}
-        </Text>
-        <Text style={[
-          styles.categoryDescription,
-          !category.unlocked && styles.lockedText
-        ]}>
-          {category.description}
-        </Text>
-        {!category.unlocked && category.unlockDays && (
-          <Badge variant="secondary" style={styles.unlockBadge}>
-            Unlocks in {Math.max(0, category.unlockDays - daysSinceQuit)} days
-          </Badge>
-        )}
-        {category.unlocked && (
-          <View style={styles.categoryStats}>
-            <Text style={styles.categoryStatsText}>
-              {category.articles.filter(a => a.unlocked).length}/{category.articles.length} available
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderArticleCard = (article: Article) => {
-    const isExpanded = expandedCards.includes(article.id);
-    const isCompleted = completedModules.includes(article.id);
-    const isBookmarked = bookmarkedArticles.includes(article.id);
-
-    return (
-      <TouchableOpacity
-        key={article.id}
+    return content.map(article => (
+      <TouchableOpacity 
+        key={article.id} 
         onPress={() => openArticle(article)}
-        style={[
-          styles.articleCard,
-          !article.unlocked && styles.lockedArticle,
-          isCompleted && styles.completedArticle
-        ]}
+        style={styles.articleCard}
       >
-        <View style={styles.articleHeader}>
+        <Card style={styles.articleCardInner}>
+          <View style={styles.articleHeader}>
+            <Text style={styles.articleTitle}>{article.title}</Text>
+            {readArticles.has(article.id) && (
+              <Badge variant="success" style={styles.readBadge}>
+                ✓ Read
+              </Badge>
+            )}
+          </View>
+          <Text style={styles.articlePreview}>{article.preview}</Text>
           <View style={styles.articleMeta}>
-            <Badge 
-              variant={
-                article.difficulty === 'Beginner' ? 'success' : 
-                article.difficulty === 'Intermediate' ? 'warning' : 'error'
-              }
-            >
-              {article.difficulty}
-            </Badge>
             <Text style={styles.readTime}>{article.readTime}</Text>
-            {article.personalized && (
-              <Badge variant="primary">Personalized</Badge>
-            )}
           </View>
-          <View style={styles.articleActions}>
-            {isBookmarked && (
-              <Text style={styles.bookmarkIcon}>🔖</Text>
-            )}
-            {isCompleted && (
-              <Text style={styles.completedIcon}>✅</Text>
-            )}
-          </View>
-        </View>
-        
-        <Text style={[
-          styles.articleTitle,
-          !article.unlocked && styles.lockedText
-        ]}>
-          {article.title}
-        </Text>
-        
-        <Text style={[
-          styles.articleDescription,
-          !article.unlocked && styles.lockedText
-        ]}>
-          {article.description}
-        </Text>
+        </Card>
+      </TouchableOpacity>
+    ));
+  };
 
-        {article.unlocked && isExpanded && (
-          <View style={styles.articlePreview}>
-            <Text style={styles.previewTitle}>Key Topics:</Text>
-            {article.sections.slice(0, 2).map((section, index) => (
-              <Text key={index} style={styles.previewItem}>
-                • {section.heading}
-              </Text>
-            ))}
-            {article.keyTakeaways && (
-              <Text style={styles.previewTakeaways}>
-                {article.keyTakeaways.length} key takeaways included
-              </Text>
-            )}
-          </View>
-        )}
-
-        {article.unlocked && (
-          <TouchableOpacity
-            onPress={() => toggleCardExpansion(article.id)}
-            style={styles.expandButton}
+  const renderArticleModal = () => (
+    <Modal
+      visible={showArticleModal}
+      animationType="slide"
+      presentationStyle="fullScreen"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity 
+            onPress={() => setShowArticleModal(false)}
+            style={styles.modalBackButton}
           >
-            <Text style={styles.expandButtonText}>
-              {isExpanded ? 'Less Info' : 'More Info'} {isExpanded ? '▲' : '▼'}
+            <Text style={styles.modalBackText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Learn</Text>
+          <TouchableOpacity 
+            onPress={() => markAsRead(selectedArticle?.id)}
+            style={styles.markReadButton}
+          >
+            <Text style={styles.markReadText}>
+              {readArticles.has(selectedArticle?.id) ? '✓ Read' : 'Mark Read'}
             </Text>
           </TouchableOpacity>
-        )}
-
-        {!article.unlocked && (
-          <View style={styles.lockOverlay}>
-            <Text style={styles.lockIcon}>🔒</Text>
-            <Text style={styles.lockText}>
-              Available after {article.unlockDays || 0} days smoke-free
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
-
-  const renderPersonalizedRecommendations = () => {
-    if (!quitData.triggers || quitData.triggers.length === 0) return null;
-
-    const recommendedArticles = [];
-    
-    if (quitData.triggers.includes('stress')) {
-      recommendedArticles.push('stress-management');
-    }
-    if (quitData.triggers.includes('social')) {
-      recommendedArticles.push('trigger-management');
-    }
-    if (quitData.usageAmount && quitData.usageAmount > 15) {
-      recommendedArticles.push('nrt-options');
-    }
-
-    if (recommendedArticles.length === 0) return null;
-
-    return (
-      <Card style={styles.recommendationsCard}>
-        <Text style={styles.recommendationsTitle}>
-          📝 Recommended for You
-        </Text>
-        <Text style={styles.recommendationsText}>
-          Based on your triggers: {quitData.triggers.join(', ')}
-        </Text>
-        <View style={styles.recommendationsList}>
-          {recommendedArticles.map(articleId => {
-            const category = contentCategories.find(cat => 
-              cat.articles.some(article => article.id === articleId)
-            );
-            const article = category?.articles.find(a => a.id === articleId);
-            
-            if (!article) return null;
-            
-            return (
-              <TouchableOpacity
-                key={articleId}
-                onPress={() => openArticle(article)}
-                style={styles.recommendationItem}
-              >
-                <Text style={styles.recommendationTitle}>{article.title}</Text>
-                <Text style={styles.recommendationDescription}>{article.description}</Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
-      </Card>
-    );
-  };
 
-  const currentCategory = contentCategories.find(cat => cat.id === selectedCategory);
+        <ScrollView style={styles.modalContent}>
+          {selectedArticle && (
+            <View style={styles.articleContent}>
+              <Text style={styles.articleFullTitle}>{selectedArticle.title}</Text>
+              <Text style={styles.articleFullText}>{selectedArticle.content}</Text>
+              </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.modalFooter}>
+          <Text style={styles.disclaimer}>
+            This information is for educational purposes only. Consult your healthcare provider for medical advice.
+                </Text>
+              </View>
+      </SafeAreaView>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Learn</Text>
-          <Text style={styles.subtitle}>
-            Evidence-based knowledge for your quit journey
-          </Text>
-        </View>
+          <Text style={styles.title}>Learn & Grow</Text>
+          <Text style={styles.subtitle}>Evidence-based education for your quit journey</Text>
+              </View>
 
-        {/* Progress Overview */}
-        {renderProgressOverview()}
-
-        {/* Personalized Recommendations */}
-        {renderPersonalizedRecommendations()}
-
-        {/* Category Selection */}
-        <View style={styles.categoriesSection}>
-          <Text style={styles.sectionTitle}>Categories</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoriesScroll}
-            contentContainerStyle={styles.categoriesScrollContent}
-          >
-            {contentCategories.map(renderCategoryCard)}
-          </ScrollView>
-        </View>
-
-        {/* Articles List */}
-        <View style={styles.articlesSection}>
-          <View style={styles.articlesSectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {currentCategory?.title} Articles
-            </Text>
-            {currentCategory && !currentCategory.unlocked && (
-              <Badge variant="secondary">
-                Unlocks in {Math.max(0, (currentCategory.unlockDays || 0) - daysSinceQuit)} days
-              </Badge>
-            )}
-          </View>
-          
-          {currentCategory?.unlocked ? (
-            <>
-              {currentCategory.articles.map(renderArticleCard)}
-              
-              {/* Coach Integration */}
-              <Card style={styles.coachIntegrationCard}>
-                <Text style={styles.coachIntegrationTitle}>💬 Need Help Understanding?</Text>
-                <Text style={styles.coachIntegrationText}>
-                  Ask your AI coach about any of these topics for personalized explanations
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoryScroll}
+          contentContainerStyle={styles.categoryScrollContent}
+        >
+          {categories.map(category => (
+            <TouchableOpacity
+              key={category.id}
+              onPress={() => setSelectedCategory(category.id)}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category.id && styles.categoryButtonActive
+              ]}
+            >
+              <Text style={styles.categoryIcon}>{category.icon}</Text>
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === category.id && styles.categoryTextActive
+              ]}>
+                {category.title}
                 </Text>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onPress={() => {
-                    analytics.track('learn_coach_clicked', { category: selectedCategory });
-                    router.push('/(app)/(tabs)/coach');
-                  }}
-                  style={styles.coachButton}
-                >
-                  Chat with AI Coach
-                </Button>
-              </Card>
-            </>
-          ) : (
-            <Card style={styles.lockedSectionCard}>
-              <Text style={styles.lockedSectionIcon}>🔒</Text>
-              <Text style={styles.lockedSectionTitle}>Category Locked</Text>
-              <Text style={styles.lockedSectionText}>
-                This content will unlock after {Math.max(0, (currentCategory?.unlockDays || 0) - daysSinceQuit)} more days of being smoke-free
-              </Text>
-            </Card>
-          )}
-        </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-        {/* Bottom spacing */}
-        <View style={styles.bottomSpacing} />
+        <View style={styles.contentSection}>
+          {renderContent()}
+        </View>
       </ScrollView>
+
+      {renderArticleModal()}
     </SafeAreaView>
   );
 }
@@ -421,154 +509,62 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: Theme.spacing.lg,
-    paddingTop: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.md,
   },
   title: {
     ...Theme.typography.largeTitle,
     color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
+    marginBottom: Theme.spacing.sm,
   },
   subtitle: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
     lineHeight: 24,
   },
-  
-  // Progress Card
-  progressCard: {
-    margin: Theme.spacing.md,
-    padding: Theme.spacing.lg,
+  categoryScroll: {
+    paddingLeft: Theme.spacing.lg,
+    marginBottom: Theme.spacing.lg,
   },
-  progressTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
+  categoryScrollContent: {
+    paddingRight: Theme.spacing.lg,
   },
-  progressStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: Theme.spacing.md,
-  },
-  progressStat: {
+  categoryButton: {
     alignItems: 'center',
+    padding: Theme.spacing.md,
+    marginRight: Theme.spacing.sm,
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: Theme.borderRadius.md,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minWidth: 80,
   },
-  progressNumber: {
-    ...Theme.typography.title1,
-    color: Theme.colors.purple[500],
-    fontWeight: 'bold',
+  categoryButtonActive: {
+    backgroundColor: Theme.colors.purple[500] + '20',
+    borderColor: Theme.colors.purple[500],
   },
-  progressLabel: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.secondary,
+  categoryIcon: {
+    fontSize: 24,
+    marginBottom: Theme.spacing.xs,
   },
-  unlockProgress: {
-    paddingTop: Theme.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Theme.colors.dark.border,
-  },
-  unlockProgressText: {
+  categoryText: {
     ...Theme.typography.footnote,
     color: Theme.colors.text.secondary,
     textAlign: 'center',
+    fontWeight: '500',
   },
-
-  // Categories Section
-  categoriesSection: {
-    marginBottom: Theme.spacing.xl,
-  },
-  sectionTitle: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
-    marginHorizontal: Theme.spacing.md,
-    marginBottom: Theme.spacing.md,
-  },
-  categoriesScroll: {
-    paddingLeft: Theme.spacing.md,
-  },
-  categoriesScrollContent: {
-    paddingRight: Theme.spacing.md,
-  },
-  categoryCard: {
-    width: 180,
-    padding: Theme.spacing.md,
-    marginRight: Theme.spacing.md,
-    backgroundColor: Theme.colors.dark.surface,
-    borderRadius: Theme.borderRadius.lg,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    minHeight: 120,
-  },
-  selectedCategory: {
-    borderColor: Theme.colors.purple[500],
-    backgroundColor: Theme.colors.purple[500] + '10',
-  },
-  lockedCategory: {
-    opacity: 0.5,
-  },
-  categoryIcon: {
-    fontSize: 32,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.sm,
-  },
-  categoryContent: {
-    flex: 1,
-  },
-  categoryTitle: {
-    ...Theme.typography.callout,
-    color: Theme.colors.text.primary,
+  categoryTextActive: {
+    color: Theme.colors.purple[500],
     fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: Theme.spacing.xs,
   },
-  categoryDescription: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginBottom: Theme.spacing.sm,
-  },
-  categoryStats: {
-    marginTop: 'auto',
-  },
-  categoryStatsText: {
-    ...Theme.typography.caption2,
-    color: Theme.colors.text.tertiary,
-    textAlign: 'center',
-  },
-  unlockBadge: {
-    alignSelf: 'center',
-    marginTop: Theme.spacing.xs,
-  },
-  lockedText: {
-    opacity: 0.6,
-  },
-
-  // Articles Section
-  articlesSection: {
-    paddingHorizontal: Theme.spacing.md,
-    marginBottom: Theme.spacing.xl,
-  },
-  articlesSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Theme.spacing.md,
+  contentSection: {
+    paddingHorizontal: Theme.spacing.lg,
+    paddingBottom: Theme.spacing.xl,
   },
   articleCard: {
-    backgroundColor: Theme.colors.dark.surface,
-    borderRadius: Theme.borderRadius.lg,
-    padding: Theme.spacing.lg,
     marginBottom: Theme.spacing.md,
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
-    position: 'relative',
   },
-  lockedArticle: {
-    opacity: 0.6,
-  },
-  completedArticle: {
-    borderColor: Theme.colors.success.text,
-    backgroundColor: Theme.colors.success.text + '10',
+  articleCardInner: {
+    padding: Theme.spacing.lg,
   },
   articleHeader: {
     flexDirection: 'row',
@@ -576,182 +572,90 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: Theme.spacing.sm,
   },
+  articleTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    flex: 1,
+    marginRight: Theme.spacing.md,
+  },
+  readBadge: {
+    flexShrink: 0,
+  },
+  articlePreview: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    lineHeight: 22,
+    marginBottom: Theme.spacing.md,
+  },
   articleMeta: {
     flexDirection: 'row',
-    gap: Theme.spacing.xs,
     alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  articleActions: {
-    flexDirection: 'row',
-    gap: Theme.spacing.xs,
   },
   readTime: {
-    ...Theme.typography.caption1,
+    ...Theme.typography.footnote,
     color: Theme.colors.text.tertiary,
   },
-  bookmarkIcon: {
-    fontSize: 16,
-  },
-  completedIcon: {
-    fontSize: 16,
-  },
-  articleTitle: {
-    ...Theme.typography.title3,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-  },
-  articleDescription: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    lineHeight: 20,
-    marginBottom: Theme.spacing.sm,
-  },
   
-  // Article Preview
-  articlePreview: {
+  // Modal styles
+  modalContainer: {
+    flex: 1,
     backgroundColor: Theme.colors.dark.background,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.borderRadius.md,
-    marginBottom: Theme.spacing.sm,
   },
-  previewTitle: {
-    ...Theme.typography.callout,
-    color: Theme.colors.text.primary,
-    fontWeight: '600',
-    marginBottom: Theme.spacing.xs,
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.colors.dark.border,
   },
-  previewItem: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
-    marginBottom: 2,
+  modalBackButton: {
+    padding: Theme.spacing.sm,
   },
-  previewTakeaways: {
-    ...Theme.typography.caption1,
+  modalBackText: {
+    ...Theme.typography.body,
     color: Theme.colors.purple[500],
-    marginTop: Theme.spacing.xs,
+    fontWeight: '600',
+  },
+  modalTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+  },
+  markReadButton: {
+    padding: Theme.spacing.sm,
+  },
+  markReadText: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.purple[500],
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: Theme.spacing.lg,
+  },
+  articleContent: {
+    paddingBottom: Theme.spacing.xl,
+  },
+  articleFullTitle: {
+    ...Theme.typography.title1,
+    color: Theme.colors.text.primary,
+    fontWeight: 'bold',
+    marginBottom: Theme.spacing.lg,
+  },
+  articleFullText: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.primary,
+    lineHeight: 26,
+  },
+  modalFooter: {
+    padding: Theme.spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.dark.border,
+  },
+  disclaimer: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
     fontStyle: 'italic',
-  },
-  expandButton: {
-    alignSelf: 'center',
-    paddingVertical: Theme.spacing.xs,
-    paddingHorizontal: Theme.spacing.sm,
-  },
-  expandButtonText: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.purple[500],
-    fontWeight: '600',
-  },
-
-  // Lock Overlay
-  lockOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: Theme.borderRadius.lg,
-  },
-  lockIcon: {
-    fontSize: 24,
-    marginBottom: Theme.spacing.xs,
-  },
-  lockText: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.secondary,
     textAlign: 'center',
-  },
-
-  // Locked Section
-  lockedSectionCard: {
-    padding: Theme.spacing.xl,
-    alignItems: 'center',
-  },
-  lockedSectionIcon: {
-    fontSize: 48,
-    marginBottom: Theme.spacing.md,
-  },
-  lockedSectionTitle: {
-    ...Theme.typography.title2,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.sm,
-    textAlign: 'center',
-  },
-  lockedSectionText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-
-  // Recommendations
-  recommendationsCard: {
-    margin: Theme.spacing.md,
-    padding: Theme.spacing.lg,
-    backgroundColor: Theme.colors.purple[500] + '10',
-    borderColor: Theme.colors.purple[500] + '30',
-    borderWidth: 1,
-  },
-  recommendationsTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.purple[500],
-    marginBottom: Theme.spacing.xs,
-  },
-  recommendationsText: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
-    marginBottom: Theme.spacing.md,
-  },
-  recommendationsList: {
-    gap: Theme.spacing.sm,
-  },
-  recommendationItem: {
-    backgroundColor: Theme.colors.dark.surface,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.borderRadius.md,
-  },
-  recommendationTitle: {
-    ...Theme.typography.callout,
-    color: Theme.colors.text.primary,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  recommendationDescription: {
-    ...Theme.typography.caption1,
-    color: Theme.colors.text.secondary,
-  },
-
-  // Coach Integration
-  coachIntegrationCard: {
-    padding: Theme.spacing.lg,
-    backgroundColor: Theme.colors.purple[500] + '15',
-    borderColor: Theme.colors.purple[500],
-    borderWidth: 1,
-    alignItems: 'center',
-    marginTop: Theme.spacing.md,
-  },
-  coachIntegrationTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.xs,
-    textAlign: 'center',
-  },
-  coachIntegrationText: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.md,
-    lineHeight: 20,
-  },
-  coachButton: {
-    minWidth: 160,
-  },
-
-  // Bottom spacing
-  bottomSpacing: {
-    height: Theme.spacing.xl,
   },
 });
