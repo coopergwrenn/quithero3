@@ -438,6 +438,756 @@ Success Tips
 • Step down gradually: Sudden stopping may trigger relapse
 
 Remember: NRT is a tool, not a magic cure. Success rates double when NRT is used properly compared to willpower alone!`
+    },
+    {
+      id: 'nicotine-gum-masterclass',
+      title: 'Nicotine Gum Masterclass',
+      readTime: '6 min read',
+      preview: 'Complete guide to using nicotine gum effectively',
+      content: `# Nicotine Gum Masterclass
+
+## ⚠️ Medical Disclaimer
+This information is for educational purposes only. Always consult your healthcare provider before starting nicotine gum. Individual needs vary based on medical history and smoking patterns.
+
+## Understanding Nicotine Gum
+
+### How It Works
+- 🎯 **Fast-acting relief** - nicotine absorbed through mouth lining
+- ⏱️ **User-controlled dosing** - you decide when and how much
+- 🤲 **Satisfies hand-to-mouth habit** - helps behavioral aspects
+
+### Choosing Your Strength
+
+**4mg Gum (Higher Strength):**
+- Heavy smokers (20+ cigarettes/day)
+- First cigarette within 30 minutes of waking
+- Strong, frequent cravings
+- Previous quit attempts with 2mg were insufficient
+
+**2mg Gum (Regular Strength):**
+- Light to moderate smokers (<20 cigarettes/day)
+- First cigarette 30+ minutes after waking
+- Mild to moderate cravings
+- Concerned about side effects
+
+## The Proper Technique (Critical for Success!)
+
+### Step-by-Step Method
+1. **Chew slowly** until you taste pepper or feel tingling
+2. **STOP chewing** immediately when you taste nicotine
+3. **"Park" the gum** between your cheek and gum
+4. **Wait 20-30 minutes** while nicotine absorbs
+5. **Chew again briefly** when taste fades
+6. **Repeat park-and-chew cycle** for up to 30 minutes
+7. **Dispose after 30 minutes** - no more nicotine left
+
+### ❌ Common Mistakes That Reduce Effectiveness
+- **Continuous chewing** (like regular gum) - causes stomach upset
+- **Swallowing nicotine juice** - reduces absorption, causes nausea
+- **Eating/drinking** 15 minutes before or during use
+- **Using too few pieces** per day
+- **Stopping too quickly** before habit change is complete
+
+## Dosing Schedule
+
+### Week 1-6: Full Strength
+- **Heavy smokers**: 1 piece every 1-2 hours (max 24 pieces/day)
+- **Moderate smokers**: 1 piece every 2-3 hours (max 20 pieces/day)
+- **Light smokers**: 1 piece every 3-4 hours (max 12 pieces/day)
+
+### Week 7-9: Reduce Frequency
+- Gradually increase time between pieces
+- Aim for 50% reduction in daily pieces
+- Use during highest craving times
+
+### Week 10-12: Taper Off
+- Use only during strong cravings
+- Switch to lower strength if needed
+- Complete cessation by week 12
+
+## Maximizing Success
+
+### Timing Tips
+- 🌅 **First piece** within 1 hour of usual first cigarette
+- 🍽️ **Before meals** - when cravings often spike
+- ☕ **With coffee breaks** - replace smoking ritual
+- 🚗 **Before driving** - common trigger time
+- 📞 **During phone calls** - habitual smoking time
+
+### Side Effects Management
+**Common (Usually Mild):**
+- Mouth/jaw soreness - chew more slowly, use less force
+- Hiccups - chewing too fast, park gum longer
+- Heartburn - avoid on empty stomach
+- Dizziness - using too much, reduce frequency
+
+**When to Contact Doctor:**
+- Severe nausea or vomiting
+- Irregular heartbeat
+- Severe jaw pain
+- Allergic reactions (rash, swelling)
+
+## Cost-Effectiveness Tips
+
+### Making It Affordable
+- 💰 **Generic brands** work just as well as name brands
+- 🏪 **Bulk purchasing** reduces per-piece cost
+- 🎫 **Manufacturer coupons** often available online
+- 🏥 **Insurance coverage** - check with your plan
+- 📊 **Compare to smoking costs** - still much cheaper!
+
+### Budget Planning
+- **4mg gum**: ~$50-80/month for heavy smokers
+- **2mg gum**: ~$30-50/month for moderate smokers
+- **Compare to smoking**: Average smoker spends $200+/month
+- **Net savings**: $120-150/month while quitting!
+
+## Success Strategies
+
+### Combination Approaches
+- **Patch + Gum**: Steady baseline (patch) + breakthrough relief (gum)
+- **Behavioral support**: Counseling increases success rates
+- **Mobile apps**: Track usage and savings
+- **Support groups**: Online or in-person communities
+
+### Troubleshooting Common Issues
+
+**"The gum doesn't work for me"**
+- ✅ Check your technique (most important!)
+- ✅ Increase frequency or strength
+- ✅ Try combination with patch
+- ✅ Consider lozenges instead
+
+**"I'm using too much gum"**
+- ✅ Better than smoking! Gradually reduce
+- ✅ Set daily limits and track usage
+- ✅ Use behavioral distractions
+- ✅ Combine with patch for baseline relief
+
+**"I can't stop the gum"**
+- ✅ Reduce strength to 2mg first
+- ✅ Gradual tapering over 2-4 weeks
+- ✅ Replace with sugar-free gum temporarily
+- ✅ Address underlying anxiety/stress
+
+## Key Success Factors
+
+1. **Proper technique** - makes or breaks effectiveness
+2. **Adequate dosing** - don't under-dose
+3. **Consistent use** - especially first 6 weeks
+4. **Gradual reduction** - avoid sudden stopping
+5. **Behavioral support** - address habits too
+
+Remember: Nicotine gum is a **medical treatment**, not candy. Used properly, it can double your chances of successfully quitting smoking!
+
+---
+⚠️ **Always consult your healthcare provider before starting NRT, especially if you have heart conditions, high blood pressure, diabetes, or are pregnant/nursing.**`
+    },
+    {
+      id: 'patch-progression-protocol',
+      title: 'Patch Progression Protocol',
+      readTime: '5 min read',
+      preview: 'Step-by-step guide to using nicotine patches effectively',
+      content: `# Patch Progression Protocol
+
+## ⚠️ Medical Disclaimer
+Consult your healthcare provider before starting nicotine patches, especially if you have heart conditions, skin sensitivities, or take medications. This is educational information only.
+
+## Understanding Nicotine Patches
+
+### How Patches Work
+- 🔄 **Steady nicotine delivery** through skin absorption
+- ⏱️ **24-hour or 16-hour options** available
+- 📈 **Prevents withdrawal symptoms** with consistent levels
+- 🎯 **Reduces cravings** throughout the day
+
+## Choosing Your Starting Strength
+
+### Patch Strength Selection
+
+**21mg Patch (Step 1):**
+- Heavy smokers: 20+ cigarettes per day
+- First cigarette within 30 minutes of waking
+- Smoke throughout the day consistently
+- Strong physical dependence
+
+**14mg Patch (Step 2):**
+- Moderate smokers: 10-19 cigarettes per day
+- First cigarette 30-60 minutes after waking
+- Some smoke-free periods during day
+- Moderate dependence
+
+**7mg Patch (Step 3):**
+- Light smokers: <10 cigarettes per day
+- First cigarette 1+ hours after waking
+- Can go hours without smoking
+- Primarily habitual smoking
+
+## The 8-Week Progression Protocol
+
+### Phase 1: Weeks 1-4 (Starting Strength)
+**21mg → 21mg → 21mg → 21mg**
+- Apply same strength for 4 full weeks
+- Allow body to adjust to steady nicotine levels
+- Focus on breaking behavioral habits
+- Don't reduce too quickly
+
+### Phase 2: Weeks 5-6 (Step Down)
+**21mg → 14mg** or **14mg → 7mg**
+- Reduce to next lower strength
+- May experience mild withdrawal - this is normal
+- Use breakthrough NRT (gum/lozenge) if needed
+- Continue for 2 weeks minimum
+
+### Phase 3: Weeks 7-8 (Final Step)
+**14mg → 7mg** or **7mg → 0mg**
+- Final strength reduction
+- Prepare for patch-free life
+- Have backup plan for strong cravings
+- Complete cessation by week 8
+
+## Proper Application Technique
+
+### Daily Application
+1. **Choose clean, dry, hairless skin** (upper arm, chest, back)
+2. **Rotate application sites** daily to prevent irritation
+3. **Press firmly for 10-15 seconds** to ensure adhesion
+4. **Apply at same time daily** for consistent levels
+5. **Remove old patch** before applying new one
+
+### Site Rotation Schedule
+- **Day 1**: Right upper arm
+- **Day 2**: Left upper arm  
+- **Day 3**: Right chest/shoulder
+- **Day 4**: Left chest/shoulder
+- **Day 5**: Upper back (if reachable)
+- **Day 6**: Return to right arm (different spot)
+
+### 16-Hour vs 24-Hour Patches
+
+**24-Hour Patches:**
+- ✅ Continuous protection, including sleep
+- ✅ Convenient - no daily removal
+- ❌ May cause sleep disruption/vivid dreams
+- ❌ Slightly higher side effect risk
+
+**16-Hour Patches:**
+- ✅ Removed at bedtime - better sleep
+- ✅ Mimics natural daily smoking pattern
+- ❌ No morning craving protection
+- ❌ Daily removal/application routine
+
+## Managing Side Effects
+
+### Common Side Effects (Usually Mild)
+**Skin Irritation:**
+- Rotate application sites daily
+- Clean skin before application
+- Remove if severe redness/rash develops
+- Try different brand if persistent
+
+**Sleep Issues:**
+- Switch to 16-hour patches
+- Remove patch 1-2 hours before bed
+- Practice good sleep hygiene
+- Consider lower strength
+
+**Vivid Dreams:**
+- Normal side effect for many users
+- Usually decreases after 1-2 weeks
+- Remove patch before bed if bothersome
+- Keep dream journal if concerning
+
+### When to Contact Healthcare Provider
+- Severe skin allergic reactions
+- Chest pain or irregular heartbeat
+- Persistent nausea or dizziness
+- Severe sleep disruption >1 week
+
+## Combination Therapy Options
+
+### Patch + Short-Acting NRT
+**Why Combine:**
+- Patch provides steady baseline nicotine
+- Gum/lozenge handles breakthrough cravings
+- Higher success rates than patch alone
+- Addresses different aspects of addiction
+
+**Recommended Combinations:**
+- **21mg patch + 2mg gum** (heavy smokers)
+- **14mg patch + 2mg lozenges** (moderate smokers)
+- **7mg patch + 2mg gum** (light smokers)
+
+## Cost and Insurance
+
+### Making Patches Affordable
+- 💰 **Generic versions** available at lower cost
+- 🏥 **Insurance coverage** - check your benefits
+- 🎫 **Manufacturer rebates** and pharmacy discounts
+- 🏪 **Bulk purchasing** reduces per-patch cost
+
+### Monthly Cost Estimates
+- **Name brand**: $120-150/month
+- **Generic**: $80-120/month
+- **With insurance**: $20-50/month
+- **Compare to smoking**: Still 50-70% savings!
+
+## Troubleshooting Common Issues
+
+**"Patches keep falling off"**
+- ✅ Ensure skin is completely clean and dry
+- ✅ Press firmly for full 15 seconds
+- ✅ Avoid lotions/oils before application
+- ✅ Try different brand with better adhesive
+
+**"Not controlling my cravings"**
+- ✅ May need higher starting strength
+- ✅ Add breakthrough NRT (gum/lozenge)
+- ✅ Ensure proper application technique
+- ✅ Address behavioral aspects too
+
+**"I want to quit patches early"**
+- ✅ Follow full 8-week protocol for best results
+- ✅ Gradual reduction prevents rebound cravings
+- ✅ Have support plan before stopping
+- ✅ Consider extended low-dose use if needed
+
+## Success Tips
+
+1. **Start on quit day** - don't wait
+2. **Follow full protocol** - resist urge to rush
+3. **Address habits separately** - patches handle physical addiction
+4. **Track your progress** - celebrate milestones
+5. **Have backup plan** - keep breakthrough NRT available
+
+Remember: Patches work best when combined with behavioral support and proper technique. They're a proven method that can double your chances of success!
+
+---
+⚠️ **Do not smoke while using patches. This can cause nicotine overdose. If you slip and smoke, remove patch immediately and wait 24 hours before reapplying.**`
+    }
+  ];
+
+  const scienceContent = [
+    {
+      id: 'how-addiction-works',
+      title: 'How Nicotine Addiction Works',
+      readTime: '8 min read',
+      preview: 'Understanding the brain science behind nicotine addiction',
+      content: `# How Nicotine Addiction Works
+
+## The Brain Science Behind Addiction
+
+Understanding **why** nicotine is so addictive helps you understand that quitting isn't about willpower—it's about **rewiring your brain**.
+
+## What Happens in Your Brain
+
+### The Reward Pathway
+When you smoke, nicotine reaches your brain in **10-20 seconds**—faster than intravenous drugs. Here's what happens:
+
+1. **Nicotine binds** to acetylcholine receptors
+2. **Dopamine floods** the nucleus accumbens (reward center)
+3. **Brain registers** this as "extremely important for survival"
+4. **Memory forms** linking smoking with reward
+
+### The Addiction Cycle
+
+**Phase 1: Initial Reward**
+- 🧠 Brain: "This feels amazing!"
+- 📈 Dopamine spikes dramatically
+- 🎯 Strong positive association forms
+- 🔄 Behavior reinforced powerfully
+
+**Phase 2: Tolerance Development**
+- 📉 Brain reduces natural dopamine production
+- 🔢 More nicotine needed for same effect
+- ⬆️ Smoking frequency increases
+- 🔄 "Normal" now requires nicotine
+
+**Phase 3: Physical Dependence**
+- 🧠 Brain structure changes permanently
+- 📊 Nicotine receptors multiply (up to 300% more!)
+- ⚖️ Without nicotine, brain chemistry imbalanced
+- 😰 Withdrawal symptoms emerge
+
+## Why Nicotine Is So Uniquely Addictive
+
+### Multiple Brain Systems Affected
+
+**Dopamine System (Reward):**
+- Makes smoking feel rewarding
+- Creates powerful motivation to smoke
+- Responsible for cravings
+
+**Acetylcholine System (Learning):**
+- Enhances memory formation
+- Links smoking to situations/emotions
+- Creates automatic habits
+
+**GABA System (Relaxation):**
+- Nicotine provides artificial relaxation
+- Brain reduces natural calm chemicals
+- Anxiety increases without nicotine
+
+**Norepinephrine System (Alertness):**
+- Nicotine improves focus temporarily
+- Brain becomes dependent for concentration
+- Mental fog during withdrawal
+
+### Speed of Delivery Matters
+- **Cigarettes**: 10-20 seconds to brain
+- **Patches**: 1-2 hours to peak levels
+- **Gum**: 20-30 minutes to peak levels
+
+**Why this matters**: Faster delivery = stronger addiction potential
+
+## The Habit Formation Process
+
+### Neuroplasticity and Smoking
+Your brain is constantly **rewiring** itself based on repeated behaviors. With smoking:
+
+**Trigger → Routine → Reward**
+- 🚨 **Trigger**: Stress, coffee, break time
+- 🚬 **Routine**: Smoke cigarette
+- 🎉 **Reward**: Temporary relief/pleasure
+
+**After thousands of repetitions:**
+- Pathways become "superhighways"
+- Response becomes automatic
+- Conscious thought not required
+
+### Why "Just Don't Think About It" Doesn't Work
+- 🧠 Subconscious brain controls 95% of decisions
+- 🔄 Habit pathways are deeply ingrained
+- ⚡ Triggers activate before conscious awareness
+- 🎯 Need active rewiring, not just avoidance
+
+## Individual Differences in Addiction
+
+### Genetic Factors (40-50% of addiction risk)
+**CYP2A6 Gene:**
+- Controls nicotine metabolism speed
+- Slow metabolizers: Less addicted, easier to quit
+- Fast metabolizers: More addicted, need higher doses
+
+**DRD2 Gene:**
+- Affects dopamine receptor density
+- Fewer receptors = higher addiction risk
+- More receptors = better natural mood regulation
+
+**CHRNA5 Gene:**
+- Affects nicotine receptor sensitivity
+- Variants linked to heavy smoking
+- May need different quit strategies
+
+### Environmental Factors
+**Early Exposure:**
+- 🧒 Starting before age 18 = 3x addiction risk
+- 🧠 Adolescent brain more vulnerable
+- 📈 Earlier start = stronger addiction
+
+**Stress and Trauma:**
+- 😰 High stress increases addiction risk
+- 🔄 Nicotine becomes primary coping mechanism
+- 💪 Need alternative stress management
+
+**Social Environment:**
+- 👥 Smoking friends/family increase difficulty
+- 🏠 Smoke-free environments help recovery
+- 🎭 Social identity tied to smoking
+
+## Why Quitting Is So Hard
+
+### Physical Withdrawal
+**Timeline of Changes:**
+- **Hours 1-3**: Nicotine levels drop rapidly
+- **Hours 4-24**: Withdrawal symptoms peak
+- **Days 2-3**: Most difficult period
+- **Week 1**: Physical symptoms improve
+- **Weeks 2-4**: Psychological adjustment
+- **Months 1-12**: Brain continues rebalancing
+
+### Psychological Dependence
+**Learned Associations:**
+- ☕ Coffee = cigarette
+- 📞 Phone calls = cigarette  
+- 😠 Stress = cigarette
+- 🚗 Driving = cigarette
+
+**Identity Issues:**
+- "I am a smoker" vs "I used to smoke"
+- Loss of smoking as stress relief
+- Social identity changes
+- Fear of weight gain
+
+## The Good News: Your Brain Can Heal
+
+### Neuroplasticity Works Both Ways
+- 🔄 Same process that created addiction can reverse it
+- 🧠 New pathways can be stronger than old ones
+- ⏱️ Takes time but changes are permanent
+- 💪 Each day smoke-free strengthens new patterns
+
+### Recovery Timeline
+**Week 1**: Acute withdrawal subsides
+**Month 1**: New routines becoming automatic
+**Month 3**: Significant reduction in cravings
+**Year 1**: New identity as non-smoker solidifies
+**Year 2+**: Old smoking patterns largely overwritten
+
+### Strategies That Work With Your Brain
+
+**Replace Rewards:**
+- 🏃 Exercise releases natural dopamine
+- 🧘 Meditation calms GABA system
+- 🎵 Music activates reward pathways
+- 🤗 Social connection releases oxytocin
+
+**Rewire Habits:**
+- 🔄 Keep triggers, change routines
+- ⏱️ Practice new responses repeatedly
+- 🎯 Make new behaviors more rewarding
+- 📱 Use apps to track progress
+
+**Support Brain Chemistry:**
+- 🥗 Nutrition affects neurotransmitter production
+- 😴 Sleep allows brain repair and consolidation
+- 💧 Hydration maintains optimal brain function
+- 💊 Consider NRT to ease transition
+
+## Understanding = Empowerment
+
+Knowing that addiction is a **brain disease**, not a character flaw, helps you:
+- 🚫 Reduce self-blame and shame
+- 🎯 Choose evidence-based treatments
+- 🛠️ Use tools that work with brain science
+- 💪 Maintain motivation during difficult times
+
+Remember: Your brain **wants** to heal. Addiction hijacked natural reward systems, but recovery restores them to healthy function.
+
+Every day smoke-free is literally **rewiring your brain** back to its natural, healthy state!`
+    },
+    {
+      id: 'understanding-withdrawal',
+      title: 'Understanding Withdrawal',
+      readTime: '6 min read',
+      preview: 'The science behind withdrawal symptoms and how to manage them',
+      content: `# Understanding Withdrawal
+
+## What Is Withdrawal Really?
+
+Withdrawal isn't punishment for smoking—it's your **brain healing** and returning to its natural, healthy state. Understanding the science helps you work **with** your body during recovery.
+
+## The Neurochemical Explanation
+
+### Your Brain on Nicotine
+After years of smoking, your brain has made major adaptations:
+
+**Receptor Changes:**
+- 🔢 **300% more** nicotine receptors than normal
+- 📉 **Reduced natural** dopamine production
+- ⚖️ **Chemical imbalance** without nicotine
+- 🧠 **Structural changes** in reward pathways
+
+### What Happens When You Quit
+**Hour 1-3: Nicotine Depletion**
+- 📉 Blood nicotine levels drop rapidly
+- 🧠 Brain notices missing nicotine
+- 🚨 Stress response activates
+- 😰 First cravings begin
+
+**Hours 4-24: Peak Physical Withdrawal**
+- ⚡ All brain systems affected simultaneously
+- 📈 Stress hormones spike
+- 🔥 Inflammatory response increases
+- 💥 Symptoms reach maximum intensity
+
+**Days 2-3: The Peak**
+- 🧠 Brain working hardest to rebalance
+- 😵 Most intense psychological symptoms
+- 🎢 Extreme mood swings common
+- 🔄 Critical period for relapse risk
+
+## Timeline of Withdrawal Symptoms
+
+### Physical Symptoms
+
+**Hours 1-4:**
+- 🫁 Breathing feels different
+- 💓 Heart rate changes
+- 🤲 Restless hands
+- 😶 Dry mouth
+
+**Hours 4-24:**
+- 🤕 Headaches (blood vessels readjusting)
+- 😴 Fatigue (brain working overtime)
+- 🤧 Increased cough (lungs clearing)
+- 🥵 Temperature regulation issues
+
+**Days 2-7:**
+- 💩 Constipation (digestive system adjusting)
+- 😵‍💫 Dizziness (circulation improving)
+- 🦷 Mouth sores (immune system changes)
+- 🛌 Sleep disruption (brain chemistry shifting)
+
+**Weeks 2-4:**
+- 📈 Gradual improvement in all areas
+- ⚡ Energy levels recovering
+- 😴 Sleep patterns normalizing
+- 🧠 Concentration returning
+
+### Psychological Symptoms
+
+**The Emotional Rollercoaster:**
+- 😠 **Irritability**: Stress response amplified
+- 😰 **Anxiety**: Brain's alarm system hyperactive
+- 😢 **Depression**: Dopamine system recovering
+- 🤯 **Brain fog**: Neurotransmitter rebalancing
+
+**Why Emotions Are So Intense:**
+- 🧠 Emotional regulation centers affected
+- 🔄 Brain learning new response patterns
+- ⚖️ Chemical systems finding new balance
+- 💪 Psychological adjustment to new identity
+
+## The Science of Cravings
+
+### What Triggers a Craving?
+**Environmental Cues:**
+- 👁️ Visual: Seeing cigarettes, ashtrays
+- 👃 Smell: Tobacco smoke, certain perfumes
+- 🎵 Auditory: Lighters clicking, music associated with smoking
+- 🤲 Tactile: Holding pens, coffee cups
+
+**Internal Cues:**
+- 😰 Emotional states (stress, boredom, anger)
+- ⏰ Time-based (break times, after meals)
+- 🏠 Location-based (car, balcony, bar)
+- 👥 Social situations (parties, work breaks)
+
+### The Craving Wave
+**Minute 1:** Initial trigger recognition
+**Minutes 2-3:** Intensity builds rapidly  
+**Minutes 3-5:** Peak intensity (feels overwhelming)
+**Minutes 5-7:** Intensity begins to fade
+**Minutes 7-10:** Craving substantially reduced
+**After 10 minutes:** Back to baseline
+
+**Key insight**: Cravings are **temporary waves**, not permanent states!
+
+## Why Some People Have Easier Withdrawals
+
+### Genetic Factors
+**Fast vs Slow Nicotine Metabolizers:**
+- 🐌 **Slow metabolizers**: Milder withdrawal, nicotine stays longer
+- 🏃 **Fast metabolizers**: More intense withdrawal, rapid clearance
+
+**Dopamine Receptor Variants:**
+- 🧠 More natural receptors = easier emotional regulation
+- 📉 Fewer receptors = more severe mood symptoms
+
+### Lifestyle Factors
+**Exercise History:**
+- 🏃 Regular exercisers: Better stress management
+- 📈 Higher natural dopamine production
+- 💪 Stronger stress resilience
+
+**Stress Levels:**
+- 😌 Low baseline stress = easier withdrawal
+- 😰 High chronic stress = more severe symptoms
+
+**Support Systems:**
+- 👥 Strong social support = better outcomes
+- 🏠 Supportive environment = reduced trigger exposure
+
+## Managing Withdrawal Effectively
+
+### Work With Your Brain Chemistry
+
+**Support Dopamine Production:**
+- 🏃 **Exercise**: Natural dopamine release
+- 🎵 **Music**: Activates reward pathways
+- ✅ **Small accomplishments**: Build confidence
+- 🤗 **Social connection**: Oxytocin release
+
+**Calm Stress Response:**
+- 🧘 **Deep breathing**: Activates parasympathetic nervous system
+- 🛁 **Warm baths**: Physical relaxation
+- 🌱 **Nature exposure**: Reduces cortisol
+- 😴 **Adequate sleep**: Brain repair and consolidation
+
+**Stabilize Blood Sugar:**
+- 🍎 **Regular meals**: Prevents mood swings
+- 🥜 **Protein snacks**: Steady energy
+- 💧 **Hydration**: Supports all brain functions
+- 🚫 **Limit caffeine**: Reduces anxiety
+
+### The WAVE Technique for Cravings
+
+**W - Wait**: Don't act immediately
+**A - Acknowledge**: "I'm having a craving"
+**V - Visualize**: The wave building and then falling
+**E - Engage**: In a distracting activity
+
+### Breakthrough Strategies
+
+**Physical Movement:**
+- 🚶 5-minute walk
+- 🤸 Stretching routine
+- 🤲 Hand exercises
+- 🫁 Deep breathing
+
+**Mental Distraction:**
+- 📱 Call a friend
+- 🧩 Puzzle or game
+- 📖 Read something engaging
+- 📝 Write in journal
+
+**Sensory Replacement:**
+- 🥤 Cold water
+- 🍃 Mint toothpick
+- 🧊 Ice cube
+- 🌿 Essential oils
+
+## When to Seek Additional Help
+
+### Normal vs Concerning Symptoms
+
+**Normal (Temporary):**
+- Mood swings and irritability
+- Sleep disruption for 1-2 weeks
+- Increased appetite
+- Difficulty concentrating
+
+**Seek Help For:**
+- 😰 Severe anxiety or panic attacks
+- 😢 Persistent depression >2 weeks
+- 💔 Thoughts of self-harm
+- 🔄 Multiple failed quit attempts
+
+### Professional Support Options
+- 👨‍⚕️ **Primary care physician**: Medical supervision
+- 🧠 **Mental health counselor**: Emotional support
+- 📞 **Quitlines**: Free telephone counseling
+- 👥 **Support groups**: Peer understanding
+
+## The Light at the End of the Tunnel
+
+### Recovery Milestones
+**Week 1**: "I survived the worst part"
+**Month 1**: "This is getting easier"
+**Month 3**: "I rarely think about smoking"
+**Year 1**: "I can't believe I ever smoked"
+
+### Brain Healing Timeline
+- **72 hours**: Nicotine completely cleared
+- **2 weeks**: Circulation dramatically improved
+- **1 month**: Brain fog lifting significantly
+- **3 months**: Major neurochemical rebalancing
+- **1 year**: New neural pathways strongly established
+
+Remember: **Every difficult moment is your brain healing**. Withdrawal symptoms aren't signs that something is wrong—they're signs that everything is going **right**!
+
+You're not just quitting smoking; you're **reclaiming your natural brain chemistry** and returning to the person you were meant to be.`
     }
   ];
 
@@ -450,7 +1200,7 @@ Remember: NRT is a tool, not a magic cure. Success rates double when NRT is used
       case 'nrt':
         return nrtContent;
       case 'science':
-        return quickStartContent; // Placeholder
+        return scienceContent;
       case 'strategies':
         return quickStartContent; // Placeholder
       default:
