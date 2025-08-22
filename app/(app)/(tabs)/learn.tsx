@@ -399,16 +399,16 @@ Remember: NRT is a tool, not a magic cure. Success rates double when NRT is used
       >
         <Card style={styles.articleCardInner}>
           <View style={styles.articleHeader}>
-            <Text style={styles.articleTitle}>{article.title}</Text>
-            {readArticles.has(article.id) && (
+            <Text style={styles.articleTitle}>{article.title || 'Untitled'}</Text>
+            {article.id && readArticles.has(article.id) && (
               <Badge variant="success" style={styles.readBadge}>
                 ✓ Read
               </Badge>
             )}
           </View>
-          <Text style={styles.articlePreview}>{article.preview}</Text>
+          <Text style={styles.articlePreview}>{article.preview || 'No preview available'}</Text>
           <View style={styles.articleMeta}>
-            <Text style={styles.readTime}>{article.readTime}</Text>
+            <Text style={styles.readTime}>{article.readTime || '5 min read'}</Text>
           </View>
         </Card>
       </TouchableOpacity>

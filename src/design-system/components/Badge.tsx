@@ -17,6 +17,11 @@ export function Badge({
   style,
   textStyle 
 }: BadgeProps) {
+  // Safety check for children
+  if (!children) {
+    console.warn('Badge component received undefined children');
+    return null;
+  }
   const badgeStyle = [
     styles.base,
     styles[variant],
@@ -27,7 +32,7 @@ export function Badge({
   const textStyles = [
     styles.text,
     styles[`${size}Text`],
-    { color: Theme.components.badge[variant].text },
+    { color: Theme.components.badge[variant]?.text || Theme.colors.text.primary },
     textStyle,
   ];
 
