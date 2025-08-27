@@ -1191,6 +1191,780 @@ You're not just quitting smoking; you're **reclaiming your natural brain chemist
     }
   ];
 
+  const strategiesContent = [
+    {
+      id: 'trigger-management-master',
+      title: 'Trigger Management Master Guide',
+      readTime: '8 min read',
+      preview: 'Complete system for identifying and managing smoking triggers',
+      content: `# Trigger Management Master Guide
+
+## Understanding Your Triggers
+
+Triggers are **automatic cues** that make you want to smoke. They're not character flaws - they're learned responses that can be **unlearned and replaced**.
+
+## The 4 Types of Triggers
+
+### 1. Environmental Triggers
+**Physical locations and objects:**
+- 🚗 **Car** - driving, traffic, commuting
+- 🏠 **Specific rooms** - balcony, kitchen, bathroom
+- ☕ **Coffee shops** - smell and atmosphere
+- 🍺 **Bars and restaurants** - social smoking areas
+- 📱 **Smoking paraphernalia** - lighters, ashtrays
+
+**Weather and time:**
+- 🌤️ **Nice weather** - wanting to be outside
+- ❄️ **Cold mornings** - warming up routine
+- 🌅 **Specific times** - morning coffee, lunch break
+- 🌙 **Evening wind-down** - end of day ritual
+
+### 2. Emotional Triggers
+**Negative emotions:**
+- 😰 **Stress** - work pressure, deadlines
+- 😠 **Anger** - frustration, conflict
+- 😢 **Sadness** - grief, depression, loneliness
+- 😴 **Boredom** - nothing to do, restlessness
+- 😨 **Anxiety** - nervousness, panic
+
+**Positive emotions:**
+- 🎉 **Celebration** - achievements, parties
+- 😌 **Relaxation** - after accomplishing something
+- 😊 **Happiness** - good news, social connection
+- 💪 **Confidence** - feeling in control
+
+### 3. Social Triggers
+**People and situations:**
+- 👥 **Smoking friends** - peer pressure, habit
+- 🍻 **Drinking** - alcohol lowers inhibition
+- 📞 **Phone calls** - hand-to-mouth habit
+- 💼 **Work breaks** - social smoking time
+- 🎭 **Social events** - parties, networking
+
+**Relationship dynamics:**
+- 💔 **Relationship stress** - arguments, breakups
+- 👨‍👩‍👧‍👦 **Family gatherings** - traditional smoking times
+- 💼 **Work pressure** - colleague smoking breaks
+
+### 4. Physical Triggers
+**Bodily sensations:**
+- ☕ **After eating** - digestive routine
+- 😴 **Fatigue** - energy boost seeking
+- 🤲 **Restless hands** - need something to do
+- 🫁 **Deep breathing urge** - mistaking for smoking need
+- 💊 **Withdrawal symptoms** - mistaking for triggers
+
+## The STOP-THINK-ACT Method
+
+### STOP (Pause Response)
+When you notice a trigger:
+- 🛑 **Freeze** - don't act immediately
+- 🧘 **Take 3 deep breaths**
+- ⏰ **Count to 10** slowly
+- 🎯 **Acknowledge**: "I'm being triggered"
+
+### THINK (Analyze Situation)
+Ask yourself:
+- 🤔 **What exactly triggered me?** (specific identification)
+- 😰 **What am I really feeling?** (emotion beneath urge)
+- 🎯 **What do I actually need?** (real need vs smoking)
+- 💪 **What's my healthier option?** (alternative response)
+
+### ACT (Execute Alternative)
+Choose your response:
+- 🏃 **Physical** - walk, stretch, exercise
+- 🧠 **Mental** - call friend, read, puzzle
+- 🎨 **Creative** - draw, write, music
+- 🧘 **Mindful** - meditate, breathe, observe
+
+## Specific Trigger Strategies
+
+### Stress Triggers
+**Immediate Response (0-5 minutes):**
+- 🫁 **4-7-8 breathing** - inhale 4, hold 7, exhale 8
+- 🚶 **Walk outside** - change environment
+- 💧 **Cold water** - drink slowly, splash face
+- 📱 **Text a friend** - quick support
+
+**Medium-term (5-30 minutes):**
+- 🏃 **Physical exercise** - jog, yoga, stretching
+- 🎵 **Music therapy** - calming or energizing playlist
+- 📝 **Journal** - write out stressors
+- 🛁 **Relaxation** - hot shower, bath
+
+**Long-term (daily practice):**
+- 🧘 **Meditation** - 10 minutes daily
+- 💪 **Regular exercise** - stress resilience
+- 😴 **Better sleep** - stress recovery
+- 🥗 **Nutrition** - stable blood sugar
+
+### Social Triggers
+**Before the situation:**
+- 📋 **Plan ahead** - know your strategy
+- 🗣️ **Tell friends** - inform about your quit
+- 🚗 **Have an exit plan** - car keys, ride home
+- 🥤 **Bring alternatives** - toothpicks, gum
+
+**During the situation:**
+- 🤲 **Keep hands busy** - drink, fidget tool
+- 🚶 **Take breaks** - step away from smokers
+- 💬 **Change the topic** - redirect conversation
+- 🎯 **Focus on benefits** - remind yourself why you quit
+
+**After the situation:**
+- ✅ **Celebrate success** - acknowledge victory
+- 📝 **Learn from experience** - what worked/didn't
+- 🎁 **Reward yourself** - non-smoking treat
+- 💪 **Build confidence** - "I can handle this"
+
+### Emotional Triggers
+**For negative emotions:**
+- 🎯 **Address root cause** - solve actual problem
+- 💬 **Talk it out** - friend, family, therapist
+- 🏃 **Physical release** - exercise, dance, punch pillow
+- 🎨 **Creative expression** - art, music, writing
+
+**For positive emotions:**
+- 🎉 **Alternative celebrations** - special meal, activity
+- 📸 **Capture moment differently** - photos, journaling
+- 🤗 **Share with others** - call family, post online
+- 🏆 **Healthy rewards** - treat yourself well
+
+## Creating New Habits
+
+### The Replacement Strategy
+**Don't just remove smoking - replace it:**
+
+**Morning routine:**
+- ❌ Coffee + cigarette
+- ✅ Coffee + 5-minute walk + podcast
+
+**Stress response:**
+- ❌ Problem + cigarette
+- ✅ Problem + deep breathing + solution brainstorm
+
+**Social breaks:**
+- ❌ Coworkers + smoking area
+- ✅ Coworkers + coffee shop + meaningful conversation
+
+### The 21-Day Rule
+**Building new neural pathways:**
+- 📅 **Days 1-7**: Conscious effort required, feels unnatural
+- 📅 **Days 8-14**: Getting easier, occasional lapses
+- 📅 **Days 15-21**: Becoming automatic, feels natural
+
+**Tips for success:**
+- 📱 **Track daily** - habit tracking app
+- 🏆 **Celebrate milestones** - day 7, 14, 21
+- 👥 **Get support** - accountability partner
+- 💪 **Be patient** - neural rewiring takes time
+
+## Advanced Trigger Management
+
+### The Trigger Map Exercise
+**Create your personal trigger profile:**
+
+1. **List your top 10 triggers** (be specific)
+2. **Rate intensity** (1-10 scale)
+3. **Identify patterns** (time, place, emotion)
+4. **Develop specific responses** for each
+5. **Practice alternatives** when not triggered
+
+### Trigger Surfing Technique
+**Ride the wave instead of fighting it:**
+- 🌊 **Observe the trigger** without judgment
+- 📈 **Notice intensity building**
+- ⏱️ **Time the peak** (usually 3-5 minutes)
+- 📉 **Watch it naturally fade**
+- 🏄 **Celebrate riding it out**
+
+### Environmental Design
+**Modify your surroundings:**
+- 🏠 **Remove smoking items** completely
+- 🌱 **Add positive cues** - plants, photos, quotes
+- 🎵 **Change sensory environment** - music, scents
+- 🪑 **Rearrange furniture** - break location associations
+
+## Building Long-Term Resilience
+
+### Stress Inoculation
+**Gradually expose yourself to triggers:**
+- 📅 **Week 1**: Avoid triggers completely
+- 📅 **Week 2**: Brief exposure with support
+- 📅 **Week 3**: Longer exposure with coping tools
+- 📅 **Week 4+**: Confident trigger management
+
+### The HALT Check
+**Prevent trigger vulnerability:**
+- 🍽️ **H**ungry - eat regular, healthy meals
+- 😠 **A**ngry - address conflicts, practice forgiveness
+- 😴 **L**onely - maintain social connections
+- 😴 **T**ired - prioritize adequate sleep
+
+### Success Metrics
+**Track your progress:**
+- 📊 **Trigger encounters survived**
+- ⏱️ **Time between trigger and urge fade**
+- 💪 **Confidence level** (1-10 daily rating)
+- 🏆 **Successful alternative behaviors used**
+
+## Emergency Action Plan
+
+### High-Risk Situations
+**When triggers feel overwhelming:**
+
+**Level 1 - Mild urge:**
+- 🫁 Deep breathing (2 minutes)
+- 🥤 Cold water sip slowly
+- 📱 Quick distraction app
+
+**Level 2 - Moderate urge:**
+- 🚶 Leave environment immediately
+- 📞 Call your quit buddy
+- 🏃 Physical movement (5 minutes)
+
+**Level 3 - Intense urge:**
+- 🚨 Use panic mode tool in app
+- 📞 Call quitline or counselor
+- 🏥 Consider nicotine replacement
+- 👥 Reach out to community support
+
+Remember: **Triggers are temporary, but your success is permanent**. Every trigger you overcome makes you stronger and builds your confidence for the next one.
+
+You're not just avoiding cigarettes - you're **building a trigger-resistant lifestyle** that will serve you for life!`
+    },
+    {
+      id: 'social-situations-survival',
+      title: 'Social Situations Survival Guide',
+      readTime: '7 min read',
+      preview: 'Navigate parties, bars, work breaks, and social smoking scenarios',
+      content: `# Social Situations Survival Guide
+
+## The Social Challenge
+
+Social situations are often the **highest risk** scenarios for relapse. The combination of peer pressure, alcohol, habit disruption, and emotional triggers creates a perfect storm. But with the right strategies, you can not only survive but **thrive** in social settings as a non-smoker.
+
+## Pre-Event Preparation
+
+### The GAME Plan
+**G - Goal Setting**
+- 🎯 **Clear intention**: "I will not smoke tonight"
+- 📝 **Write it down** and read before going
+- 💪 **Visualize success** - see yourself enjoying the event smoke-free
+
+**A - Ally Recruitment**
+- 👥 **Tell trusted friends** about your quit
+- 📞 **Designate a quit buddy** to call if needed
+- 🤝 **Ask for specific support** - "Help me avoid the smoking area"
+
+**M - Method Selection**
+- 🛠️ **Choose 3 coping strategies** for different situations
+- 🎒 **Pack your toolkit** - gum, toothpicks, fidget items
+- 📱 **Download apps** or have quick distractions ready
+
+**E - Exit Strategy**
+- 🚗 **Have transportation** ready (own car, ride app)
+- ⏰ **Set time limits** - "I'll leave by 10 PM"
+- 🗣️ **Practice excuses** - "Early morning tomorrow"
+
+### Mental Rehearsal
+**Visualize challenging scenarios:**
+- 🚬 **Someone offers you a cigarette** - practice polite decline
+- 🍻 **Drinking lowers your guard** - remind yourself of consequences
+- 👥 **Everyone goes for a smoke break** - have alternative planned
+- 😰 **Feeling left out** - remember your reasons for quitting
+
+## Situation-Specific Strategies
+
+### Parties and Celebrations
+
+**Arrival strategy:**
+- 🕐 **Arrive early** - before heavy drinking/smoking starts
+- 🏠 **Tour the space** - identify non-smoking areas
+- 🥤 **Get a drink immediately** - keep hands busy
+- 👋 **Find non-smoking friends** first
+
+**During the party:**
+- 🍽️ **Stay near food** - snacking keeps mouth busy
+- 🎵 **Dance or be active** - physical distraction
+- 🤳 **Take photos** - different hand activity
+- 🏠 **Stay indoors** - avoid smoking areas
+
+**When others smoke:**
+- 🚶 **Take bathroom breaks** during smoke breaks
+- 📱 **Check phone/social media** - solo activity
+- 🍕 **Volunteer for tasks** - get drinks, help host
+- 💬 **Start conversations** with non-smokers
+
+### Bars and Restaurants
+
+**Seating strategy:**
+- 🏠 **Request indoor seating** away from smoking areas
+- 🪟 **Avoid patio/outdoor sections** in smoking venues
+- 👥 **Sit between non-smokers** if possible
+- 🚪 **Position away from entrances** where smokers gather
+
+**Ordering tactics:**
+- ☕ **Start with coffee/tea** - warm drink for oral satisfaction
+- 🥤 **Use straws** - mimics smoking motion
+- 🍿 **Order appetizers** - finger foods keep hands busy
+- 🧊 **Ice water backup** - always have something to sip
+
+**Alcohol considerations:**
+- 🍷 **Limit alcohol intake** - impairs judgment
+- 🥤 **Alternate with water** - every other drink
+- 🍽️ **Eat before drinking** - food slows alcohol absorption
+- ⏰ **Set drink limits** before arriving
+
+### Work Social Events
+
+**Professional networking:**
+- ☕ **Suggest coffee meetings** instead of smoking breaks
+- 🚶 **Walking meetings** - productive and healthy
+- 🏢 **Use indoor conference rooms** for discussions
+- 📊 **Focus on work topics** - professional distraction
+
+**After-work gatherings:**
+- 🕕 **Limit time** - leave before drinking gets heavy
+- 👥 **Partner with non-smoking colleagues**
+- 🍽️ **Focus on food and conversation**
+- 📱 **Have work excuse ready** - "Early meeting tomorrow"
+
+### Wedding and Family Events
+
+**Family dynamics:**
+- 🗣️ **Inform family beforehand** about your quit
+- 👨‍👩‍👧‍👦 **Enlist supportive relatives** as allies
+- 🎂 **Focus on celebration** - why you're there
+- 📸 **Volunteer as photographer** - keeps hands busy
+
+**Long events (all day):**
+- 🚶 **Plan regular walks** - solo recharge time
+- 🥤 **Stay hydrated** - carry water bottle
+- 🍎 **Healthy snacks** - nuts, mints, fruit
+- 😴 **Rest breaks** - step away when overwhelmed
+
+## Communication Scripts
+
+### Declining Cigarettes
+**Casual offers:**
+- 😊 **"Thanks, but I quit smoking"**
+- 💪 **"I'm good, thanks - feeling great without them"**
+- 🎯 **"Nah, I'm done with that"**
+
+**Persistent offers:**
+- 🛑 **"I appreciate it, but I'm serious about quitting"**
+- 💰 **"I'm saving money for [specific goal]"**
+- 🏥 **"Doctor's orders - I need to stay quit"**
+
+**From close friends:**
+- 🤝 **"I really need your support with this"**
+- 💔 **"It would really hurt my progress if I smoked"**
+- 👥 **"Help me stay strong - this is important to me"**
+
+### Explaining Your Quit
+**Keep it simple:**
+- 💪 **"I'm taking better care of my health"**
+- 💰 **"Saving money for [vacation/house/etc.]"**
+- 👨‍👩‍👧‍👦 **"Setting a good example for my family"**
+
+**If pressed for details:**
+- 🫁 **"I feel so much better without them"**
+- ⚡ **"I have more energy now"**
+- 😊 **"It's one of the best decisions I've made"**
+
+### Handling Peer Pressure
+**Direct pressure:**
+- 🛑 **"I understand you're just being friendly, but no thanks"**
+- 🎯 **"I'm really committed to this decision"**
+- 💪 **"I'd rather stick to my goals"**
+
+**Indirect pressure ("Come on, one won't hurt"):**
+- 🧠 **"That's exactly the thinking that kept me smoking"**
+- 📈 **"One always leads to more for me"**
+- 🏆 **"I'm not willing to restart my quit counter"**
+
+## Managing Specific Emotions
+
+### FOMO (Fear of Missing Out)
+**Remember what you're actually missing:**
+- 💸 **Spending money** on something harmful
+- 🫁 **Damaging your lungs** and health
+- 😷 **Smelling like smoke** tomorrow
+- 💔 **Breaking your quit streak**
+
+**Focus on what you're gaining:**
+- 💰 **Money in your pocket**
+- 🫁 **Better breathing** tonight and tomorrow
+- 💪 **Stronger willpower** and self-respect
+- 🏆 **Progress toward your goals**
+
+### Feeling Left Out
+**When smokers go outside:**
+- 📱 **Use phone time** - social media, games, texts
+- 🚻 **Bathroom break** - good timing
+- 🍕 **Kitchen visit** - chat with host, get food
+- 💬 **Start conversation** with other non-smokers
+
+**Create new social patterns:**
+- ☕ **Coffee dates** instead of smoke breaks
+- 🚶 **Walking meetings** for work
+- 🏃 **Exercise buddies** for stress relief
+- 🍽️ **Meal-based socializing**
+
+### Social Anxiety
+**Without cigarettes as social lubricant:**
+- 🥤 **Keep drink in hand** - gives you something to do
+- 🗣️ **Ask questions** - people love talking about themselves
+- 👂 **Be a good listener** - takes pressure off you
+- 🏠 **Arrive early** - easier to socialize before crowds
+
+## Building New Social Identity
+
+### From "Smoker" to "Non-Smoker"
+**Language shifts:**
+- ❌ **"I'm trying to quit"** → ✅ **"I'm a non-smoker"**
+- ❌ **"I can't smoke"** → ✅ **"I don't smoke"**
+- ❌ **"I'm quitting"** → ✅ **"I quit smoking"**
+
+**Behavioral changes:**
+- 🏠 **Spend more time indoors** at social events
+- ☕ **Lead coffee/tea suggestions** instead of smoke breaks
+- 🏃 **Suggest active social activities** - hiking, sports
+- 🍽️ **Focus on food experiences** - restaurants, cooking
+
+### Finding Your Tribe
+**Connect with other non-smokers:**
+- 👥 **Join quit smoking groups** - online or in-person
+- 🏃 **Fitness communities** - healthy lifestyle focus
+- 🌱 **Wellness groups** - yoga, meditation, nutrition
+- 🎯 **Goal-oriented groups** - book clubs, hobby groups
+
+## Long-Term Social Strategies
+
+### Changing Your Social Environment
+**Gradual shifts:**
+- 🍻 **Choose venues** with good non-smoking areas
+- 👥 **Cultivate friendships** with non-smokers
+- 🎯 **Suggest activities** that don't revolve around smoking
+- 🏠 **Host gatherings** where you control the environment
+
+### Supporting Others
+**Become a quit advocate:**
+- 💬 **Share your experience** (when appropriate)
+- 👥 **Support other quitters** in your social circle
+- 🏆 **Model success** - show it's possible and enjoyable
+- 🌟 **Inspire by example** rather than preaching
+
+## Success Metrics
+
+**Track your social victories:**
+- 🎉 **Events attended smoke-free**
+- ⏱️ **Hours spent in social situations without smoking**
+- 💪 **Confidence level** in social settings (1-10)
+- 👥 **New non-smoking friends made**
+- 🎯 **Social goals achieved** (networking, dates, etc.)
+
+## Emergency Social Protocol
+
+**If you feel overwhelmed:**
+1. 🚶 **Step outside** (away from smokers) for fresh air
+2. 📞 **Text your quit buddy** immediately
+3. 🧘 **Do 4-7-8 breathing** for 2 minutes
+4. 💭 **Visualize tomorrow morning** smoke-free and proud
+5. 🏠 **Consider leaving early** - not failure, smart planning
+
+Remember: **You can be social AND smoke-free**. In fact, you'll discover that socializing without cigarettes is more authentic, memorable, and enjoyable than you ever imagined.
+
+Your new social identity as a confident non-smoker will attract like-minded people and create healthier, more meaningful connections!`
+    },
+    {
+      id: 'relapse-prevention-roadmap',
+      title: 'Relapse Prevention Roadmap',
+      readTime: '9 min read',
+      preview: 'Complete system for preventing slips and getting back on track',
+      content: `# Relapse Prevention Roadmap
+
+## Understanding Relapse
+
+**Relapse is NOT failure** - it's valuable data about your quit process. Research shows that most successful quitters had previous attempts. Each "failed" quit teaches you something important about **what works and what doesn't**.
+
+## The Relapse Cycle
+
+Understanding the pattern helps you interrupt it:
+
+### Stage 1: Emotional Buildup (Days to Weeks Before)
+**Warning signs:**
+- 😰 **Increased stress** without healthy coping
+- 😴 **Poor sleep patterns** and fatigue
+- 🍔 **Neglecting self-care** - nutrition, exercise
+- 👥 **Social isolation** - avoiding support systems
+- 🧠 **Romanticizing smoking** - "just one wouldn't hurt"
+
+**What's happening:**
+- 🧠 **Old neural pathways** becoming active again
+- ⚖️ **Coping resources** becoming depleted
+- 🎭 **Identity confusion** - "am I really a non-smoker?"
+
+### Stage 2: Mental Preparation (Hours to Days Before)
+**Warning signs:**
+- 💭 **Bargaining thoughts** - "I'll just smoke socially"
+- 🎯 **Planning scenarios** - when/where you might smoke
+- 🛒 **Testing behaviors** - going to smoke shops, carrying money
+- 😤 **Justification building** - creating "good reasons" to smoke
+
+### Stage 3: The Slip (Minutes to Hours)
+**Common triggers:**
+- 🍺 **Alcohol consumption** - lowered inhibition
+- 😠 **Intense emotions** - anger, sadness, stress
+- 👥 **Social pressure** - offers from friends
+- 🏠 **Environmental cues** - familiar smoking locations
+
+### Stage 4: The Abstinence Violation Effect
+**What happens after:**
+- 😞 **Shame and guilt** - "I'm a failure"
+- 🎯 **All-or-nothing thinking** - "I already messed up"
+- 📈 **Permission to continue** - "might as well finish the pack"
+- 🔄 **Return to regular smoking** patterns
+
+## The SLIP-STOP Protocol
+
+### S - Stop Immediately
+**The moment you realize you've slipped:**
+- 🛑 **Put out the cigarette** immediately (even mid-puff)
+- 🗑️ **Dispose of remaining cigarettes** - don't save them
+- 🏠 **Leave the smoking environment** right away
+- 📱 **Remove yourself from triggers**
+
+### L - Learn From It
+**Analyze without judgment:**
+- 📝 **Write down exactly what happened** - time, place, emotion
+- 🔍 **Identify the trigger chain** - what led to this moment?
+- 🎯 **Spot the decision points** - where could you have chosen differently?
+- 💡 **Extract the lesson** - what will you do differently next time?
+
+### I - Immediately Restart
+**Don't wait for Monday:**
+- ⏰ **Your quit restarts NOW** - not tomorrow, not Monday
+- 🧽 **Oral hygiene** - brush teeth, mouthwash, remove taste
+- 👔 **Change clothes** - remove smoke smell
+- 💪 **Recommit** to your reasons for quitting
+
+### P - Plan Prevention
+**Strengthen your quit:**
+- 🛠️ **Adjust your strategy** based on what you learned
+- 📞 **Contact support** - tell someone what happened
+- 🎯 **Identify needed resources** - therapy, NRT, apps
+- 📋 **Update your quit plan** with new information
+
+### S - Seek Support
+**You don't have to restart alone:**
+- 📞 **Call your quit buddy** or support group
+- 👨‍⚕️ **Contact healthcare provider** if needed
+- 💬 **Share in online communities** - others understand
+- 📱 **Reset your quit apps** - fresh start tracking
+
+### T - Take Action
+**Implement immediate changes:**
+- 🏠 **Modify environment** - remove any remaining triggers
+- 📅 **Schedule support** - therapy, group meetings
+- 💊 **Consider NRT** - if you weren't using it before
+- 🎯 **Set short-term goals** - focus on next 24 hours
+
+### O - Optimize Moving Forward
+**Long-term improvements:**
+- 📊 **Track patterns** - look for slip warning signs
+- 🛠️ **Upgrade tools** - better apps, resources, support
+- 🧠 **Address root causes** - stress, depression, anxiety
+- 💪 **Build resilience** - healthier coping mechanisms
+
+### P - Persist
+**Maintain perspective:**
+- 📈 **Track overall progress** - count smoke-free days vs. slip days
+- 🏆 **Celebrate improvements** - even if not perfect
+- 🎯 **Focus on learning** - each attempt builds knowledge
+- 💪 **Maintain hope** - most successful quitters had previous slips
+
+## High-Risk Situations Map
+
+### Immediate Risk (Next 24 Hours)
+**Red Alert Situations:**
+- 🍺 **Drinking alcohol** - severely impaired judgment
+- 😠 **Major conflict** - relationship, work issues
+- 📰 **Bad news** - health, financial, family problems
+- 🎉 **Celebrations** - traditionally smoking occasions
+
+**Emergency protocols:**
+- 📞 **Pre-arrange check-ins** with support person
+- 🏠 **Avoid trigger environments** completely
+- 💊 **Have NRT ready** for breakthrough cravings
+- 🚨 **Use panic mode tools** in app
+
+### Medium Risk (Next Week)
+**Yellow Alert Situations:**
+- 👥 **Social events** with smoking friends
+- 💼 **Work stress** periods - deadlines, presentations
+- 🏠 **Being alone** for extended periods
+- 🌙 **Sleep disruption** - travel, schedule changes
+
+**Preparation strategies:**
+- 📋 **Script responses** to cigarette offers
+- 🎒 **Pack coping toolkit** - gum, fidgets, apps
+- 📅 **Schedule support check-ins**
+- 🎯 **Set realistic expectations**
+
+### Long-term Risk (Next Month)
+**Ongoing vulnerabilities:**
+- 💼 **Chronic stress** without healthy coping
+- 👥 **Social isolation** - lack of support
+- 😷 **Health issues** - depression, anxiety
+- 🏠 **Environmental triggers** not addressed
+
+**Systematic solutions:**
+- 🧘 **Stress management training** - therapy, classes
+- 👥 **Build support network** - groups, friends
+- 👨‍⚕️ **Address health issues** - medical, mental health
+- 🏠 **Environmental design** - remove all triggers
+
+## The Slip vs. Relapse Distinction
+
+### A Slip Is:
+- 🚬 **One cigarette** or brief smoking episode
+- ⏱️ **Short duration** - minutes to hours
+- 🎯 **Followed by recommitment** to quitting
+- 📚 **Learning opportunity** used for improvement
+- 💪 **Part of the process** for many successful quitters
+
+### A Relapse Is:
+- 🔄 **Return to regular** smoking patterns
+- 📅 **Extended duration** - days to months
+- 😞 **Abandonment of quit attempt**
+- 🚫 **No immediate plan** to quit again
+- 💔 **Loss of non-smoker identity**
+
+**Key insight**: You control whether a slip becomes a relapse through your **response**, not the slip itself.
+
+## Building Relapse Resilience
+
+### The 4 Pillars of Prevention
+
+#### 1. Awareness
+**Know your patterns:**
+- 📊 **Track mood and cravings** daily (1-10 scale)
+- 📝 **Journal trigger encounters** and responses
+- ⚠️ **Recognize early warning signs** - stress, isolation, romanticizing
+- 📱 **Use apps** for real-time monitoring
+
+#### 2. Skills
+**Develop specific competencies:**
+- 🧘 **Stress management** - breathing, meditation, exercise
+- 💬 **Communication** - assertiveness, saying no, asking for help
+- 🛠️ **Problem-solving** - addressing issues vs. avoiding with smoking
+- ⏰ **Time management** - reducing chronic stress
+
+#### 3. Support
+**Build robust networks:**
+- 👥 **Quit buddy** - someone to call 24/7
+- 🏥 **Professional support** - counselor, doctor, quitline
+- 💻 **Online communities** - forums, apps, social media groups
+- 👨‍👩‍👧‍👦 **Family involvement** - educate and engage loved ones
+
+#### 4. Structure
+**Create supportive environment:**
+- 📅 **Daily routines** - replace smoking times with healthy habits
+- 🏠 **Physical environment** - remove all smoking paraphernalia
+- 👥 **Social environment** - spend time with non-smokers
+- 🎯 **Goal structure** - short and long-term quit milestones
+
+## Specific Relapse Scenarios
+
+### The "Just One" Trap
+**Common thoughts:**
+- 💭 "I'll just have one to get through this"
+- 💭 "I can control it now"
+- 💭 "I won't get hooked again"
+
+**Reality check:**
+- 🧠 **Addiction pathways** are permanent - dormant but not gone
+- ⚡ **Tolerance returns** within days
+- 🔄 **"Just one" leads to more** in 90% of cases
+- 💔 **You'll lose everything** you've gained
+
+### The Stress Rationalization
+**Common thoughts:**
+- 💭 "This situation is too stressful to handle without smoking"
+- 💭 "I'll quit again when things calm down"
+- 💭 "I need cigarettes to cope right now"
+
+**Alternative responses:**
+- 🎯 **Address the actual stressor** - problem-solve or get help
+- 🧘 **Use proven stress techniques** - breathing, exercise, talk therapy
+- ⏰ **Remember: stress is temporary** - smoking consequences are long-term
+- 💪 **Prove to yourself** you can handle anything smoke-free
+
+### The Social Pressure Cave
+**Common thoughts:**
+- 💭 "Everyone will think I'm weird if I don't smoke"
+- 💭 "I need to fit in"
+- 💭 "It's just this one time"
+
+**Boundary responses:**
+- 🛑 **Firm but friendly**: "Thanks, but I don't smoke"
+- 💪 **Confident**: "I feel great without them"
+- 🎯 **Redirect**: "Let's talk about something else"
+- 🚪 **Leave if necessary**: Your health > social approval
+
+## Recovery After Relapse
+
+### If You Return to Regular Smoking
+
+**Step 1: Stop the Shame Spiral**
+- 🚫 **Avoid self-blame** - addiction is a brain disease
+- 📚 **Treat as learning experience** - data for next attempt
+- 💪 **Remember past successes** - you've done it before
+- 🎯 **Focus on next attempt** - not past "failure"
+
+**Step 2: Analyze What Happened**
+- 📝 **Write detailed timeline** of return to smoking
+- 🔍 **Identify decision points** where things went wrong
+- 🎯 **Spot missing skills** or resources
+- 👥 **Get objective perspective** from counselor or support group
+
+**Step 3: Plan Your Comeback**
+- 📅 **Set new quit date** (ideally within 2 weeks)
+- 🛠️ **Upgrade your toolkit** based on lessons learned
+- 👨‍⚕️ **Consider professional help** if you haven't tried it
+- 💊 **Explore medication options** - NRT, prescription aids
+
+**Step 4: Rebuild Motivation**
+- 📝 **Update your reasons** for quitting
+- 💰 **Calculate money lost** during relapse period
+- 🫁 **Notice health impacts** from return to smoking
+- 🎯 **Set new goals** and rewards for quit milestones
+
+## Success Metrics
+
+### Track Progress, Not Perfection
+**Measure these improvements:**
+- 📅 **Smoke-free days** vs. smoking days ratio
+- ⏱️ **Time between slips** (increasing intervals)
+- 🧠 **Craving intensity** (decreasing over time)
+- 💪 **Confidence levels** (1-10 daily rating)
+- 🎯 **Coping skills used** instead of smoking
+
+### Celebrate All Victories
+- ✅ **24 hours smoke-free** after a slip
+- ✅ **Resisting a craving** in high-risk situation
+- ✅ **Using healthy coping** instead of smoking
+- ✅ **Learning from experience** rather than giving up
+- ✅ **Seeking help** when needed
+
+Remember: **Relapse prevention is a skill that improves with practice**. Each challenge you face and overcome makes you stronger and more confident in your ability to live smoke-free permanently.
+
+The goal isn't perfection - it's **progress toward a permanently smoke-free life**. Every day you choose not to smoke, you're building the person you want to become.`
+    }
+  ];
+
   const getAllContent = () => {
     switch(selectedCategory) {
       case 'quick-start':
@@ -1202,7 +1976,7 @@ You're not just quitting smoking; you're **reclaiming your natural brain chemist
       case 'science':
         return scienceContent;
       case 'strategies':
-        return quickStartContent; // Placeholder
+        return strategiesContent;
       default:
         return quickStartContent;
     }
