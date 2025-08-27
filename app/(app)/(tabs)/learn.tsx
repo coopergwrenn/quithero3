@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Dimensions, Animated } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Modal, Dimensions, Animated, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Badge, Button } from '@/src/design-system/components';
@@ -13,6 +13,10 @@ export default function LearnScreen() {
   const [readArticles, setReadArticles] = useState(new Set());
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [showArticleModal, setShowArticleModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [bookmarkedArticles, setBookmarkedArticles] = useState(new Set());
+  const [showBookmarks, setShowBookmarks] = useState(false);
   const { quitData } = useQuitStore();
 
   useEffect(() => {
@@ -1999,6 +2003,75 @@ The goal isn't perfection - it's **progress toward a permanently smoke-free life
     analytics.track('learn_article_completed', { article_id: articleId });
   };
 
+  const toggleBookmark = (articleId: string) => {
+    if (!articleId) return;
+    const newBookmarks = new Set(bookmarkedArticles);
+    if (newBookmarks.has(articleId)) {
+      newBookmarks.delete(articleId);
+      analytics.track('learn_article_unbookmarked', { article_id: articleId });
+    } else {
+      newBookmarks.add(articleId);
+      analytics.track('learn_article_bookmarked', { article_id: articleId });
+    }
+    setBookmarkedArticles(newBookmarks);
+  };
+
+  const searchArticles = (query: string) => {
+    if (!query.trim()) return getAllContent();
+    
+    const allContent = [
+      ...quickStartContent,
+      ...healthContent,
+      ...nrtContent,
+      ...scienceContent,
+      ...strategiesContent
+    ];
+    
+    const searchTerm = query.toLowerCase();
+    return allContent.filter(article => 
+      article.title.toLowerCase().includes(searchTerm) ||
+      article.preview.toLowerCase().includes(searchTerm) ||
+      article.content.toLowerCase().includes(searchTerm)
+    );
+  };
+
+  const getPersonalizedRecommendations = () => {
+    const allContent = [
+      ...quickStartContent,
+      ...healthContent,
+      ...nrtContent,
+      ...scienceContent,
+      ...strategiesContent
+    ];
+    
+    // Get user's quit stage for personalized recommendations
+    const quitDate = quitData?.quitDate;
+    const daysSinceQuit = quitDate ? Math.floor((new Date().getTime() - new Date(quitDate).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    
+    // Prioritize content based on quit stage
+    let priorityContent = [];
+    
+    if (daysSinceQuit <= 7) {
+      // First week - focus on survival
+      priorityContent = quickStartContent.concat(strategiesContent.filter(a => a.id.includes('trigger')));
+    } else if (daysSinceQuit <= 30) {
+      // First month - focus on building habits and understanding health benefits
+      priorityContent = healthContent.concat(strategiesContent);
+    } else if (daysSinceQuit <= 90) {
+      // First 3 months - focus on long-term strategies and science
+      priorityContent = scienceContent.concat(strategiesContent.filter(a => a.id.includes('social')));
+    } else {
+      // Long-term - maintenance and helping others
+      priorityContent = strategiesContent.concat(nrtContent);
+    }
+    
+    // Exclude already read articles from top recommendations
+    const unreadPriority = priorityContent.filter(article => !readArticles.has(article.id));
+    const readPriority = priorityContent.filter(article => readArticles.has(article.id));
+    
+    return [...unreadPriority, ...readPriority].slice(0, 6);
+  };
+
   // Interactive Health Recovery Timeline Component
   const renderHealthTimeline = () => {
     const milestones = getRecoveryMilestones();
@@ -2075,64 +2148,224 @@ The goal isn't perfection - it's **progress toward a permanently smoke-free life
     );
   };
 
+  // Premium Header with Search and Navigation
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.headerTop}>
+        <Text style={styles.headerTitle}>Learn</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            onPress={() => setShowSearch(!showSearch)}
+            style={[styles.headerButton, showSearch && styles.headerButtonActive]}
+          >
+            <Text style={[styles.headerButtonText, showSearch && styles.headerButtonTextActive]}>
+              🔍
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => setShowBookmarks(!showBookmarks)}
+            style={[styles.headerButton, showBookmarks && styles.headerButtonActive]}
+          >
+            <Text style={[styles.headerButtonText, showBookmarks && styles.headerButtonTextActive]}>
+              📚
+            </Text>
+            {bookmarkedArticles.size > 0 && (
+              <View style={styles.badgeIndicator}>
+                <Text style={styles.badgeText}>{bookmarkedArticles.size}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      {showSearch && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search articles..."
+            placeholderTextColor={Theme.colors.text.tertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        </View>
+      )}
+    </View>
+  );
+
+  // Personalized Recommendations Section
+  const renderRecommendations = () => {
+    if (showSearch || showBookmarks) return null;
+    
+    const recommendations = getPersonalizedRecommendations();
+    const quitDate = quitData?.quitDate;
+    const daysSinceQuit = quitDate ? Math.floor((new Date().getTime() - new Date(quitDate).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    
+    let sectionTitle = "Recommended for You";
+    let sectionSubtitle = "Personalized content for your journey";
+    
+    if (daysSinceQuit <= 7) {
+      sectionTitle = "🔥 Survive Your First Week";
+      sectionSubtitle = "Essential strategies for your critical first days";
+    } else if (daysSinceQuit <= 30) {
+      sectionTitle = "💪 Build Strong Foundations";
+      sectionSubtitle = "Focus on health benefits and habit formation";
+    } else if (daysSinceQuit <= 90) {
+      sectionTitle = "🧠 Master Long-term Success";
+      sectionSubtitle = "Advanced strategies for permanent change";
+    } else {
+      sectionTitle = "🏆 Maintain Your Victory";
+      sectionSubtitle = "Stay strong and help others succeed";
+    }
+    
+    return (
+      <View style={styles.recommendationsSection}>
+        <View style={styles.recommendationsHeader}>
+          <Text style={styles.recommendationsTitle}>{sectionTitle}</Text>
+          <Text style={styles.recommendationsSubtitle}>{sectionSubtitle}</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recommendationsScroll}>
+          {recommendations.map(article => (
+            <TouchableOpacity 
+              key={article.id}
+              onPress={() => openArticle(article)}
+              style={styles.recommendationCard}
+            >
+              <Card style={styles.recommendationCardInner}>
+                <View style={styles.recommendationHeader}>
+                  <Text style={styles.recommendationTitle} numberOfLines={2}>
+                    {article.title}
+                  </Text>
+                  <View style={styles.recommendationBadges}>
+                    {readArticles.has(article.id) && (
+                      <Badge variant="success" size="sm">✓</Badge>
+                    )}
+                    {bookmarkedArticles.has(article.id) && (
+                      <Badge variant="secondary" size="sm" style={styles.bookmarkBadge}>📚</Badge>
+                    )}
+                  </View>
+                </View>
+                <Text style={styles.recommendationPreview} numberOfLines={3}>
+                  {article.preview}
+                </Text>
+                <Text style={styles.recommendationReadTime}>{article.readTime}</Text>
+              </Card>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
   const renderContent = () => {
-    // Show interactive timeline for health category
-    if (selectedCategory === 'health') {
+    let content;
+    
+    if (showSearch && searchQuery.trim()) {
+      content = searchArticles(searchQuery);
+    } else if (showBookmarks) {
+      const allContent = [
+        ...quickStartContent,
+        ...healthContent,
+        ...nrtContent,
+        ...scienceContent,
+        ...strategiesContent
+      ];
+      content = allContent.filter(article => bookmarkedArticles.has(article.id));
+    } else {
+      content = getAllContent();
+    }
+    
+    // Special case for health category timeline
+    if (selectedCategory === 'health' && !showSearch && !showBookmarks) {
       return (
         <View>
           {renderHealthTimeline()}
           <View style={styles.sectionSpacer} />
-          {healthContent.map(article => (
-            <TouchableOpacity 
-              key={article.id} 
-              onPress={() => openArticle(article)}
-              style={styles.articleCard}
-            >
-              <Card style={styles.articleCardInner}>
-                <View style={styles.articleHeader}>
-                  <Text style={styles.articleTitle}>{article.title || 'Untitled'}</Text>
-                  {article.id && readArticles.has(article.id) && (
-                    <Badge variant="success" style={styles.readBadge}>
-                      ✓ Read
-                    </Badge>
-                  )}
-                </View>
-                <Text style={styles.articlePreview}>{article.preview || 'No preview available'}</Text>
-                <View style={styles.articleMeta}>
-                  <Text style={styles.readTime}>{article.readTime || '5 min read'}</Text>
-                </View>
-              </Card>
-            </TouchableOpacity>
-          ))}
+          {healthContent.map(article => renderArticleCard(article))}
         </View>
       );
     }
-
-    // Default content for other categories
-    const content = getAllContent();
     
-    return content.map(article => (
-      <TouchableOpacity 
-        key={article.id} 
-        onPress={() => openArticle(article)}
-        style={styles.articleCard}
-      >
-        <Card style={styles.articleCardInner}>
-          <View style={styles.articleHeader}>
+    // Show empty state for bookmarks or search
+    if (content.length === 0) {
+      return renderEmptyState();
+    }
+    
+    return content.map(article => renderArticleCard(article));
+  };
+
+  const renderArticleCard = (article: any) => (
+    <TouchableOpacity 
+      key={article.id} 
+      onPress={() => openArticle(article)}
+      style={styles.articleCard}
+    >
+      <Card style={styles.articleCardInner}>
+        <View style={styles.articleHeader}>
+          <View style={styles.articleTitleContainer}>
             <Text style={styles.articleTitle}>{article.title || 'Untitled'}</Text>
-            {article.id && readArticles.has(article.id) && (
-              <Badge variant="success" style={styles.readBadge}>
-                ✓ Read
-              </Badge>
-            )}
+            <View style={styles.articleBadges}>
+              {readArticles.has(article.id) && (
+                <Badge variant="success" style={styles.readBadge}>
+                  ✓ Read
+                </Badge>
+              )}
+              {bookmarkedArticles.has(article.id) && (
+                <Badge variant="secondary" style={styles.bookmarkBadgeSmall}>
+                  📚
+                </Badge>
+              )}
+            </View>
           </View>
-          <Text style={styles.articlePreview}>{article.preview || 'No preview available'}</Text>
-          <View style={styles.articleMeta}>
-            <Text style={styles.readTime}>{article.readTime || '5 min read'}</Text>
-          </View>
-        </Card>
-      </TouchableOpacity>
-    ));
+          <TouchableOpacity 
+            onPress={(e) => {
+              e.stopPropagation();
+              toggleBookmark(article.id);
+            }}
+            style={styles.bookmarkButton}
+          >
+            <Text style={[
+              styles.bookmarkIcon,
+              bookmarkedArticles.has(article.id) && styles.bookmarkIconActive
+            ]}>
+              {bookmarkedArticles.has(article.id) ? '📚' : '📖'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.articlePreview}>{article.preview || 'No preview available'}</Text>
+        <View style={styles.articleMeta}>
+          <Text style={styles.readTime}>{article.readTime || '5 min read'}</Text>
+        </View>
+      </Card>
+    </TouchableOpacity>
+  );
+
+  const renderEmptyState = () => {
+    if (showBookmarks) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateIcon}>📚</Text>
+          <Text style={styles.emptyStateTitle}>No Bookmarks Yet</Text>
+          <Text style={styles.emptyStateText}>
+            Tap the bookmark icon on articles you want to save for later reading.
+          </Text>
+        </View>
+      );
+    }
+    
+    if (showSearch) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateIcon}>🔍</Text>
+          <Text style={styles.emptyStateTitle}>No Results Found</Text>
+          <Text style={styles.emptyStateText}>
+            Try searching for different keywords like "withdrawal", "triggers", or "NRT".
+          </Text>
+        </View>
+      );
+    }
+    
+    return null;
   };
 
   const renderArticleModal = () => (
@@ -2180,37 +2413,38 @@ The goal isn't perfection - it's **progress toward a permanently smoke-free life
 
   return (
     <SafeAreaView style={styles.container}>
+      {renderHeader()}
+      
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Learn & Grow</Text>
-          <Text style={styles.subtitle}>Evidence-based education for your quit journey</Text>
-              </View>
+        {!showSearch && !showBookmarks && (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScroll}
+            contentContainerStyle={styles.categoryScrollContent}
+          >
+            {categories.map(category => (
+              <TouchableOpacity
+                key={category.id}
+                onPress={() => setSelectedCategory(category.id)}
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === category.id && styles.categoryButtonActive
+                ]}
+              >
+                <Text style={styles.categoryIcon}>{category.icon}</Text>
+                <Text style={[
+                  styles.categoryText,
+                  selectedCategory === category.id && styles.categoryTextActive
+                ]}>
+                  {category.title}
+                  </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryScroll}
-          contentContainerStyle={styles.categoryScrollContent}
-        >
-          {categories.map(category => (
-            <TouchableOpacity
-              key={category.id}
-              onPress={() => setSelectedCategory(category.id)}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category.id && styles.categoryButtonActive
-              ]}
-            >
-              <Text style={styles.categoryIcon}>{category.icon}</Text>
-              <Text style={[
-                styles.categoryText,
-                selectedCategory === category.id && styles.categoryTextActive
-              ]}>
-                {category.title}
-                </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {renderRecommendations()}
 
         <View style={styles.contentSection}>
           {renderContent()}
@@ -2482,5 +2716,189 @@ const styles = StyleSheet.create({
   },
   sectionSpacer: {
     height: Theme.spacing.lg,
+  },
+  
+  // Enhanced Header Styles
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  headerTitle: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.text.primary,
+    fontWeight: '700',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Theme.colors.dark.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: Theme.spacing.sm,
+    position: 'relative',
+  },
+  headerButtonActive: {
+    backgroundColor: Theme.colors.purple[500] + '20',
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500],
+  },
+  headerButtonText: {
+    fontSize: 18,
+  },
+  headerButtonTextActive: {
+    transform: [{ scale: 1.1 }],
+  },
+  badgeIndicator: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: Theme.colors.purple[500],
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Theme.colors.dark.background,
+  },
+  badgeText: {
+    ...Theme.typography.caption2,
+    color: Theme.colors.text.primary,
+    fontWeight: '700',
+    fontSize: 10,
+  },
+  
+  // Search Styles
+  searchContainer: {
+    marginTop: Theme.spacing.md,
+  },
+  searchInput: {
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: Theme.borderRadius.md,
+    padding: Theme.spacing.md,
+    color: Theme.colors.text.primary,
+    fontSize: 16,
+    borderWidth: 2,
+    borderColor: Theme.colors.dark.border,
+  },
+  
+  // Recommendations Styles
+  recommendationsSection: {
+    marginBottom: Theme.spacing.xl,
+  },
+  recommendationsHeader: {
+    paddingHorizontal: Theme.spacing.lg,
+    marginBottom: Theme.spacing.md,
+  },
+  recommendationsTitle: {
+    ...Theme.typography.title2,
+    color: Theme.colors.text.primary,
+    fontWeight: '700',
+    marginBottom: Theme.spacing.xs,
+  },
+  recommendationsSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+  },
+  recommendationsScroll: {
+    paddingLeft: Theme.spacing.lg,
+  },
+  recommendationCard: {
+    width: 280,
+    marginRight: Theme.spacing.md,
+  },
+  recommendationCardInner: {
+    padding: Theme.spacing.lg,
+    height: 140,
+  },
+  recommendationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.sm,
+  },
+  recommendationTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: Theme.spacing.sm,
+  },
+  recommendationBadges: {
+    flexDirection: 'row',
+    gap: Theme.spacing.xs,
+  },
+  recommendationPreview: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    lineHeight: 18,
+    flex: 1,
+  },
+  recommendationReadTime: {
+    ...Theme.typography.caption1,
+    color: Theme.colors.text.tertiary,
+    marginTop: Theme.spacing.xs,
+  },
+  bookmarkBadge: {
+    marginLeft: Theme.spacing.xs,
+  },
+  
+  // Enhanced Article Card Styles
+  articleTitleContainer: {
+    flex: 1,
+    marginRight: Theme.spacing.sm,
+  },
+  articleBadges: {
+    flexDirection: 'row',
+    marginTop: Theme.spacing.xs,
+    gap: Theme.spacing.xs,
+  },
+  bookmarkButton: {
+    padding: Theme.spacing.xs,
+    borderRadius: Theme.borderRadius.sm,
+  },
+  bookmarkIcon: {
+    fontSize: 20,
+    opacity: 0.6,
+  },
+  bookmarkIconActive: {
+    opacity: 1,
+    transform: [{ scale: 1.1 }],
+  },
+  bookmarkBadgeSmall: {
+    marginLeft: Theme.spacing.xs,
+  },
+  
+  // Empty State Styles
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.xxl,
+    paddingHorizontal: Theme.spacing.lg,
+  },
+  emptyStateIcon: {
+    fontSize: 48,
+    marginBottom: Theme.spacing.lg,
+    opacity: 0.6,
+  },
+  emptyStateTitle: {
+    ...Theme.typography.title3,
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+    marginBottom: Theme.spacing.sm,
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 280,
   },
 });
