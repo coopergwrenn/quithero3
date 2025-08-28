@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, ProgressBar } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
-import { generatePersonalizedPlan, assignUserBadge } from '@/src/utils/personalization';
+import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
 
 interface OnboardingStep {
@@ -169,6 +169,8 @@ export default function OnboardingScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [dependencyResults, setDependencyResults] = useState<any>(null);
 
   useEffect(() => {
     analytics.trackOnboardingStarted();
@@ -189,6 +191,33 @@ export default function OnboardingScreen() {
     }
   };
 
+  const handleOnboardingComplete = (responses: Record<string, any>) => {
+    // Calculate dependency score using responses
+    const results = calculateVapingDependency(responses);
+    setDependencyResults(results);
+    setShowResults(true);
+    
+    // Update analytics
+    analytics.track('Onboarding_Completed', {
+      dependencyScore: results.total,
+      riskLevel: results.riskLevel,
+      badgeType: responses.userBadge?.type,
+    });
+
+    // Generate personalized plan
+    const personalizedPlan = generatePersonalizedPlan(responses);
+    
+    // Update quit store with all data
+    updateQuitData({
+      ...responses,
+      personalizedPlan,
+      dependencyResults: results,
+      usageAmount: parseInt(responses.usageAmount) || 0,
+    });
+
+    completeOnboarding();
+  };
+
   const handleNext = () => {
     const stepResponse = currentStepData.multiSelect ? selectedOptions : selectedOptions[0];
     const newResponses = { ...responses, [currentStepData.id]: stepResponse };
@@ -200,23 +229,7 @@ export default function OnboardingScreen() {
     });
 
     if (isLastStep) {
-      // Generate personalized plan
-      const personalizedPlan = generatePersonalizedPlan(newResponses);
-      
-      // Update quit store with all data
-      updateQuitData({
-        ...newResponses,
-        personalizedPlan,
-        usageAmount: parseInt(newResponses.usageAmount) || 0,
-      });
-
-      analytics.trackOnboardingCompleted(
-        personalizedPlan.riskLevel,
-        newResponses.quitTimeline === 'today' ? new Date() : undefined
-      );
-
-      completeOnboarding();
-      router.push('/(paywall)/paywall');
+      handleOnboardingComplete(newResponses);
     } else {
       setCurrentStep(currentStep + 1);
       setSelectedOptions([]);
@@ -239,6 +252,100 @@ export default function OnboardingScreen() {
   };
 
   const canContinue = selectedOptions.length > 0;
+
+  // Render the dependency results screen
+  const renderResultsScreen = () => {
+    if (!dependencyResults || !responses.userBadge) return null;
+    
+    const { total, riskLevel, riskDescription, breakdown } = dependencyResults;
+    const { displayName, description } = responses.userBadge;
+    
+    return (
+      <ScrollView style={styles.container}>
+        {/* Header with badge identity */}
+        <View style={styles.headerSection}>
+          <Text style={styles.badgeTitle}>Your Results, {displayName}</Text>
+          <Text style={styles.badgeDescription}>{description}</Text>
+        </View>
+
+        {/* Dependency Score - The QUITTR Hook */}
+        <View style={[styles.scoreCard, { 
+          backgroundColor: riskLevel === 'Critical' ? '#dc2626' : 
+                          riskLevel === 'High' ? '#ea580c' : 
+                          riskLevel === 'Moderate' ? '#f59e0b' : '#16a34a' 
+        }]}>
+          <Text style={styles.scoreTitle}>Your Vaping Dependency Score</Text>
+          <Text style={styles.scoreNumber}>{total}%</Text>
+          <Text style={styles.scoreComparison}>vs 31% average</Text>
+          <Text style={styles.riskLevel}>Risk Level: {riskLevel}</Text>
+        </View>
+
+        {/* Risk Description */}
+        <View style={styles.descriptionCard}>
+          <Text style={styles.riskDescription}>{riskDescription}</Text>
+          <Text style={styles.riskSubtext}>
+            But that also means you have the most to gain from breaking free.
+          </Text>
+        </View>
+
+        {/* Personalized Insights */}
+        <View style={styles.insightsSection}>
+          <Text style={styles.sectionTitle}>Your Biggest Challenges:</Text>
+          <View style={styles.challengeList}>
+            {breakdown.morningDependency >= 20 && (
+              <Text style={styles.challengeItem}>• Morning dependency - You need immediate support upon waking</Text>
+            )}
+            {breakdown.usageFrequency >= 20 && (
+              <Text style={styles.challengeItem}>• Frequent urges - You'll need crisis tools throughout the day</Text>
+            )}
+            {breakdown.behavioralCompulsion >= 15 && (
+              <Text style={styles.challengeItem}>• Compulsive use - This isn't about willpower, it's about rewiring habits</Text>
+            )}
+            {breakdown.struggleCount >= 10 && (
+              <Text style={styles.challengeItem}>• Multiple impact areas - Comprehensive support is essential</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Social Proof */}
+        <View style={styles.socialProofSection}>
+          <Text style={styles.sectionTitle}>Other {displayName}s with {riskLevel} dependency report:</Text>
+          <Text style={styles.testimonial}>
+            "I haven't craved my vape in 3 months" - Sarah, VapeBreaker
+          </Text>
+          <Text style={styles.testimonial}>
+            "My breathing improved so much faster than expected" - Mike, CloudWarrior
+          </Text>
+        </View>
+
+        {/* Your Personalized Plan Preview */}
+        <View style={styles.planPreviewSection}>
+          <Text style={styles.sectionTitle}>Your {displayName} Success Plan:</Text>
+          <View style={styles.planItems}>
+            <Text style={styles.planItem}>🎯 Recommended quit date: 3-7 days (based on your readiness)</Text>
+            <Text style={styles.planItem}>🚨 Priority tools: Panic mode, breathing exercises, urge timer</Text>
+            <Text style={styles.planItem}>💪 {riskLevel} risk support: 24/7 community + crisis intervention</Text>
+            <Text style={styles.planItem}>📈 Expected timeline: Cravings peak day 3-5, major improvement week 2</Text>
+          </View>
+        </View>
+
+        {/* CTA to paywall */}
+        <TouchableOpacity 
+          style={styles.resultsButton}
+          onPress={() => router.push('/(paywall)/paywall')}
+        >
+          <Text style={styles.resultsButtonText}>
+            Get Your {displayName} Plan - Less Than Weekly Vape Cost
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
+
+  // Show results screen if completed
+  if (showResults) {
+    return renderResultsScreen();
+  }
 
   // Show badge assignment screen after motivation selection
   if (currentStep === 1 && responses.motivation) {
@@ -499,5 +606,121 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     width: '100%',
+  },
+  headerSection: {
+    padding: Theme.layout.screenPadding,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  scoreCard: {
+    backgroundColor: '#dc2626',
+    padding: 20,
+    margin: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  scoreTitle: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  scoreNumber: {
+    color: 'white',
+    fontSize: 48,
+    fontWeight: 'bold',
+  },
+  scoreComparison: {
+    color: 'white',
+    fontSize: 14,
+    opacity: 0.9,
+  },
+  riskLevel: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  descriptionCard: {
+    backgroundColor: Theme.colors.dark.surface,
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+  },
+  riskDescription: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  riskSubtext: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    fontStyle: 'italic',
+  },
+  insightsSection: {
+    padding: 16,
+    margin: 16,
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Theme.colors.text.primary,
+    marginBottom: 12,
+  },
+  challengeList: {
+    gap: 8,
+  },
+  challengeItem: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    marginBottom: 4,
+    lineHeight: 20,
+  },
+  socialProofSection: {
+    padding: 16,
+    margin: 16,
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: 8,
+  },
+  testimonial: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    fontStyle: 'italic',
+    marginBottom: 8,
+    paddingLeft: 16,
+  },
+  planPreviewSection: {
+    padding: 16,
+    margin: 16,
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: 8,
+  },
+  planItems: {
+    gap: 8,
+  },
+  planItem: {
+    fontSize: 14,
+    color: Theme.colors.text.secondary,
+    lineHeight: 20,
+  },
+  resultsButton: {
+    backgroundColor: Theme.colors.purple[500],
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  resultsButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  continueButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
