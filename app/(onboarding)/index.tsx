@@ -181,28 +181,36 @@ export default function OnboardingScreen() {
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+1', flag: '🇺🇸', name: 'US' });
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  // Format phone number in real-time for display
+  // Popular countries for the picker
+  const countries = [
+    { code: '+1', flag: '🇺🇸', name: 'US' },
+    { code: '+1', flag: '🇨🇦', name: 'Canada' },
+    { code: '+44', flag: '🇬🇧', name: 'UK' },
+    { code: '+49', flag: '🇩🇪', name: 'Germany' },
+    { code: '+33', flag: '🇫🇷', name: 'France' },
+    { code: '+39', flag: '🇮🇹', name: 'Italy' },
+    { code: '+34', flag: '🇪🇸', name: 'Spain' },
+    { code: '+61', flag: '🇦🇺', name: 'Australia' },
+    { code: '+81', flag: '🇯🇵', name: 'Japan' },
+    { code: '+86', flag: '🇨🇳', name: 'China' },
+    { code: '+91', flag: '🇮🇳', name: 'India' },
+    { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+  ];
+
+  // Format phone number with selected country code
   const formatPhoneNumber = (input: string): string => {
-    // Remove all non-digits first
-    let digits = input.replace(/\D/g, '');
+    // Remove all non-digits
+    const digits = input.replace(/\D/g, '');
     
-    // Handle different international formats
-    if (digits.length === 10) {
-      // US/Canada 10-digit number - add +1
-      return `+1${digits}`;
-    } else if (digits.length === 11 && digits.startsWith('1')) {
-      // US/Canada with country code - add +
-      return `+${digits}`;
-    } else if (digits.length >= 10 && digits.length <= 15) {
-      // International number - add + if missing
-      return `+${digits}`;
-    } else if (digits.length > 0) {
-      // Partial number - add + and show progress
-      return `+${digits}`;
+    // Return country code + digits (no additional formatting)
+    if (digits.length > 0) {
+      return `${selectedCountry.code}${digits}`;
     }
     
-    return input; // Return original if no digits
+    return selectedCountry.code; // Show country code even when empty
   };
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
@@ -516,18 +524,64 @@ export default function OnboardingScreen() {
             value={userInfo.name}
             onChangeText={(text) => setUserInfo(prev => ({ ...prev, name: text }))}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone number (e.g., +1 503 354 4840 or +44 7700 123456)"
-            placeholderTextColor="#9ca3af"
-            value={userInfo.phone}
-            onChangeText={(text) => {
-              // Auto-format phone number as user types or pastes
-              const formatted = formatPhoneNumber(text);
-              setUserInfo(prev => ({ ...prev, phone: formatted }));
-            }}
-            keyboardType="phone-pad"
-          />
+          {/* Phone Number with Country Picker */}
+          <View style={styles.phoneContainer}>
+            <TouchableOpacity 
+              style={styles.countryButton}
+              onPress={() => setShowCountryPicker(true)}
+            >
+              <Text style={styles.flagText}>{selectedCountry.flag}</Text>
+              <Text style={styles.countryCode}>{selectedCountry.code}</Text>
+              <Text style={styles.dropdownArrow}>▼</Text>
+            </TouchableOpacity>
+            
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="503 354 4840"
+              placeholderTextColor="#9ca3af"
+              value={userInfo.phone.replace(selectedCountry.code, '')}
+              onChangeText={(text) => {
+                // Format with selected country code
+                const formatted = formatPhoneNumber(text);
+                setUserInfo(prev => ({ ...prev, phone: formatted }));
+              }}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* Country Picker Modal */}
+          {showCountryPicker && (
+            <View style={styles.pickerOverlay}>
+              <View style={styles.pickerContainer}>
+                <View style={styles.pickerHeader}>
+                  <Text style={styles.pickerTitle}>Select Country</Text>
+                  <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                    <Text style={styles.closeButton}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <ScrollView style={styles.countryList}>
+                  {countries.map((country) => (
+                    <TouchableOpacity
+                      key={`${country.code}-${country.name}`}
+                      style={styles.countryOption}
+                      onPress={() => {
+                        setSelectedCountry(country);
+                        setShowCountryPicker(false);
+                        // Update phone number with new country code
+                        const digits = userInfo.phone.replace(/\D/g, '');
+                        setUserInfo(prev => ({ ...prev, phone: `${country.code}${digits}` }));
+                      }}
+                    >
+                      <Text style={styles.flagText}>{country.flag}</Text>
+                      <Text style={styles.countryName}>{country.name}</Text>
+                      <Text style={styles.countryCodeOption}>{country.code}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
           <TouchableOpacity 
             style={[styles.continueButton, (!userInfo.name || !userInfo.phone || authLoading) && styles.disabledButton]}
             onPress={signInWithPhone}
@@ -1150,5 +1204,103 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 2,
     borderColor: '#8B5CF6',
+  },
+  // Country Picker Styles
+  phoneContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  countryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#374151',
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderRightWidth: 1,
+    borderRightColor: '#4B5563',
+  },
+  flagText: {
+    fontSize: 18,
+    marginRight: 4,
+  },
+  countryCode: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+    marginRight: 4,
+  },
+  dropdownArrow: {
+    color: '#9CA3AF',
+    fontSize: 10,
+  },
+  phoneInput: {
+    flex: 1,
+    backgroundColor: '#374151',
+    color: 'white',
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  pickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  pickerContainer: {
+    backgroundColor: '#1F2937',
+    borderRadius: 12,
+    width: '80%',
+    maxHeight: '60%',
+    margin: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  pickerTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  closeButton: {
+    color: '#9CA3AF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  countryList: {
+    maxHeight: 300,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  countryName: {
+    flex: 1,
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  countryCodeOption: {
+    color: '#9CA3AF',
+    fontSize: 14,
   },
 });
