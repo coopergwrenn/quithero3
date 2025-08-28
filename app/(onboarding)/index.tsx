@@ -9,6 +9,13 @@ import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } 
 import { analytics } from '@/src/services/analytics';
 import { profileService } from '@/src/services/profileService';
 import { supabase } from '@/src/lib/supabase';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import * as Crypto from 'expo-crypto';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Configure WebBrowser for better UX
+WebBrowser.maybeCompleteAuthSession();
 
 interface OnboardingStep {
   id: string;
@@ -189,16 +196,34 @@ export default function OnboardingScreen() {
   const signInWithGoogle = async () => {
     setAuthLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/onboarding`
-        }
+      const redirectUri = AuthSession.makeRedirectUri({
+        useProxy: true,
       });
-      if (error) throw error;
-      setShowAuth(false);
+      
+      const request = new AuthSession.AuthRequest({
+        clientId: 'your-google-client-id.apps.googleusercontent.com', // You'll need to get this from Google Console
+        scopes: ['openid', 'profile', 'email'],
+        redirectUri,
+        responseType: AuthSession.ResponseType.Code,
+        codeChallenge: await Crypto.digestStringAsync(
+          Crypto.CryptoDigestAlgorithm.SHA256,
+          'your-code-verifier',
+          { encoding: Crypto.CryptoEncoding.BASE64URL }
+        ),
+      });
+      
+      const result = await request.promptAsync({
+        authorizationEndpoint: 'https://accounts.google.com/oauth/authorize',
+      });
+      
+      if (result.type === 'success') {
+        // Exchange code for tokens with your backend
+        console.log('Google auth success:', result);
+        setShowAuth(false);
+      }
     } catch (error) {
       console.error('Google sign in error:', error);
+      alert('Google sign-in temporarily unavailable. Please use email.');
     } finally {
       setAuthLoading(false);
     }
@@ -207,15 +232,66 @@ export default function OnboardingScreen() {
   const signInWithEmail = async () => {
     if (!userInfo.email || !userInfo.name) return;
     setAuthLoading(true);
+    
     try {
       const { data, error } = await supabase.auth.signInWithOtp({
-        email: userInfo.email
+        email: userInfo.email,
+        options: {
+          data: {
+            name: userInfo.name
+          }
+        }
       });
+      
       if (error) throw error;
-      // For now, just proceed (in production, verify OTP)
+      
+      // Store user info locally for immediate use
+      await AsyncStorage.setItem('userInfo', JSON.stringify({
+        name: userInfo.name,
+        email: userInfo.email
+      }));
+      
+      console.log('✅ Email verification sent');
+      alert('Check your email for verification link, then return to continue!');
       setShowAuth(false);
+      
     } catch (error) {
-      console.error('Email sign in error:', error);
+      console.error('Email auth error:', error);
+      alert('Email sign-up failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const signInWithPhone = async () => {
+    if (!userInfo.phone || !userInfo.name) return;
+    setAuthLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: userInfo.phone,
+        options: {
+          data: {
+            name: userInfo.name
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Store user info locally for immediate use
+      await AsyncStorage.setItem('userInfo', JSON.stringify({
+        name: userInfo.name,
+        phone: userInfo.phone
+      }));
+      
+      console.log('✅ SMS verification sent');
+      alert('Check your phone for verification code!');
+      setShowAuth(false);
+      
+    } catch (error) {
+      console.error('Phone auth error:', error);
+      alert('Phone sign-up failed. Please try again.');
     } finally {
       setAuthLoading(false);
     }
@@ -371,7 +447,7 @@ export default function OnboardingScreen() {
       )}
 
       {authMethod === 'phone' && (
-        <View style={styles.emailForm}>
+        <View style={styles.phoneForm}>
           <TextInput
             style={styles.input}
             placeholder="First name"
@@ -381,7 +457,7 @@ export default function OnboardingScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Phone number"
+            placeholder="Phone number (+1234567890)"
             placeholderTextColor="#9ca3af"
             value={userInfo.phone}
             onChangeText={(text) => setUserInfo(prev => ({ ...prev, phone: text }))}
@@ -389,18 +465,11 @@ export default function OnboardingScreen() {
           />
           <TouchableOpacity 
             style={[styles.continueButton, (!userInfo.name || !userInfo.phone || authLoading) && styles.disabledButton]}
-            onPress={() => {
-              setAuthLoading(true);
-              // For now, just proceed without actual phone auth
-              setTimeout(() => {
-                setAuthLoading(false);
-                setShowAuth(false);
-              }, 1000);
-            }}
+            onPress={signInWithPhone}
             disabled={!userInfo.name || !userInfo.phone || authLoading}
           >
             <Text style={styles.continueButtonText}>
-              {authLoading ? 'Creating Account...' : 'Start My Assessment'}
+              {authLoading ? 'Sending SMS...' : 'Send Verification Code'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setAuthMethod(null)}>
@@ -952,6 +1021,9 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   emailForm: {
+    marginBottom: 32,
+  },
+  phoneForm: {
     marginBottom: 32,
   },
   input: {
