@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -198,18 +198,20 @@ export default function OnboardingScreen() {
     try {
       const redirectUri = AuthSession.makeRedirectUri({
         useProxy: true,
+        scheme: 'quithero'
       });
       
       const request = new AuthSession.AuthRequest({
-        clientId: 'your-google-client-id.apps.googleusercontent.com', // You'll need to get this from Google Console
+        clientId: '810493281597-c2kmv64fdak1ucjgvjat7iii1tq91kjh.apps.googleusercontent.com',
         scopes: ['openid', 'profile', 'email'],
         redirectUri,
         responseType: AuthSession.ResponseType.Code,
         codeChallenge: await Crypto.digestStringAsync(
           Crypto.CryptoDigestAlgorithm.SHA256,
-          'your-code-verifier',
+          Math.random().toString(36).substring(2, 15),
           { encoding: Crypto.CryptoEncoding.BASE64URL }
         ),
+        codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
       });
       
       const result = await request.promptAsync({
@@ -217,13 +219,40 @@ export default function OnboardingScreen() {
       });
       
       if (result.type === 'success') {
-        // Exchange code for tokens with your backend
-        console.log('Google auth success:', result);
+        // Sign in with Supabase using Google OAuth
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUri,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        // Store user info for immediate use
+        const userEmail = data.user?.email || 'user@gmail.com';
+        const userName = data.user?.user_metadata?.full_name || 'Google User';
+        
+        setUserInfo({
+          name: userName,
+          email: userEmail
+        });
+        
+        await AsyncStorage.setItem('userInfo', JSON.stringify({
+          name: userName,
+          email: userEmail
+        }));
+        
         setShowAuth(false);
+        Alert.alert('Success', 'Signed in with Google successfully!');
       }
     } catch (error) {
       console.error('Google sign in error:', error);
-      alert('Google sign-in temporarily unavailable. Please use email.');
+      Alert.alert('Error', 'Google sign-in failed. Please use email instead.');
     } finally {
       setAuthLoading(false);
     }
