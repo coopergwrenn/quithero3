@@ -254,6 +254,10 @@ export default function OnboardingScreen() {
     country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
     country.code.includes(countrySearch)
   );
+  
+  // Debug logging
+  console.log('Search term:', countrySearch);
+  console.log('Filtered results:', filteredCountries.length);
 
   // Format phone number with selected country code
   const formatPhoneNumber = (input: string): string => {
@@ -630,7 +634,7 @@ export default function OnboardingScreen() {
                   />
                 </View>
                 
-                <ScrollView style={styles.countryList}>
+                <ScrollView style={styles.countryList} showsVerticalScrollIndicator={true}>
                   {filteredCountries.map((country) => (
                     <TouchableOpacity
                       key={`${country.code}-${country.name}`}
@@ -1339,7 +1343,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F2937',
     borderRadius: 12,
     width: '90%',
-    maxHeight: '80%',
+    height: 500,
     margin: 20,
   },
   pickerHeader: {
@@ -1378,7 +1382,7 @@ const styles = StyleSheet.create({
   },
   countryList: {
     flex: 1,
-    maxHeight: 400,
+    minHeight: 200,
   },
   countryOption: {
     flexDirection: 'row',
