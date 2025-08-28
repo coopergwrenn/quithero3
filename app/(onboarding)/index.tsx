@@ -273,8 +273,22 @@ export default function OnboardingScreen() {
     setAuthLoading(true);
     
     try {
+      // Format phone number to E.164 format (+1234567890)
+      let formattedPhone = userInfo.phone.replace(/\D/g, ''); // Remove all non-digits
+      
+      // Add +1 if it's a US number without country code
+      if (formattedPhone.length === 10) {
+        formattedPhone = '+1' + formattedPhone;
+      } else if (formattedPhone.length === 11 && formattedPhone.startsWith('1')) {
+        formattedPhone = '+' + formattedPhone;
+      } else if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      }
+      
+      console.log('Formatted phone:', formattedPhone);
+      
       const { data, error } = await supabase.auth.signInWithOtp({
-        phone: userInfo.phone,
+        phone: formattedPhone,
         options: {
           data: {
             name: userInfo.name
