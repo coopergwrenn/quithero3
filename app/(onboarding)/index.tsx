@@ -205,18 +205,29 @@ export default function OnboardingScreen() {
     setAuthLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: userInfo.email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: null, // Force OTP mode instead of magic links
+      // ALTERNATIVE: Use admin API to force OTP generation
+      const response = await fetch(`https://saoheivherzwysrhglbq.supabase.co/auth/v1/otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhb2hlaXZoZXJ6d3lzcmhnbGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNTEzOTUsImV4cCI6MjA3MDYyNzM5NX0.4kVNJNBgW2YIxLXzA6TfS1OrMtuIr6Zv2kgI00SyQB0'
+        },
+        body: JSON.stringify({
+          email: userInfo.email,
+          type: 'signup',
+          create_user: true,
           data: {
             full_name: userInfo.name
           }
-        }
+        })
       });
-      
-      if (error) throw error;
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to send OTP');
+      }
+
+      const data = await response.json();
       
       // Store user info locally for immediate use
       await AsyncStorage.setItem('userInfo', JSON.stringify({
@@ -224,13 +235,21 @@ export default function OnboardingScreen() {
         email: userInfo.email
       }));
       
-      console.log('✅ Email verification sent');
+      console.log('✅ Email OTP sent (should be 6-digit code)');
       setAuthMethod('email_otp');
-      Alert.alert('Verification Code Sent', 'Please enter the 6-digit code sent to your email.');
+      Alert.alert('6-Digit Code Sent', 'Check your email for a 6-digit verification code (not a link).');
       
     } catch (error) {
       console.error('Email auth error:', error);
-      Alert.alert('Error', 'Email sign-up failed. Please try again.');
+      
+      // Handle rate limiting
+      if (error.message?.includes('3 seconds')) {
+        Alert.alert('Please Wait', 'For security, please wait a few seconds before trying again.');
+      } else if (error.message?.includes('rate')) {
+        Alert.alert('Too Many Attempts', 'Please wait a moment before trying again.');
+      } else {
+        Alert.alert('Error', 'Email sign-up failed. Please try again.');
+      }
     } finally {
       setAuthLoading(false);
     }
