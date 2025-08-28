@@ -181,23 +181,71 @@ export default function OnboardingScreen() {
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState({ code: '+1', flag: '🇺🇸', name: 'US' });
+  const [selectedCountry, setSelectedCountry] = useState({ code: '+1', flag: '🇺🇸', name: 'United States' });
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  // Popular countries for the picker
+  // Comprehensive countries list for global reach
   const countries = [
-    { code: '+1', flag: '🇺🇸', name: 'US' },
+    // North America
+    { code: '+1', flag: '🇺🇸', name: 'United States' },
     { code: '+1', flag: '🇨🇦', name: 'Canada' },
-    { code: '+44', flag: '🇬🇧', name: 'UK' },
+    
+    // Europe (Major Markets)
+    { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
     { code: '+49', flag: '🇩🇪', name: 'Germany' },
     { code: '+33', flag: '🇫🇷', name: 'France' },
     { code: '+39', flag: '🇮🇹', name: 'Italy' },
     { code: '+34', flag: '🇪🇸', name: 'Spain' },
+    { code: '+31', flag: '🇳🇱', name: 'Netherlands' },
+    { code: '+46', flag: '🇸🇪', name: 'Sweden' },
+    { code: '+47', flag: '🇳🇴', name: 'Norway' },
+    { code: '+45', flag: '🇩🇰', name: 'Denmark' },
+    { code: '+358', flag: '🇫🇮', name: 'Finland' },
+    { code: '+41', flag: '🇨🇭', name: 'Switzerland' },
+    { code: '+43', flag: '🇦🇹', name: 'Austria' },
+    { code: '+32', flag: '🇧🇪', name: 'Belgium' },
+    { code: '+48', flag: '🇵🇱', name: 'Poland' },
+    { code: '+420', flag: '🇨🇿', name: 'Czech Republic' },
+    { code: '+353', flag: '🇮🇪', name: 'Ireland' },
+    { code: '+351', flag: '🇵🇹', name: 'Portugal' },
+    
+    // Asia Pacific
     { code: '+61', flag: '🇦🇺', name: 'Australia' },
+    { code: '+64', flag: '🇳🇿', name: 'New Zealand' },
     { code: '+81', flag: '🇯🇵', name: 'Japan' },
-    { code: '+86', flag: '🇨🇳', name: 'China' },
+    { code: '+82', flag: '🇰🇷', name: 'South Korea' },
+    { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+    { code: '+852', flag: '🇭🇰', name: 'Hong Kong' },
+    { code: '+886', flag: '🇹🇼', name: 'Taiwan' },
+    
+    // Major Emerging Markets
     { code: '+91', flag: '🇮🇳', name: 'India' },
+    { code: '+86', flag: '🇨🇳', name: 'China' },
     { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+    { code: '+52', flag: '🇲🇽', name: 'Mexico' },
+    { code: '+54', flag: '🇦🇷', name: 'Argentina' },
+    { code: '+56', flag: '🇨🇱', name: 'Chile' },
+    { code: '+57', flag: '🇨🇴', name: 'Colombia' },
+    
+    // Middle East & Africa
+    { code: '+971', flag: '🇦🇪', name: 'UAE' },
+    { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
+    { code: '+972', flag: '🇮🇱', name: 'Israel' },
+    { code: '+27', flag: '🇿🇦', name: 'South Africa' },
+    { code: '+20', flag: '🇪🇬', name: 'Egypt' },
+    
+    // Additional European
+    { code: '+7', flag: '🇷🇺', name: 'Russia' },
+    { code: '+380', flag: '🇺🇦', name: 'Ukraine' },
+    { code: '+90', flag: '🇹🇷', name: 'Turkey' },
+    { code: '+30', flag: '🇬🇷', name: 'Greece' },
+    
+    // Southeast Asia
+    { code: '+66', flag: '🇹🇭', name: 'Thailand' },
+    { code: '+84', flag: '🇻🇳', name: 'Vietnam' },
+    { code: '+60', flag: '🇲🇾', name: 'Malaysia' },
+    { code: '+63', flag: '🇵🇭', name: 'Philippines' },
+    { code: '+62', flag: '🇮🇩', name: 'Indonesia' },
   ];
 
   // Format phone number with selected country code
