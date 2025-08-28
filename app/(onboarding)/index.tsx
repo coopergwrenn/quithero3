@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -167,6 +167,8 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { updateQuitData, completeOnboarding } = useQuitStore();
   
+  const [showRegistration, setShowRegistration] = useState(true);
+  const [userInfo, setUserInfo] = useState({ name: '', email: '' });
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -197,40 +199,28 @@ export default function OnboardingScreen() {
     const results = calculateVapingDependency(responses);
     setDependencyResults(results);
     
-    // Save complete profile to Supabase
-    const savedProfile = await profileService.saveOnboardingProfile(
-      responses,
-      responses.userBadge,
-      results
-    );
+    // Include user registration info in responses
+    const completeResponses = {
+      ...responses,
+      userInfo,
+    };
     
-    if (savedProfile) {
-      console.log('✅ Profile saved successfully:', savedProfile);
-      
-      // Update analytics with save confirmation
-      analytics.track('Onboarding_Profile_Saved', {
-        dependencyScore: results.total,
-        riskLevel: results.riskLevel,
-        badgeType: responses.userBadge?.type,
-        profileId: savedProfile.id
-      });
-    } else {
-      console.error('❌ Failed to save profile');
-      
-      // Fallback analytics
-      analytics.track('Onboarding_Completed', {
-        dependencyScore: results.total,
-        riskLevel: results.riskLevel,
-        badgeType: responses.userBadge?.type,
-      });
-    }
+    // TODO: Add authentication and Supabase saving later
+    // For now, just do analytics and local storage
+    analytics.track('Onboarding_Completed', {
+      dependencyScore: results.total,
+      riskLevel: results.riskLevel,
+      badgeType: responses.userBadge?.type,
+      userName: userInfo.name,
+      userEmail: userInfo.email,
+    });
 
     // Generate personalized plan
     const personalizedPlan = generatePersonalizedPlan(responses);
     
     // Update quit store with all data
     updateQuitData({
-      ...responses,
+      ...completeResponses,
       personalizedPlan,
       dependencyResults: results,
       usageAmount: parseInt(responses.usageAmount) || 0,
@@ -274,6 +264,57 @@ export default function OnboardingScreen() {
   };
 
   const canContinue = selectedOptions.length > 0;
+
+  // Render registration screen
+  const renderRegistrationScreen = () => (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.registrationContainer}>
+        <Text style={styles.registrationTitle}>Let's personalize your journey</Text>
+        <Text style={styles.registrationSubtitle}>
+          Get a custom quit plan based on your unique vaping patterns
+        </Text>
+        
+        <TextInput
+          style={styles.input}
+          placeholder="First name"
+          placeholderTextColor={Theme.colors.text.tertiary}
+          value={userInfo.name}
+          onChangeText={(text) => setUserInfo(prev => ({ ...prev, name: text }))}
+        />
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Email address"
+          placeholderTextColor={Theme.colors.text.tertiary}
+          value={userInfo.email}
+          onChangeText={(text) => setUserInfo(prev => ({ ...prev, email: text }))}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        
+        <TouchableOpacity 
+          style={[styles.createPlanButton, (!userInfo.name || !userInfo.email) && styles.disabledButton]}
+          onPress={() => {
+            if (userInfo.name && userInfo.email) {
+              setShowRegistration(false);
+            }
+          }}
+          disabled={!userInfo.name || !userInfo.email}
+        >
+          <Text style={styles.createPlanButtonText}>Create My Quit Plan</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.privacyText}>
+          We'll use this to personalize your experience and send you progress updates
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+
+  // Show registration first
+  if (showRegistration) {
+    return renderRegistrationScreen();
+  }
 
   // Render the dependency results screen
   const renderResultsScreen = () => {
@@ -744,5 +785,55 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  registrationContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: Theme.layout.screenPadding,
+  },
+  registrationTitle: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+    fontWeight: '700',
+  },
+  registrationSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.xl * 2,
+    lineHeight: 24,
+  },
+  input: {
+    backgroundColor: Theme.colors.dark.surface,
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.border,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: Theme.spacing.lg,
+    color: Theme.colors.text.primary,
+    fontSize: 16,
+  },
+  createPlanButton: {
+    backgroundColor: Theme.colors.purple[500],
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  disabledButton: {
+    backgroundColor: Theme.colors.dark.border,
+  },
+  createPlanButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  privacyText: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.tertiary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
