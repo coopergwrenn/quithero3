@@ -183,6 +183,7 @@ export default function OnboardingScreen() {
   const [otpCode, setOtpCode] = useState('');
   const [selectedCountry, setSelectedCountry] = useState({ code: '+1', flag: '🇺🇸', name: 'United States' });
   const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
 
   // Comprehensive countries list for global reach
   const countries = [
@@ -247,6 +248,12 @@ export default function OnboardingScreen() {
     { code: '+63', flag: '🇵🇭', name: 'Philippines' },
     { code: '+62', flag: '🇮🇩', name: 'Indonesia' },
   ];
+
+  // Filter countries based on search
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    country.code.includes(countrySearch)
+  );
 
   // Format phone number with selected country code
   const formatPhoneNumber = (input: string): string => {
@@ -603,19 +610,35 @@ export default function OnboardingScreen() {
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerHeader}>
                   <Text style={styles.pickerTitle}>Select Country</Text>
-                  <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                  <TouchableOpacity onPress={() => {
+                    setShowCountryPicker(false);
+                    setCountrySearch(''); // Reset search when closing
+                  }}>
                     <Text style={styles.closeButton}>✕</Text>
                   </TouchableOpacity>
                 </View>
                 
+                {/* Search Input */}
+                <View style={styles.searchContainer}>
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search countries..."
+                    placeholderTextColor="#9CA3AF"
+                    value={countrySearch}
+                    onChangeText={setCountrySearch}
+                    autoCapitalize="none"
+                  />
+                </View>
+                
                 <ScrollView style={styles.countryList}>
-                  {countries.map((country) => (
+                  {filteredCountries.map((country) => (
                     <TouchableOpacity
                       key={`${country.code}-${country.name}`}
                       style={styles.countryOption}
                       onPress={() => {
                         setSelectedCountry(country);
                         setShowCountryPicker(false);
+                        setCountrySearch(''); // Reset search
                         // Update phone number with new country code
                         const digits = userInfo.phone.replace(/\D/g, '');
                         setUserInfo(prev => ({ ...prev, phone: `${country.code}${digits}` }));
@@ -626,6 +649,12 @@ export default function OnboardingScreen() {
                       <Text style={styles.countryCodeOption}>{country.code}</Text>
                     </TouchableOpacity>
                   ))}
+                  {filteredCountries.length === 0 && (
+                    <View style={styles.noResultsContainer}>
+                      <Text style={styles.noResultsText}>No countries found</Text>
+                      <Text style={styles.noResultsSubtext}>Try adjusting your search</Text>
+                    </View>
+                  )}
                 </ScrollView>
               </View>
             </View>
@@ -1309,8 +1338,8 @@ const styles = StyleSheet.create({
   pickerContainer: {
     backgroundColor: '#1F2937',
     borderRadius: 12,
-    width: '80%',
-    maxHeight: '60%',
+    width: '90%',
+    maxHeight: '80%',
     margin: 20,
   },
   pickerHeader: {
@@ -1331,8 +1360,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  searchContainer: {
+    padding: 16,
+    paddingTop: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  searchInput: {
+    backgroundColor: '#374151',
+    color: 'white',
+    fontSize: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4B5563',
+  },
   countryList: {
-    maxHeight: 300,
+    flex: 1,
+    maxHeight: 400,
   },
   countryOption: {
     flexDirection: 'row',
@@ -1349,6 +1395,20 @@ const styles = StyleSheet.create({
   },
   countryCodeOption: {
     color: '#9CA3AF',
+    fontSize: 14,
+  },
+  noResultsContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  noResultsSubtext: {
+    color: '#6B7280',
     fontSize: 14,
   },
 });
