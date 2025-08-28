@@ -3,8 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // Environment variables with fallbacks
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://saoheivherzwysrhglbq.supabase.co';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhb2hlaXZoZXJ6d3lzcmhnbGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNTEzOTUsImV4cCI6MjA3MDYyNzM5NX0.4kVNJNBgW2YIxLXzA6TfS1OrMtuIr6Zv2kgI00SyQB0';
 
 // Custom storage implementation for Expo
 const ExpoSecureStoreAdapter = {
