@@ -8,6 +8,7 @@ import { useQuitStore } from '@/src/stores/quitStore';
 import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
 import { profileService } from '@/src/services/profileService';
+import { supabase } from '@/src/lib/supabase';
 
 interface OnboardingStep {
   id: string;
@@ -167,8 +168,10 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { updateQuitData, completeOnboarding } = useQuitStore();
   
-  const [showRegistration, setShowRegistration] = useState(true);
-  const [userInfo, setUserInfo] = useState({ name: '', email: '' });
+  const [showAuth, setShowAuth] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
+  const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -182,6 +185,41 @@ export default function OnboardingScreen() {
   const currentStepData = ONBOARDING_STEPS[currentStep];
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
   const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
+
+  const signInWithGoogle = async () => {
+    setAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`
+        }
+      });
+      if (error) throw error;
+      setShowAuth(false);
+    } catch (error) {
+      console.error('Google sign in error:', error);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const signInWithEmail = async () => {
+    if (!userInfo.email || !userInfo.name) return;
+    setAuthLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: userInfo.email
+      });
+      if (error) throw error;
+      // For now, just proceed (in production, verify OTP)
+      setShowAuth(false);
+    } catch (error) {
+      console.error('Email sign in error:', error);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const handleOptionSelect = (value: string) => {
     if (currentStepData.multiSelect) {
@@ -265,55 +303,121 @@ export default function OnboardingScreen() {
 
   const canContinue = selectedOptions.length > 0;
 
-  // Render registration screen
-  const renderRegistrationScreen = () => (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.registrationContainer}>
-        <Text style={styles.registrationTitle}>Let's personalize your journey</Text>
-        <Text style={styles.registrationSubtitle}>
-          Get a custom quit plan based on your unique vaping patterns
-        </Text>
-        
-        <TextInput
-          style={styles.input}
-          placeholder="First name"
-          placeholderTextColor={Theme.colors.text.tertiary}
-          value={userInfo.name}
-          onChangeText={(text) => setUserInfo(prev => ({ ...prev, name: text }))}
-        />
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Email address"
-          placeholderTextColor={Theme.colors.text.tertiary}
-          value={userInfo.email}
-          onChangeText={(text) => setUserInfo(prev => ({ ...prev, email: text }))}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        
-        <TouchableOpacity 
-          style={[styles.createPlanButton, (!userInfo.name || !userInfo.email) && styles.disabledButton]}
-          onPress={() => {
-            if (userInfo.name && userInfo.email) {
-              setShowRegistration(false);
-            }
-          }}
-          disabled={!userInfo.name || !userInfo.email}
-        >
-          <Text style={styles.createPlanButtonText}>Create My Quit Plan</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.privacyText}>
-          We'll use this to personalize your experience and send you progress updates
-        </Text>
+  // Render authentication screen
+  const renderAuthScreen = () => (
+    <SafeAreaView style={styles.authContainer}>
+      <View style={styles.authHeader}>
+        <Text style={styles.authTitle}>Let's create your personalized quit plan</Text>
+        <Text style={styles.authSubtitle}>Join thousands who've quit vaping with QuitHero</Text>
       </View>
+
+      {authMethod === null && (
+        <View style={styles.authButtons}>
+          <TouchableOpacity 
+            style={styles.googleButton}
+            onPress={signInWithGoogle}
+            disabled={authLoading}
+          >
+            <Text style={styles.googleButtonText}>📱 Continue with Google</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.emailButton}
+            onPress={() => setAuthMethod('email')}
+          >
+            <Text style={styles.emailButtonText}>✉️ Continue with Email</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.phoneButton}
+            onPress={() => setAuthMethod('phone')}
+          >
+            <Text style={styles.phoneButtonText}>📞 Continue with Phone</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {authMethod === 'email' && (
+        <View style={styles.emailForm}>
+          <TextInput
+            style={styles.input}
+            placeholder="First name"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.name}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, name: text }))}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Email address"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.email}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, email: text }))}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TouchableOpacity 
+            style={[styles.continueButton, (!userInfo.name || !userInfo.email || authLoading) && styles.disabledButton]}
+            onPress={signInWithEmail}
+            disabled={!userInfo.name || !userInfo.email || authLoading}
+          >
+            <Text style={styles.continueButtonText}>
+              {authLoading ? 'Creating Account...' : 'Start My Assessment'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setAuthMethod(null)}>
+            <Text style={styles.backText}>← Back to options</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {authMethod === 'phone' && (
+        <View style={styles.emailForm}>
+          <TextInput
+            style={styles.input}
+            placeholder="First name"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.name}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, name: text }))}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone number"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.phone}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, phone: text }))}
+            keyboardType="phone-pad"
+          />
+          <TouchableOpacity 
+            style={[styles.continueButton, (!userInfo.name || !userInfo.phone || authLoading) && styles.disabledButton]}
+            onPress={() => {
+              setAuthLoading(true);
+              // For now, just proceed without actual phone auth
+              setTimeout(() => {
+                setAuthLoading(false);
+                setShowAuth(false);
+              }, 1000);
+            }}
+            disabled={!userInfo.name || !userInfo.phone || authLoading}
+          >
+            <Text style={styles.continueButtonText}>
+              {authLoading ? 'Creating Account...' : 'Start My Assessment'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setAuthMethod(null)}>
+            <Text style={styles.backText}>← Back to options</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Text style={styles.privacyText}>
+        Your data is private and secure. We never share personal information.
+      </Text>
     </SafeAreaView>
   );
 
-  // Show registration first
-  if (showRegistration) {
-    return renderRegistrationScreen();
+  // Show authentication first
+  if (showAuth) {
+    return renderAuthScreen();
   }
 
   // Render the dependency results screen
@@ -786,53 +890,102 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  registrationContainer: {
+  authContainer: {
     flex: 1,
+    backgroundColor: '#0f0f23',
+    paddingHorizontal: 24,
     justifyContent: 'center',
-    padding: Theme.layout.screenPadding,
   },
-  registrationTitle: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.md,
-    fontWeight: '700',
-  },
-  registrationSubtitle: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.xl * 2,
-    lineHeight: 24,
-  },
-  input: {
-    backgroundColor: Theme.colors.dark.surface,
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: Theme.spacing.lg,
-    color: Theme.colors.text.primary,
-    fontSize: 16,
-  },
-  createPlanButton: {
-    backgroundColor: Theme.colors.purple[500],
-    padding: 16,
-    borderRadius: 8,
+  authHeader: {
     alignItems: 'center',
-    marginBottom: Theme.spacing.lg,
+    marginBottom: 48,
   },
-  disabledButton: {
-    backgroundColor: Theme.colors.dark.border,
-  },
-  createPlanButtonText: {
+  authTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
     color: 'white',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  authSubtitle: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  authButtons: {
+    marginBottom: 32,
+  },
+  googleButton: {
+    backgroundColor: 'white',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  googleButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#1a1a2e',
+  },
+  emailButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emailButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  phoneButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  phoneButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  emailForm: {
+    marginBottom: 32,
+  },
+  input: {
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#1a1a2e',
+  },
+  continueButton: {
+    backgroundColor: '#10b981',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  disabledButton: {
+    backgroundColor: '#6b7280',
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  backText: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
   privacyText: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.tertiary,
+    fontSize: 14,
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
   },
