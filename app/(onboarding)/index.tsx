@@ -205,29 +205,17 @@ export default function OnboardingScreen() {
     setAuthLoading(true);
     
     try {
-      // ALTERNATIVE: Use admin API to force OTP generation
-      const response = await fetch(`https://saoheivherzwysrhglbq.supabase.co/auth/v1/otp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhb2hlaXZoZXJ6d3lzcmhnbGJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNTEzOTUsImV4cCI6MjA3MDYyNzM5NX0.4kVNJNBgW2YIxLXzA6TfS1OrMtuIr6Zv2kgI00SyQB0'
-        },
-        body: JSON.stringify({
-          email: userInfo.email,
-          type: 'signup',
-          create_user: true,
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: userInfo.email,
+        options: {
+          shouldCreateUser: true,
           data: {
             full_name: userInfo.name
           }
-        })
+        }
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send OTP');
-      }
-
-      const data = await response.json();
+      
+      if (error) throw error;
       
       // Store user info locally for immediate use
       await AsyncStorage.setItem('userInfo', JSON.stringify({
