@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, ProgressBar } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
-import { generatePersonalizedPlan } from '@/src/utils/personalization';
+import { generatePersonalizedPlan, assignUserBadge } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
 
 interface OnboardingStep {
@@ -35,32 +35,46 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'substanceType',
-    question: 'What do you currently use?',
+    question: 'What type of vape has control over you right now?',
+    description: 'Understanding your device helps us personalize your quit plan',
     options: [
-      { value: 'cigarettes', label: 'Cigarettes', icon: '🚬' },
-      { value: 'vape', label: 'Vape/E-cigarettes', icon: '💨' },
-      { value: 'both', label: 'Both cigarettes and vape', icon: '🚬💨' },
+      { value: 'disposable', label: 'Disposable vapes', description: 'Elf Bar, Puff Bar, etc.', icon: '🔋' },
+      { value: 'pod_system', label: 'Pod system', description: 'Juul, Vuse, Caliburn', icon: '📱' },
+      { value: 'box_mod', label: 'Box mod/tank system', description: 'Refillable with e-liquid', icon: '⚙️' },
+      { value: 'multiple', label: 'Multiple types', description: 'I switch between different devices', icon: '🔄' },
     ],
   },
   {
     id: 'usageAmount',
-    question: 'How much do you use per day?',
+    question: 'How often do you find yourself reaching for your vape?',
+    description: 'Be honest - this helps us understand your dependency level',
     options: [
-      { value: '5', label: '1-5 cigarettes', description: 'Light usage' },
-      { value: '10', label: '6-10 cigarettes', description: 'Moderate usage' },
-      { value: '20', label: '11-20 cigarettes', description: 'Heavy usage' },
-      { value: '30', label: '20+ cigarettes', description: 'Very heavy usage' },
+      { value: 'every_5_min', label: 'Every 5 minutes', description: 'It never leaves my hand', icon: '🔴' },
+      { value: 'every_30_min', label: 'Every 30 minutes', description: 'Throughout the day', icon: '🟠' },
+      { value: 'every_hour', label: 'Every hour', description: 'Regular intervals', icon: '🟡' },
+      { value: 'few_times_day', label: 'Few times a day', description: 'Mainly during breaks', icon: '🟢' },
     ],
   },
   {
     id: 'firstUseTime',
-    question: 'When do you have your first cigarette/vape?',
-    description: 'This helps us understand your dependency level',
+    question: 'When do you take your first hit after waking up?',
+    description: 'This reveals how deep the physical dependency runs',
     options: [
-      { value: 'within-5min', label: 'Within 5 minutes of waking', description: 'High dependency' },
-      { value: 'within-30min', label: 'Within 30 minutes', description: 'Moderate dependency' },
-      { value: 'within-1hour', label: 'Within 1 hour', description: 'Lower dependency' },
-      { value: 'later', label: 'After 1 hour', description: 'Lowest dependency' },
+      { value: 'within_5_min', label: 'Before my feet hit the floor', description: 'Within 5 minutes', icon: '🛏️' },
+      { value: 'within_30_min', label: 'While getting ready', description: 'Within 30 minutes', icon: '🚿' },
+      { value: 'within_1_hour', label: 'After breakfast', description: 'Within 1 hour', icon: '🍳' },
+      { value: 'after_1_hour', label: 'Later in the day', description: 'After 1 hour', icon: '☀️' },
+    ],
+  },
+  {
+    id: 'choiceVsNeed',
+    question: 'When did vaping stop being a choice and become a need?',
+    description: 'This is where we face the truth about dependency',
+    options: [
+      { value: 'gradually_months', label: 'It happened gradually over months', description: 'Slow but steady dependency', icon: '📈' },
+      { value: 'within_weeks', label: 'I noticed it within weeks of starting', description: 'Fast dependency development', icon: '⚡' },
+      { value: 'within_days', label: 'Pretty quickly - within days', description: 'Rapid dependency formation', icon: '🚨' },
+      { value: 'still_choice', label: 'It still feels like a choice to me', description: 'Early stage dependency', icon: '🤔' },
     ],
   },
   {
@@ -70,11 +84,12 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     multiSelect: true,
     options: [
       { value: 'stress', label: 'Stress or anxiety', icon: '😰' },
-      { value: 'social', label: 'Social situations', icon: '👥' },
       { value: 'boredom', label: 'Boredom or downtime', icon: '😴' },
-      { value: 'routine', label: 'Daily routines (coffee, driving)', icon: '☕' },
+      { value: 'social', label: 'Social situations', icon: '👥' },
+      { value: 'routines', label: 'Daily routines', description: 'Coffee, driving, work breaks', icon: '☕' },
       { value: 'alcohol', label: 'Drinking alcohol', icon: '🍺' },
-      { value: 'work', label: 'Work breaks', icon: '💼' },
+      { value: 'screen_time', label: 'Screen time', description: 'Scrolling, gaming', icon: '📱' },
+      { value: 'bedtime', label: 'Before bed', icon: '🌙' },
     ],
   },
   {
@@ -224,6 +239,39 @@ export default function OnboardingScreen() {
   };
 
   const canContinue = selectedOptions.length > 0;
+
+  // Show badge assignment screen after motivation selection
+  if (currentStep === 1 && responses.motivation) {
+    const userBadge = assignUserBadge(responses.motivation);
+    
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.badgeAssignmentContainer}>
+          <View style={styles.badgeContent}>
+            <Text style={styles.badgeTitle}>Welcome, {userBadge.displayName}!</Text>
+            <Text style={styles.badgeEmoji}>🎖️</Text>
+            <Text style={styles.badgeDescription}>{userBadge.description}</Text>
+            <Text style={styles.badgeMessage}>
+              This badge represents your new identity. You're not just someone trying to quit - 
+              you're a {userBadge.displayName} on a mission to break free.
+            </Text>
+            <Button
+              variant="primary"
+              size="lg"
+              onPress={() => {
+                setResponses(prev => ({ ...prev, userBadge }));
+                setCurrentStep(2);
+                setSelectedOptions([]);
+              }}
+              style={styles.continueButton}
+            >
+              Continue Your Assessment
+            </Button>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -412,5 +460,44 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     flex: 2,
+  },
+  badgeAssignmentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Theme.layout.screenPadding,
+  },
+  badgeContent: {
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+  },
+  badgeTitle: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: Theme.spacing.md,
+    fontWeight: '700',
+  },
+  badgeEmoji: {
+    fontSize: 80,
+    marginBottom: Theme.spacing.lg,
+  },
+  badgeDescription: {
+    ...Theme.typography.title1,
+    color: Theme.colors.purple[500],
+    textAlign: 'center',
+    marginBottom: Theme.spacing.lg,
+    fontWeight: '600',
+  },
+  badgeMessage: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Theme.spacing.xl * 2,
+  },
+  continueButton: {
+    width: '100%',
   },
 });
