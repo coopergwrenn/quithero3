@@ -7,6 +7,7 @@ import { Button, ProgressBar } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
+import { profileService } from '@/src/services/profileService';
 
 interface OnboardingStep {
   id: string;
@@ -191,18 +192,38 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleOnboardingComplete = (responses: Record<string, any>) => {
+  const handleOnboardingComplete = async (responses: Record<string, any>) => {
     // Calculate dependency score using responses
     const results = calculateVapingDependency(responses);
     setDependencyResults(results);
-    setShowResults(true);
     
-    // Update analytics
-    analytics.track('Onboarding_Completed', {
-      dependencyScore: results.total,
-      riskLevel: results.riskLevel,
-      badgeType: responses.userBadge?.type,
-    });
+    // Save complete profile to Supabase
+    const savedProfile = await profileService.saveOnboardingProfile(
+      responses,
+      responses.userBadge,
+      results
+    );
+    
+    if (savedProfile) {
+      console.log('✅ Profile saved successfully:', savedProfile);
+      
+      // Update analytics with save confirmation
+      analytics.track('Onboarding_Profile_Saved', {
+        dependencyScore: results.total,
+        riskLevel: results.riskLevel,
+        badgeType: responses.userBadge?.type,
+        profileId: savedProfile.id
+      });
+    } else {
+      console.error('❌ Failed to save profile');
+      
+      // Fallback analytics
+      analytics.track('Onboarding_Completed', {
+        dependencyScore: results.total,
+        riskLevel: results.riskLevel,
+        badgeType: responses.userBadge?.type,
+      });
+    }
 
     // Generate personalized plan
     const personalizedPlan = generatePersonalizedPlan(responses);
@@ -216,6 +237,7 @@ export default function OnboardingScreen() {
     });
 
     completeOnboarding();
+    setShowResults(true);
   };
 
   const handleNext = () => {

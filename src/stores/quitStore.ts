@@ -2,6 +2,8 @@ import { create } from 'zustand';
 // import { MMKV } from 'react-native-mmkv';
 import { PersonalizedPlan } from '@/src/utils/personalization';
 import { analytics } from '@/src/services/analytics';
+import type { UserProfile } from '@/src/services/profileService';
+import { profileService } from '@/src/services/profileService';
 
 // Initialize MMKV storage - temporarily disabled
 // const storage = new MMKV();
@@ -47,6 +49,7 @@ interface QuitStore {
   isOnboardingComplete: boolean;
   hasSeenPaywall: boolean;
   isPremium: boolean;
+  userProfile: UserProfile | null;
   
   // Actions
   updateQuitData: (data: Partial<QuitData>) => void;
@@ -54,6 +57,10 @@ interface QuitStore {
   markPaywallSeen: () => void;
   setPremium: (premium: boolean) => void;
   restorePurchases: () => Promise<void>;
+  
+  // Profile actions
+  setUserProfile: (profile: UserProfile | null) => void;
+  loadUserProfile: () => Promise<void>;
   
   // Persistence
   loadFromStorage: () => void;
@@ -65,6 +72,7 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
   isOnboardingComplete: false,
   hasSeenPaywall: false,
   isPremium: false,
+  userProfile: null,
 
   updateQuitData: (data) => {
     const newQuitData = { ...get().quitData, ...data };
@@ -93,6 +101,19 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
   restorePurchases: async () => {
     // This will be implemented with RevenueCat integration
     console.log('Restore purchases called');
+  },
+
+  setUserProfile: (profile) => {
+    set({ userProfile: profile });
+  },
+
+  loadUserProfile: async () => {
+    try {
+      const profile = await profileService.getUserProfile();
+      set({ userProfile: profile });
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
   },
 
   loadFromStorage: async () => {

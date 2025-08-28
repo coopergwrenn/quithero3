@@ -3,6 +3,27 @@
  * Generates personalized quit plans based on behavioral assessment data
  */
 
+export interface UserBadge {
+  type: 'VapeBreaker' | 'CloudWarrior' | 'LifeGuardian' | 'WealthBuilder'
+  assignedAt: Date
+  motivation: string
+  displayName: string
+  description: string
+}
+
+export interface VapingDependencyScore {
+  total: number // 0-100
+  riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical'
+  breakdown: {
+    morningDependency: number  // 0-25 points
+    usageFrequency: number     // 0-25 points  
+    behavioralCompulsion: number // 0-20 points
+    environmentalFactors: number // 0-15 points
+    struggleCount: number        // 0-15 points
+  }
+  riskDescription: string
+}
+
 export interface PersonalizedPlan {
   riskLevel: 'high' | 'medium' | 'low';
   riskScore: number;
@@ -281,4 +302,109 @@ function getCustomStrategies(responses: Record<string, any>): string[] {
   }
 
   return strategies.slice(0, 6); // Limit to top 6 strategies
+}
+
+export function assignUserBadge(motivation: string): UserBadge {
+  const badgeMap = {
+    'health': {
+      type: 'VapeBreaker' as const,
+      displayName: 'VapeBreaker',
+      description: 'Ready to breathe free'
+    },
+    'control': {
+      type: 'CloudWarrior' as const, 
+      displayName: 'CloudWarrior',
+      description: 'Taking back control'
+    },
+    'family': {
+      type: 'LifeGuardian' as const,
+      displayName: 'LifeGuardian', 
+      description: 'Protecting what matters'
+    },
+    'money': {
+      type: 'WealthBuilder' as const,
+      displayName: 'WealthBuilder',
+      description: 'Investing in your future'
+    }
+  }
+  
+  const badge = badgeMap[motivation as keyof typeof badgeMap] || badgeMap['health']
+  return {
+    ...badge,
+    assignedAt: new Date(),
+    motivation
+  }
+}
+
+export function calculateVapingDependency(responses: any): VapingDependencyScore {
+  let morningDependency = 0
+  let usageFrequency = 0  
+  let behavioralCompulsion = 0
+  let environmentalFactors = 0
+  let struggleCount = 0
+
+  // Morning dependency (0-25 points)
+  switch(responses.firstUseTime) {
+    case 'within_5_min': morningDependency = 25; break
+    case 'within_30_min': morningDependency = 20; break  
+    case 'within_1_hour': morningDependency = 10; break
+    case 'after_1_hour': morningDependency = 0; break
+  }
+
+  // Usage frequency (0-25 points)
+  switch(responses.usageAmount) {
+    case 'every_5_min': usageFrequency = 25; break
+    case 'every_30_min': usageFrequency = 20; break
+    case 'every_hour': usageFrequency = 15; break
+    case 'few_times_day': usageFrequency = 5; break
+  }
+
+  // Behavioral compulsion (0-20 points)
+  switch(responses.choiceVsNeed) {
+    case 'gradually_months': behavioralCompulsion = 20; break
+    case 'within_weeks': behavioralCompulsion = 15; break
+    case 'within_days': behavioralCompulsion = 10; break
+    case 'still_choice': behavioralCompulsion = 0; break
+  }
+
+  // Environmental factors (0-15 points)
+  if (responses.socialContext === 'daily') environmentalFactors += 4
+  if (responses.stressLevel === 'high') environmentalFactors += 4  
+  if (responses.sleepQuality === 'poor') environmentalFactors += 3
+  if (responses.previousAttempts === 'multiple') environmentalFactors += 4
+
+  // Struggle count (0-15 points) 
+  struggleCount = Math.min((responses.struggles?.length || 0) * 2, 15)
+
+  const total = morningDependency + usageFrequency + behavioralCompulsion + environmentalFactors + struggleCount
+
+  let riskLevel: 'Low' | 'Moderate' | 'High' | 'Critical'
+  let riskDescription: string
+
+  if (total >= 75) {
+    riskLevel = 'Critical'
+    riskDescription = 'Severe vaping dependency - immediate intervention recommended'
+  } else if (total >= 50) {
+    riskLevel = 'High' 
+    riskDescription = 'Strong vaping dependency - structured support needed'
+  } else if (total >= 25) {
+    riskLevel = 'Moderate'
+    riskDescription = 'Moderate vaping dependency - consistent support helpful'  
+  } else {
+    riskLevel = 'Low'
+    riskDescription = 'Developing vaping dependency - good time to quit'
+  }
+
+  return {
+    total,
+    riskLevel,
+    breakdown: {
+      morningDependency,
+      usageFrequency,
+      behavioralCompulsion, 
+      environmentalFactors,
+      struggleCount
+    },
+    riskDescription
+  }
 }
