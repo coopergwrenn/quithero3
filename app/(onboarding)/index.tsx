@@ -1366,7 +1366,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     padding: 16,
-    paddingTop: 0,
     borderBottomWidth: 1,
     borderBottomColor: '#374151',
   },
