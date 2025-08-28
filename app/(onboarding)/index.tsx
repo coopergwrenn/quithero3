@@ -209,6 +209,7 @@ export default function OnboardingScreen() {
         email: userInfo.email,
         options: {
           shouldCreateUser: true,
+          emailRedirectTo: null, // Force OTP mode instead of magic links
           data: {
             full_name: userInfo.name
           }
