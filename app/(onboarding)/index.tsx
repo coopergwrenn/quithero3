@@ -181,6 +181,29 @@ export default function OnboardingScreen() {
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState('');
+
+  // Format phone number in real-time for display
+  const formatPhoneNumber = (input: string): string => {
+    // Remove all non-digits first
+    let digits = input.replace(/\D/g, '');
+    
+    // Handle different international formats
+    if (digits.length === 10) {
+      // US/Canada 10-digit number - add +1
+      return `+1${digits}`;
+    } else if (digits.length === 11 && digits.startsWith('1')) {
+      // US/Canada with country code - add +
+      return `+${digits}`;
+    } else if (digits.length >= 10 && digits.length <= 15) {
+      // International number - add + if missing
+      return `+${digits}`;
+    } else if (digits.length > 0) {
+      // Partial number - add + and show progress
+      return `+${digits}`;
+    }
+    
+    return input; // Return original if no digits
+  };
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -273,30 +296,9 @@ export default function OnboardingScreen() {
     setAuthLoading(true);
     
     try {
-      // Format phone number to E.164 format (+1234567890)
-      let formattedPhone = userInfo.phone.replace(/\D/g, ''); // Remove all non-digits
-      
-      // Handle different international formats
-      if (formattedPhone.length === 10) {
-        // US/Canada 10-digit number - add +1
-        formattedPhone = '+1' + formattedPhone;
-      } else if (formattedPhone.length === 11 && formattedPhone.startsWith('1')) {
-        // US/Canada with country code - add +
-        formattedPhone = '+' + formattedPhone;
-      } else if (formattedPhone.length >= 10 && formattedPhone.length <= 15) {
-        // International number - add + if missing
-        if (!userInfo.phone.includes('+')) {
-          formattedPhone = '+' + formattedPhone;
-        } else {
-          formattedPhone = userInfo.phone.replace(/\D/g, '');
-          formattedPhone = '+' + formattedPhone;
-        }
-      } else {
-        // Invalid length - return as-is and let Supabase handle the error
-        formattedPhone = userInfo.phone.includes('+') ? userInfo.phone : '+' + formattedPhone;
-      }
-      
-      console.log('Formatted phone:', formattedPhone);
+      // Phone is already formatted in real-time by formatPhoneNumber
+      const formattedPhone = userInfo.phone;
+      console.log('Using pre-formatted phone:', formattedPhone);
       
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
@@ -519,7 +521,11 @@ export default function OnboardingScreen() {
             placeholder="Phone number (e.g., +1 503 354 4840 or +44 7700 123456)"
             placeholderTextColor="#9ca3af"
             value={userInfo.phone}
-            onChangeText={(text) => setUserInfo(prev => ({ ...prev, phone: text }))}
+            onChangeText={(text) => {
+              // Auto-format phone number as user types or pastes
+              const formatted = formatPhoneNumber(text);
+              setUserInfo(prev => ({ ...prev, phone: formatted }));
+            }}
             keyboardType="phone-pad"
           />
           <TouchableOpacity 
