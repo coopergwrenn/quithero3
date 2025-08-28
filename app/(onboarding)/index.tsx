@@ -9,13 +9,14 @@ import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } 
 import { analytics } from '@/src/services/analytics';
 import { profileService } from '@/src/services/profileService';
 import { supabase } from '@/src/lib/supabase';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
-import * as Crypto from 'expo-crypto';
+// Temporarily disabled Google OAuth due to module issues
+// import * as AuthSession from 'expo-auth-session';
+// import * as WebBrowser from 'expo-web-browser';
+// import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Configure WebBrowser for better UX
-WebBrowser.maybeCompleteAuthSession();
+// Configure WebBrowser for better UX (temporarily disabled)
+// WebBrowser.maybeCompleteAuthSession();
 
 interface OnboardingStep {
   id: string;
@@ -179,6 +180,7 @@ export default function OnboardingScreen() {
   const [authLoading, setAuthLoading] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -194,68 +196,8 @@ export default function OnboardingScreen() {
   const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
 
   const signInWithGoogle = async () => {
-    setAuthLoading(true);
-    try {
-      const redirectUri = AuthSession.makeRedirectUri({
-        useProxy: true,
-        scheme: 'quithero'
-      });
-      
-      const request = new AuthSession.AuthRequest({
-        clientId: '810493281597-c2kmv64fdak1ucjgvjat7iii1tq91kjh.apps.googleusercontent.com',
-        scopes: ['openid', 'profile', 'email'],
-        redirectUri,
-        responseType: AuthSession.ResponseType.Code,
-        codeChallenge: await Crypto.digestStringAsync(
-          Crypto.CryptoDigestAlgorithm.SHA256,
-          Math.random().toString(36).substring(2, 15),
-          { encoding: Crypto.CryptoEncoding.BASE64URL }
-        ),
-        codeChallengeMethod: AuthSession.CodeChallengeMethod.S256,
-      });
-      
-      const result = await request.promptAsync({
-        authorizationEndpoint: 'https://accounts.google.com/oauth/authorize',
-      });
-      
-      if (result.type === 'success') {
-        // Sign in with Supabase using Google OAuth
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUri,
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent',
-            }
-          }
-        });
-
-        if (error) throw error;
-
-        // Store user info for immediate use
-        const userEmail = data.user?.email || 'user@gmail.com';
-        const userName = data.user?.user_metadata?.full_name || 'Google User';
-        
-        setUserInfo({
-          name: userName,
-          email: userEmail
-        });
-        
-        await AsyncStorage.setItem('userInfo', JSON.stringify({
-          name: userName,
-          email: userEmail
-        }));
-        
-        setShowAuth(false);
-        Alert.alert('Success', 'Signed in with Google successfully!');
-      }
-    } catch (error) {
-      console.error('Google sign in error:', error);
-      Alert.alert('Error', 'Google sign-in failed. Please use email instead.');
-    } finally {
-      setAuthLoading(false);
-    }
+    // Temporarily disabled due to expo-auth-session module issues
+    Alert.alert('Google Sign-In Temporarily Unavailable', 'Please use Email or Phone authentication for now. We\'re working on fixing Google OAuth.');
   };
 
   const signInWithEmail = async () => {
@@ -266,8 +208,9 @@ export default function OnboardingScreen() {
       const { data, error } = await supabase.auth.signInWithOtp({
         email: userInfo.email,
         options: {
+          shouldCreateUser: true,
           data: {
-            name: userInfo.name
+            full_name: userInfo.name
           }
         }
       });
@@ -281,12 +224,37 @@ export default function OnboardingScreen() {
       }));
       
       console.log('✅ Email verification sent');
-      alert('Check your email for verification link, then return to continue!');
-      setShowAuth(false);
+      setAuthMethod('email_otp');
+      Alert.alert('Verification Code Sent', 'Please enter the 6-digit code sent to your email.');
       
     } catch (error) {
       console.error('Email auth error:', error);
-      alert('Email sign-up failed. Please try again.');
+      Alert.alert('Error', 'Email sign-up failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const verifyEmailOtp = async () => {
+    if (!otpCode || otpCode.length !== 6) return;
+    setAuthLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: userInfo.email,
+        token: otpCode,
+        type: 'email'
+      });
+      
+      if (error) throw error;
+      
+      console.log('✅ Email verification successful');
+      setShowAuth(false);
+      Alert.alert('Success', 'Email verified successfully!');
+      
+    } catch (error) {
+      console.error('Email verification error:', error);
+      Alert.alert('Error', 'Invalid verification code. Please try again.');
     } finally {
       setAuthLoading(false);
     }
@@ -466,11 +434,40 @@ export default function OnboardingScreen() {
             disabled={!userInfo.name || !userInfo.email || authLoading}
           >
             <Text style={styles.continueButtonText}>
-              {authLoading ? 'Creating Account...' : 'Start My Assessment'}
+              {authLoading ? 'Sending Code...' : 'Send Verification Code'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setAuthMethod(null)}>
             <Text style={styles.backText}>← Back to options</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {authMethod === 'email_otp' && (
+        <View style={styles.emailForm}>
+          <Text style={styles.otpTitle}>Enter Verification Code</Text>
+          <Text style={styles.otpSubtitle}>We sent a 6-digit code to {userInfo.email}</Text>
+          <TextInput
+            style={styles.otpInput}
+            placeholder="000000"
+            placeholderTextColor="#9ca3af"
+            value={otpCode}
+            onChangeText={setOtpCode}
+            keyboardType="number-pad"
+            maxLength={6}
+            textAlign="center"
+          />
+          <TouchableOpacity 
+            style={[styles.continueButton, (otpCode.length !== 6 || authLoading) && styles.disabledButton]}
+            onPress={verifyEmailOtp}
+            disabled={otpCode.length !== 6 || authLoading}
+          >
+            <Text style={styles.continueButtonText}>
+              {authLoading ? 'Verifying...' : 'Verify & Continue'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setAuthMethod('email')}>
+            <Text style={styles.backText}>← Back to email</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -1089,5 +1086,30 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  otpTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  otpSubtitle: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  otpInput: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: 8,
+    textAlign: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: '#8B5CF6',
   },
 });
