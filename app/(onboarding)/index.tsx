@@ -306,6 +306,7 @@ export default function OnboardingScreen() {
   const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
 
   const signInWithGoogle = async () => {
+    console.log('🔵 Google button tapped!');
     setAuthLoading(true);
     
     try {
