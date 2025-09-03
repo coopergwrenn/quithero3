@@ -9,14 +9,13 @@ import { generatePersonalizedPlan, assignUserBadge, calculateVapingDependency } 
 import { analytics } from '@/src/services/analytics';
 import { profileService } from '@/src/services/profileService';
 import { supabase } from '@/src/lib/supabase';
-// Temporarily disabled Google OAuth due to module issues
-// import * as AuthSession from 'expo-auth-session';
-// import * as WebBrowser from 'expo-web-browser';
-// import * as Crypto from 'expo-crypto';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Configure WebBrowser for better UX (temporarily disabled)
-// WebBrowser.maybeCompleteAuthSession();
+// Configure WebBrowser for better UX
+WebBrowser.maybeCompleteAuthSession();
 
 interface OnboardingStep {
   id: string;
@@ -279,6 +278,27 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     analytics.trackOnboardingStarted();
+    
+    // Listen for auth state changes (for Google OAuth completion)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in:', session.user.email);
+          
+          // Store user info locally
+          await AsyncStorage.setItem('userInfo', JSON.stringify({
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            email: session.user.email
+          }));
+          
+          // Close auth modal and proceed to onboarding
+          setShowAuth(false);
+          Alert.alert('Success', 'Successfully signed in with Google!');
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const currentStepData = ONBOARDING_STEPS[currentStep];
@@ -286,8 +306,42 @@ export default function OnboardingScreen() {
   const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
 
   const signInWithGoogle = async () => {
-    // Temporarily disabled due to expo-auth-session module issues
-    Alert.alert('Google Sign-In Temporarily Unavailable', 'Please use Email or Phone authentication for now. We\'re working on fixing Google OAuth.');
+    setAuthLoading(true);
+    
+    try {
+      // Create redirect URI for OAuth flow
+      const redirectTo = AuthSession.makeRedirectUri({
+        useProxy: true,
+      });
+
+      console.log('Starting Google OAuth with redirect URI:', redirectTo);
+
+      // Use Supabase's built-in OAuth method
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // The OAuth flow will handle the redirect automatically
+      // Listen for auth state changes in useEffect
+      console.log('✅ Google OAuth initiated successfully');
+      
+    } catch (error) {
+      console.error('Google auth error:', error);
+      Alert.alert('Error', 'Failed to start Google sign-in. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const signInWithEmail = async () => {

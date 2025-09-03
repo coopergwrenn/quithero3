@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface AuthState {
   user: User | null;
@@ -8,6 +12,7 @@ interface AuthState {
   initialized: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
   syncUserData: () => Promise<void>;
@@ -82,6 +87,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
       
+      return {};
+    } catch (error) {
+      set({ loading: false });
+      return { error: 'An unexpected error occurred' };
+    }
+  },
+
+  signInWithGoogle: async () => {
+    set({ loading: true });
+    try {
+      const redirectTo = AuthSession.makeRedirectUri({
+        useProxy: true,
+      });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
+
+      if (error) {
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      // The OAuth flow will handle the redirect
+      // Auth state change will be handled by the listener in initialize()
+      console.log('Google OAuth initiated successfully');
       return {};
     } catch (error) {
       set({ loading: false });
