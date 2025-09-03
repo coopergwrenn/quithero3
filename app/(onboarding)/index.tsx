@@ -358,6 +358,31 @@ export default function OnboardingScreen() {
     }
   };
 
+  const verifyPhoneOtp = async () => {
+    if (!otpCode || otpCode.length !== 6) return;
+    setAuthLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone: userInfo.phone,
+        token: otpCode,
+        type: 'sms'
+      });
+      
+      if (error) throw error;
+      
+      console.log('✅ SMS verification successful');
+      setShowAuth(false);
+      Alert.alert('Success', 'Phone verified successfully!');
+      
+    } catch (error) {
+      console.error('SMS verification error:', error);
+      Alert.alert('Error', 'Invalid verification code. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const signInWithPhone = async () => {
     if (!userInfo.phone || !userInfo.name) return;
     setAuthLoading(true);
@@ -385,12 +410,20 @@ export default function OnboardingScreen() {
       }));
       
       console.log('✅ SMS verification sent');
-      alert('Check your phone for verification code!');
-      setShowAuth(false);
+      setAuthMethod('phone_otp');
+      Alert.alert('6-Digit Code Sent', 'Check your phone for a 6-digit verification code.');
       
     } catch (error) {
       console.error('Phone auth error:', error);
-      alert('Phone sign-up failed. Please try again.');
+      
+      // Handle rate limiting
+      if (error.message?.includes('3 seconds')) {
+        Alert.alert('Please Wait', 'For security, please wait a few seconds before trying again.');
+      } else if (error.message?.includes('rate')) {
+        Alert.alert('Too Many Attempts', 'Please wait a moment before trying again.');
+      } else {
+        Alert.alert('Error', 'Phone sign-up failed. Please try again.');
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -568,8 +601,43 @@ export default function OnboardingScreen() {
               {authLoading ? 'Verifying...' : 'Verify & Continue'}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setAuthMethod('email')}>
+          <TouchableOpacity onPress={() => {
+            setAuthMethod('email');
+            setOtpCode('');
+          }}>
             <Text style={styles.backText}>← Back to email</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {authMethod === 'phone_otp' && (
+        <View style={styles.emailForm}>
+          <Text style={styles.otpTitle}>Enter Verification Code</Text>
+          <Text style={styles.otpSubtitle}>We sent a 6-digit code to {userInfo.phone}</Text>
+          <TextInput
+            style={styles.otpInput}
+            placeholder="000000"
+            placeholderTextColor="#9ca3af"
+            value={otpCode}
+            onChangeText={setOtpCode}
+            keyboardType="number-pad"
+            maxLength={6}
+            textAlign="center"
+          />
+          <TouchableOpacity 
+            style={[styles.continueButton, (otpCode.length !== 6 || authLoading) && styles.disabledButton]}
+            onPress={verifyPhoneOtp}
+            disabled={otpCode.length !== 6 || authLoading}
+          >
+            <Text style={styles.continueButtonText}>
+              {authLoading ? 'Verifying...' : 'Verify & Continue'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+            setAuthMethod('phone');
+            setOtpCode('');
+          }}>
+            <Text style={styles.backText}>← Back to phone</Text>
           </TouchableOpacity>
         </View>
       )}
