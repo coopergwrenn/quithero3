@@ -338,6 +338,14 @@ export default function OnboardingScreen() {
       // The OAuth flow will handle the redirect automatically
       // Listen for auth state changes in useEffect
       console.log('✅ Google OAuth initiated successfully');
+      console.log('OAuth data:', data);
+      
+      if (data?.url) {
+        console.log('🌐 OAuth URL received:', data.url);
+        // Try to open the URL manually if needed
+      } else {
+        console.log('❌ No OAuth URL received in data');
+      }
       
     } catch (error) {
       console.error('Google auth error:', error);
