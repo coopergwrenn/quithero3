@@ -179,6 +179,8 @@ export default function OnboardingScreen() {
   const [authLoading, setAuthLoading] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
+  
+  console.log('🔍 Debug - showAuth:', showAuth, 'authMethod:', authMethod);
   const [otpCode, setOtpCode] = useState('');
   const [selectedCountry, setSelectedCountry] = useState({ code: '+1', flag: '🇺🇸', name: 'United States' });
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -578,7 +580,10 @@ export default function OnboardingScreen() {
         <View style={styles.authButtons}>
           <TouchableOpacity 
             style={styles.googleButton}
-            onPress={signInWithGoogle}
+            onPress={() => {
+              console.log('🔵 Google button tapped! authLoading:', authLoading);
+              signInWithGoogle();
+            }}
             disabled={authLoading}
           >
             <Text style={styles.googleButtonText}>📱 Continue with Google</Text>
