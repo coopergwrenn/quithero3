@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -335,16 +335,28 @@ export default function OnboardingScreen() {
         throw error;
       }
 
-      // The OAuth flow will handle the redirect automatically
-      // Listen for auth state changes in useEffect
       console.log('✅ Google OAuth initiated successfully');
       console.log('OAuth data:', data);
       
       if (data?.url) {
-        console.log('🌐 OAuth URL received:', data.url);
-        // Try to open the URL manually if needed
+        console.log('🌐 Opening OAuth URL:', data.url);
+        
+        // Open the OAuth URL using WebBrowser
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectTo
+        );
+
+        console.log('OAuth result:', result);
+
+        if (result.type === 'success') {
+          console.log('✅ OAuth completed successfully');
+        } else if (result.type === 'cancel') {
+          console.log('❌ OAuth was cancelled by user');
+        }
       } else {
         console.log('❌ No OAuth URL received in data');
+        throw new Error('No OAuth URL received');
       }
       
     } catch (error) {
@@ -587,14 +599,21 @@ export default function OnboardingScreen() {
       {authMethod === null && (
         <View style={styles.authButtons}>
           <TouchableOpacity 
-            style={styles.googleButton}
+            style={[styles.googleButton, authLoading && styles.disabledButton]}
             onPress={() => {
               console.log('🔵 Google button tapped! authLoading:', authLoading);
               signInWithGoogle();
             }}
             disabled={authLoading}
           >
-            <Text style={styles.googleButtonText}>📱 Continue with Google</Text>
+            {authLoading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ActivityIndicator size="small" color="#1a1a2e" style={{ marginRight: 8 }} />
+                <Text style={styles.googleButtonText}>Signing in...</Text>
+              </View>
+            ) : (
+              <Text style={styles.googleButtonText}>📱 Continue with Google</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity 

@@ -117,10 +117,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { error: error.message };
       }
 
-      // The OAuth flow will handle the redirect
-      // Auth state change will be handled by the listener in initialize()
-      console.log('Google OAuth initiated successfully');
-      return {};
+      if (data?.url) {
+        // Open the OAuth URL using WebBrowser
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectTo
+        );
+
+        console.log('Google OAuth result:', result);
+
+        if (result.type === 'success') {
+          console.log('Google OAuth completed successfully');
+          // Auth state change will be handled by the listener in initialize()
+          return {};
+        } else if (result.type === 'cancel') {
+          set({ loading: false });
+          return { error: 'Sign-in was cancelled' };
+        } else {
+          set({ loading: false });
+          return { error: 'Sign-in failed' };
+        }
+      } else {
+        set({ loading: false });
+        return { error: 'No OAuth URL received' };
+      }
     } catch (error) {
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
