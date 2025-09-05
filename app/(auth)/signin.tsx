@@ -80,7 +80,7 @@ export default function SignInScreen() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Don't have an account?{' '}
-            <Link href="/(auth)/signup" style={styles.link}>
+            <Link href="/(onboarding)" style={styles.link}>
               Sign up
             </Link>
           </Text>
