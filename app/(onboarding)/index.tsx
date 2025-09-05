@@ -833,6 +833,16 @@ export default function OnboardingScreen() {
         </View>
       )}
 
+      {/* Sign In Option */}
+      <View style={styles.signInSection}>
+        <TouchableOpacity 
+          style={styles.signInButton}
+          onPress={() => router.push('/(auth)/signin')}
+        >
+          <Text style={styles.signInText}>Already have an account? <Text style={styles.signInLink}>Sign In</Text></Text>
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.privacyText}>
         Your data is private and secure. We never share personal information.
       </Text>
@@ -1409,6 +1419,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#9ca3af',
     textAlign: 'center',
+  },
+  signInSection: {
+    marginTop: 24,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  signInButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  signInText: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  signInLink: {
+    color: '#8b5cf6',
+    fontWeight: '600',
   },
   privacyText: {
     fontSize: 14,
