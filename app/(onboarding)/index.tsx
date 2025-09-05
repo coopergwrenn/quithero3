@@ -173,7 +173,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { updateQuitData, completeOnboarding } = useQuitStore();
+  const { updateQuitData, completeOnboarding, isOnboardingComplete } = useQuitStore();
   
   const [showAuth, setShowAuth] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
@@ -848,6 +848,13 @@ export default function OnboardingScreen() {
       </Text>
     </SafeAreaView>
   );
+
+  // If onboarding is already complete, redirect to dashboard immediately
+  if (isOnboardingComplete) {
+    console.log('🔄 Onboarding already complete, redirecting to dashboard');
+    router.replace('/(app)/(tabs)/dashboard');
+    return null;
+  }
 
   // Show authentication first
   if (showAuth) {
