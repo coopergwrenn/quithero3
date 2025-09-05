@@ -10,7 +10,7 @@ export default function AppLayout() {
   const [appDataLoaded, setAppDataLoaded] = useState(false);
   const { loadFromStorage, isOnboardingComplete } = useQuitStore();
   const { loadFromStorage: loadToolData } = useToolStore();
-  const { initialize, loading: authLoading } = useAuthStore();
+  const { initialize, loading: authLoading, user } = useAuthStore();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -58,8 +58,9 @@ export default function AppLayout() {
     return null; // or a loading component
   }
 
-  // Redirect to onboarding if not completed
-  if (!isOnboardingComplete) {
+  // If user is authenticated, let them access the dashboard
+  // If not authenticated and onboarding not complete, redirect to onboarding
+  if (!user && !isOnboardingComplete) {
     return <Redirect href="/(onboarding)" />;
   }
 

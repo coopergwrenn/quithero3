@@ -20,7 +20,14 @@ export default function SignInScreen() {
 
     setLoading(true);
     try {
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      
+      if (result.error) {
+        Alert.alert('Sign In Error', result.error);
+        return;
+      }
+      
+      // Success - redirect to dashboard
       router.replace('/(app)/(tabs)/dashboard');
     } catch (error: any) {
       Alert.alert('Sign In Error', error.message || 'Failed to sign in');
