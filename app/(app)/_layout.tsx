@@ -5,9 +5,11 @@ import { useToolStore } from '@/src/stores/toolStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
 import { notifications } from '@/src/services/notifications';
+import { supabase } from '@/src/lib/supabase';
 
 export default function AppLayout() {
   const [appDataLoaded, setAppDataLoaded] = useState(false);
+  const [hasUserProfile, setHasUserProfile] = useState<boolean | null>(null);
   const { loadFromStorage, isOnboardingComplete } = useQuitStore();
   const { loadFromStorage: loadToolData } = useToolStore();
   const { initialize, loading: authLoading, user } = useAuthStore();
@@ -37,6 +39,40 @@ export default function AppLayout() {
     initializeApp();
   }, []);
 
+  // Check if authenticated user has a complete profile
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (user?.id) {
+        const profileExists = await checkUserProfile(user.id);
+        setHasUserProfile(profileExists);
+      } else {
+        setHasUserProfile(null);
+      }
+    };
+
+    checkProfile();
+  }, [user]);
+
+  const checkUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking user profile:', error);
+        return false;
+      }
+      
+      return !!data; // Returns true if profile exists, false if not
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+      return false;
+    }
+  };
+
   const initializeServices = async () => {
     try {
       // Check notification permissions
@@ -54,13 +90,24 @@ export default function AppLayout() {
   };
 
   // Show loading state until app is fully initialized
-  if (!appDataLoaded || authLoading) {
+  if (!appDataLoaded || authLoading || (user && hasUserProfile === null)) {
     return null; // or a loading component
   }
 
-  // If user is authenticated, let them access the dashboard
-  // If not authenticated and onboarding not complete, redirect to onboarding
+  // Routing logic:
+  // 1. No user + no local onboarding = go to onboarding
+  // 2. User exists but no profile in DB = go to onboarding (complete their profile)
+  // 3. User exists with profile = go to dashboard
+  // 4. No user but local onboarding complete = go to dashboard (offline mode)
+  
   if (!user && !isOnboardingComplete) {
+    // Case 1: New user, needs onboarding
+    return <Redirect href="/(onboarding)" />;
+  }
+  
+  if (user && hasUserProfile === false) {
+    // Case 2: Authenticated but incomplete profile - rare edge case
+    console.log('Authenticated user without complete profile, redirecting to onboarding');
     return <Redirect href="/(onboarding)" />;
   }
 
