@@ -7,10 +7,12 @@ import { Card, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
+import { ChatInterface } from '@/src/components/chatbot';
 
 export default function CoachScreen() {
   const [showChat, setShowChat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [useNativeChatbot, setUseNativeChatbot] = useState(false); // Toggle for development
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
 
@@ -88,8 +90,18 @@ export default function CoachScreen() {
           }}
           style={styles.startButton}
         >
-          Start Coaching Session
+          Start Coaching Session {useNativeChatbot ? '(Native)' : '(Voiceflow)'}
         </Button>
+        
+        {/* Development toggle - your co-worker can use this to switch between versions */}
+        <TouchableOpacity 
+          onPress={() => setUseNativeChatbot(!useNativeChatbot)}
+          style={styles.toggleButton}
+        >
+          <Text style={styles.toggleText}>
+            Switch to {useNativeChatbot ? 'Voiceflow' : 'Native'} Chatbot
+          </Text>
+        </TouchableOpacity>
         
         <TouchableOpacity onPress={() => Alert.alert('Coach Info', 'This AI coach is powered by Voiceflow and trained on evidence-based smoking cessation methods. Your conversations are private and secure.')}>
           <Text style={styles.infoLink}>How does this work?</Text>
@@ -242,9 +254,33 @@ export default function CoachScreen() {
     );
   };
 
+  // Render native chatbot
+  const renderNativeChatbot = () => (
+    <View style={styles.chatContainer}>
+      <View style={styles.chatHeader}>
+        <TouchableOpacity 
+          onPress={() => {
+            setShowChat(false);
+            analytics.track('ai_coach_chat_closed');
+          }}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.chatTitle}>AI Quit Coach (Native)</Text>
+        <View style={styles.onlineIndicator}>
+          <View style={styles.onlineDot} />
+          <Text style={styles.onlineText}>Online</Text>
+        </View>
+      </View>
+      
+      <ChatInterface sessionType="coaching" />
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      {showChat ? renderVoiceflowChat() : renderCoachIntro()}
+      {showChat ? (useNativeChatbot ? renderNativeChatbot() : renderVoiceflowChat()) : renderCoachIntro()}
     </SafeAreaView>
   );
 }
@@ -333,6 +369,20 @@ const styles = StyleSheet.create({
   startButton: {
     width: '100%',
     marginBottom: Theme.spacing.md,
+  },
+  toggleButton: {
+    paddingVertical: Theme.spacing.sm,
+    paddingHorizontal: Theme.spacing.md,
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.border,
+    marginBottom: Theme.spacing.md,
+  },
+  toggleText: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
   },
   infoLink: {
     ...Theme.typography.footnote,
