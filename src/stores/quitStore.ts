@@ -93,21 +93,39 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
       
       if (user) {
         const currentState = get();
+        // Map our data to the actual database schema
+        const profileData = {
+          user_id: user.id,
+          // Badge data (required fields) - use fallback values for now
+          badge_type: 'VapeBreaker',
+          badge_display_name: 'Vape Breaker', 
+          badge_description: 'Breaking free from vaping addiction',
+          
+          // Dependency scoring (required fields)
+          dependency_total: currentState.quitData.dependencyScore || 0,
+          dependency_risk_level: currentState.quitData.riskLevel || 'Low',
+          dependency_risk_description: 'Generated from onboarding responses',
+          
+          // Onboarding responses
+          motivation: Array.isArray(currentState.quitData.motivation) 
+            ? currentState.quitData.motivation.join(', ') 
+            : (currentState.quitData.motivation || 'Health'),
+          triggers: currentState.quitData.triggers || [],
+          substance_type: currentState.quitData.substanceType,
+          usage_amount: currentState.quitData.usageAmount?.toString(),
+          
+          // Optional fields that might exist
+          first_use_time: currentState.quitData.firstUseTime,
+          social_context: currentState.quitData.socialContext,
+          stress_level: currentState.quitData.stressLevel,
+          sleep_quality: currentState.quitData.sleepQuality,
+          previous_attempts: currentState.quitData.previousAttempts,
+          quit_timeline: currentState.quitData.quitTimeline,
+        };
+
         const { data, error } = await supabase
           .from('user_profiles')
-          .upsert({
-            user_id: user.id,
-            email: user.email,
-            quit_date: currentState.quitData.quitDate,
-            substance_type: currentState.quitData.substanceType,
-            usage_amount: currentState.quitData.usageAmount,
-            motivation: currentState.quitData.motivation,
-            triggers: currentState.quitData.triggers,
-            risk_level: currentState.quitData.riskLevel,
-            dependency_score: currentState.quitData.dependencyScore,
-            onboarding_completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, {
+          .upsert(profileData, {
             onConflict: 'user_id'
           });
           
