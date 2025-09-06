@@ -111,8 +111,8 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
             ? currentState.quitData.motivation.join(', ') 
             : (currentState.quitData.motivation || 'Health'),
           triggers: currentState.quitData.triggers || [],
-          substance_type: currentState.quitData.substanceType,
-          usage_amount: currentState.quitData.usageAmount?.toString(),
+          device_type: currentState.quitData.substanceType,
+          usage_frequency: currentState.quitData.usageAmount?.toString(),
           
           // Optional fields that might exist
           first_use_time: currentState.quitData.firstUseTime,
