@@ -40,6 +40,7 @@ interface QuitData {
   quitTimeline?: 'today' | 'this-week' | 'next-week' | 'this-month';
   nrtInterest?: 'yes' | 'maybe' | 'no' | 'already-using';
   riskLevel?: 'high' | 'medium' | 'low';
+  dependencyScore?: number;
   personalizedPlan?: PersonalizedPlan;
 }
 
@@ -80,10 +81,46 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
     storage.set('quitData', JSON.stringify(newQuitData));
   },
 
-  completeOnboarding: () => {
+  completeOnboarding: async () => {
     set({ isOnboardingComplete: true });
     storage.set('isOnboardingComplete', 'true');
     analytics.track('onboarding_flow_completed');
+    
+    // Create user profile in database if user is authenticated
+    try {
+      const { supabase } = await import('@/src/lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const currentState = get();
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .upsert({
+            user_id: user.id,
+            email: user.email,
+            quit_date: currentState.quitData.quitDate,
+            substance_type: currentState.quitData.substanceType,
+            usage_amount: currentState.quitData.usageAmount,
+            motivation: currentState.quitData.motivation,
+            triggers: currentState.quitData.triggers,
+            risk_level: currentState.quitData.riskLevel,
+            dependency_score: currentState.quitData.dependencyScore,
+            onboarding_completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          });
+          
+        if (error) {
+          console.error('Error creating user profile:', error);
+        } else {
+          console.log('✅ User profile created/updated in database');
+        }
+      }
+    } catch (error) {
+      console.error('Error in completeOnboarding:', error);
+      // Don't throw - we still want onboarding to complete locally
+    }
   },
 
   markPaywallSeen: () => {

@@ -549,7 +549,7 @@ export default function OnboardingScreen() {
       usageAmount: parseInt(responses.usageAmount) || 0,
     });
 
-    completeOnboarding();
+    await completeOnboarding();
     setShowResults(true);
   };
 
