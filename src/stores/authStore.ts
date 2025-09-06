@@ -11,6 +11,8 @@ interface AuthState {
   loading: boolean;
   initialized: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithOTP: (email: string) => Promise<{ error?: string }>;
+  verifyOTP: (email: string, token: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
@@ -67,6 +69,62 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.error('❌ Sign in exception:', error);
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
+    }
+  },
+
+  signInWithOTP: async (email: string) => {
+    set({ loading: true });
+    try {
+      console.log('🔍 Sending OTP to:', email);
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // Don't create new user, only sign in existing
+        }
+      });
+
+      if (error) {
+        console.error('❌ OTP send error:', error);
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      console.log('✅ OTP sent successfully');
+      set({ loading: false });
+      return {};
+    } catch (error) {
+      console.error('❌ OTP send exception:', error);
+      set({ loading: false });
+      return { error: 'Failed to send verification code' };
+    }
+  },
+
+  verifyOTP: async (email: string, token: string) => {
+    set({ loading: true });
+    try {
+      console.log('🔍 Verifying OTP for:', email);
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+
+      if (error) {
+        console.error('❌ OTP verify error:', error);
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      console.log('✅ OTP verified successfully:', data.user?.email);
+      set({ user: data.user, loading: false });
+      await get().syncUserData();
+      return {};
+    } catch (error) {
+      console.error('❌ OTP verify exception:', error);
+      set({ loading: false });
+      return { error: 'Failed to verify code' };
     }
   },
 

@@ -7,28 +7,54 @@ import { useAuthStore } from '@/src/stores/authStore';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, debugCheckUsers } = useAuthStore();
+  const { signIn, signInWithOTP, verifyOTP, debugCheckUsers } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [useOTP, setUseOTP] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
 
   const handleSignIn = async () => {
-    if (!email || !password) {
+    if (!email || (!password && !useOTP)) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await signIn(email, password);
+      let result;
+      
+      if (useOTP && !otpSent) {
+        // Send OTP
+        result = await signInWithOTP(email);
+        if (!result.error) {
+          setOtpSent(true);
+          Alert.alert('Code Sent', 'Check your email for the verification code');
+        }
+      } else if (useOTP && otpSent) {
+        // Verify OTP
+        if (!otpCode) {
+          Alert.alert('Error', 'Please enter the verification code');
+          return;
+        }
+        result = await verifyOTP(email, otpCode);
+      } else {
+        // Regular password sign-in
+        result = await signIn(email, password);
+      }
       
       if (result.error) {
         Alert.alert('Sign In Error', result.error);
         return;
       }
       
+      if (useOTP && !otpSent) {
+        // Just sent OTP, don't redirect yet
+        return;
+      }
+      
       // Success - let the app layout handle routing
-      // It will check if user has a profile and route accordingly
       console.log('✅ Sign in successful, letting app layout handle routing');
     } catch (error: any) {
       Alert.alert('Sign In Error', error.message || 'Failed to sign in');
@@ -57,14 +83,56 @@ export default function SignInScreen() {
             style={styles.input}
           />
           
-          <TextField
-            label="Password"
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={styles.input}
-          />
+          {/* Toggle between password and OTP */}
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleLabel}>Sign in method:</Text>
+            <View style={styles.toggleButtons}>
+              <Button
+                variant={!useOTP ? "primary" : "ghost"}
+                size="sm"
+                onPress={() => {
+                  setUseOTP(false);
+                  setOtpSent(false);
+                  setOtpCode('');
+                }}
+                style={styles.toggleButton}
+              >
+                Password
+              </Button>
+              <Button
+                variant={useOTP ? "primary" : "ghost"}
+                size="sm"
+                onPress={() => {
+                  setUseOTP(true);
+                  setPassword('');
+                }}
+                style={styles.toggleButton}
+              >
+                Email Code
+              </Button>
+            </View>
+          </View>
+          
+          {!useOTP ? (
+            <TextField
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+            />
+          ) : otpSent ? (
+            <TextField
+              label="Verification Code"
+              placeholder="Enter 6-digit code"
+              value={otpCode}
+              onChangeText={setOtpCode}
+              keyboardType="number-pad"
+              maxLength={6}
+              style={styles.input}
+            />
+          ) : null}
 
           <Button
             variant="primary"
@@ -74,7 +142,7 @@ export default function SignInScreen() {
             loading={loading}
             style={styles.signInButton}
           >
-            Sign In
+            {useOTP && !otpSent ? 'Send Code' : useOTP && otpSent ? 'Verify Code' : 'Sign In'}
           </Button>
         </Card>
 
@@ -162,5 +230,20 @@ const styles = StyleSheet.create({
   },
   debugButton: {
     marginTop: Theme.spacing.md,
+  },
+  toggleContainer: {
+    marginBottom: Theme.spacing.lg,
+  },
+  toggleLabel: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    marginBottom: Theme.spacing.sm,
+  },
+  toggleButtons: {
+    flexDirection: 'row',
+    gap: Theme.spacing.sm,
+  },
+  toggleButton: {
+    flex: 1,
   },
 });
