@@ -27,8 +27,9 @@ export default function SignInScreen() {
         return;
       }
       
-      // Success - redirect to dashboard
-      router.replace('/(app)/(tabs)/dashboard');
+      // Success - let the app layout handle routing
+      // It will check if user has a profile and route accordingly
+      console.log('✅ Sign in successful, letting app layout handle routing');
     } catch (error: any) {
       Alert.alert('Sign In Error', error.message || 'Failed to sign in');
     } finally {
