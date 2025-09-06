@@ -16,6 +16,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
   syncUserData: () => Promise<void>;
+  debugCheckUsers: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -45,20 +46,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signIn: async (email: string, password: string) => {
     set({ loading: true });
     try {
+      console.log('🔍 Attempting sign in with:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('❌ Sign in error:', error);
         set({ loading: false });
         return { error: error.message };
       }
 
+      console.log('✅ Sign in successful:', data.user?.email);
       set({ user: data.user, loading: false });
       await get().syncUserData();
       return {};
     } catch (error) {
+      console.error('❌ Sign in exception:', error);
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
     }
@@ -177,6 +183,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       console.error('User sync error:', error);
+    }
+  },
+
+  debugCheckUsers: async () => {
+    try {
+      console.log('🔍 Checking Supabase connection and users...');
+      
+      // Check if we can connect to Supabase
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('📡 Supabase connection:', { connected: true, currentSession: !!session });
+      
+      // Try to get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('👤 Current user:', { user: user?.email || 'none', error: userError?.message });
+      
+      // Check user_profiles table
+      const { data: profiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, created_at')
+        .limit(5);
+        
+      console.log('📊 User profiles in database:', { 
+        count: profiles?.length || 0, 
+        error: profilesError?.message,
+        profiles: profiles?.map(p => ({ userId: p.user_id, created: p.created_at }))
+      });
+      
+    } catch (error) {
+      console.error('❌ Debug check failed:', error);
     }
   },
 }));

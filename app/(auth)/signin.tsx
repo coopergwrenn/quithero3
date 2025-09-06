@@ -7,7 +7,7 @@ import { useAuthStore } from '@/src/stores/authStore';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn } = useAuthStore();
+  const { signIn, debugCheckUsers } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,6 +89,16 @@ export default function SignInScreen() {
           <Link href="/(app)/(tabs)/dashboard" style={styles.skipLink}>
             <Text style={styles.skipText}>Continue without account</Text>
           </Link>
+          
+          {/* Debug button - remove this after testing */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={debugCheckUsers}
+            style={styles.debugButton}
+          >
+            🔍 Debug: Check Database
+          </Button>
         </View>
       </View>
     </SafeAreaView>
@@ -149,5 +159,8 @@ const styles = StyleSheet.create({
     ...Theme.typography.footnote,
     color: Theme.colors.text.tertiary,
     textDecorationLine: 'underline',
+  },
+  debugButton: {
+    marginTop: Theme.spacing.md,
   },
 });
