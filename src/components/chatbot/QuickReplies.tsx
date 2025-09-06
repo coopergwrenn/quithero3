@@ -79,7 +79,7 @@ export function QuickReplies({ onSelectReply }: QuickRepliesProps) {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 8,
-    backgroundColor: Theme.colors.background.primary,
+    backgroundColor: Theme.colors.dark.background,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -89,9 +89,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: Theme.colors.surface,
+    backgroundColor: Theme.colors.dark.surface,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.dark.border,
   },
   crisisReply: {
     backgroundColor: '#fef2f2',

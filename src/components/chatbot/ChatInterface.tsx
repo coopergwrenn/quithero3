@@ -80,7 +80,7 @@ export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.background.primary,
+    backgroundColor: Theme.colors.dark.background,
   },
   crisisMode: {
     backgroundColor: '#1a0f0f', // Darker background for crisis mode

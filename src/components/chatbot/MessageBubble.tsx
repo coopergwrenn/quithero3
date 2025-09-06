@@ -90,14 +90,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   userBubble: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: Theme.colors.purple[500],
     borderBottomRightRadius: 8,
   },
   assistantBubble: {
-    backgroundColor: Theme.colors.surface,
+    backgroundColor: Theme.colors.dark.surface,
     borderBottomLeftRadius: 8,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.dark.border,
   },
   crisisBubble: {
     backgroundColor: '#dc2626',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   userText: {
-    color: Theme.colors.textOnPrimary,
+    color: Theme.colors.text.primary,
   },
   assistantText: {
     color: Theme.colors.text.primary,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   userTimestamp: {
-    color: Theme.colors.textOnPrimary,
+    color: Theme.colors.text.primary,
     textAlign: 'right',
   },
   assistantTimestamp: {

@@ -48,7 +48,7 @@ export function ChatInput({
           <Ionicons 
             name="send" 
             size={20} 
-            color={message.trim() ? Theme.colors.textOnPrimary : Theme.colors.text.secondary} 
+            color={message.trim() ? Theme.colors.text.primary : Theme.colors.text.secondary} 
           />
         </TouchableOpacity>
       </View>
@@ -60,17 +60,17 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Theme.colors.background.primary,
+    backgroundColor: Theme.colors.dark.background,
     borderTopWidth: 1,
-    borderTopColor: Theme.colors.border,
+    borderTopColor: Theme.colors.dark.border,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: Theme.colors.surface,
+    backgroundColor: Theme.colors.dark.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.dark.border,
     paddingHorizontal: 16,
     paddingVertical: 8,
     minHeight: 48,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendButtonActive: {
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: Theme.colors.purple[500],
   },
   sendButtonInactive: {
     backgroundColor: 'transparent',

@@ -92,13 +92,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   bubble: {
-    backgroundColor: Theme.colors.surface,
+    backgroundColor: Theme.colors.dark.surface,
     borderRadius: 20,
     borderBottomLeftRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.dark.border,
   },
   dotsContainer: {
     flexDirection: 'row',
