@@ -549,7 +549,7 @@ export default function OnboardingScreen() {
       usageAmount: parseInt(responses.usageAmount) || 0,
     });
 
-    completeOnboarding();
+    await completeOnboarding();
     setShowResults(true);
   };
 
@@ -850,10 +850,15 @@ export default function OnboardingScreen() {
   );
 
   // If onboarding is already complete, redirect to dashboard immediately
+  useEffect(() => {
+    if (isOnboardingComplete) {
+      console.log('🔄 Onboarding already complete, redirecting to dashboard');
+      router.replace('/(app)/(tabs)/dashboard');
+    }
+  }, [isOnboardingComplete, router]);
+
   if (isOnboardingComplete) {
-    console.log('🔄 Onboarding already complete, redirecting to dashboard');
-    router.replace('/(app)/(tabs)/dashboard');
-    return null;
+    return null; // Show nothing while redirecting
   }
 
   // Show authentication first

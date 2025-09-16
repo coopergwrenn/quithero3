@@ -91,6 +91,7 @@ export default function AppLayout() {
 
   // Show loading state until app is fully initialized
   if (!appDataLoaded || authLoading || (user && hasUserProfile === null)) {
+    console.log('🔄 App loading...', { appDataLoaded, authLoading, user: !!user, hasUserProfile });
     return null; // or a loading component
   }
 
@@ -100,17 +101,27 @@ export default function AppLayout() {
   // 3. User exists with profile = go to dashboard
   // 4. No user but local onboarding complete = go to dashboard (offline mode)
   
+  console.log('🔍 Routing decision:', { 
+    user: !!user, 
+    isOnboardingComplete, 
+    hasUserProfile,
+    userId: user?.id 
+  });
+
   if (!user && !isOnboardingComplete) {
     // Case 1: New user, needs onboarding
+    console.log('➡️ Redirecting to onboarding: New user');
     return <Redirect href="/(onboarding)" />;
   }
   
   if (user && hasUserProfile === false) {
     // Case 2: Authenticated but incomplete profile - rare edge case
-    console.log('Authenticated user without complete profile, redirecting to onboarding');
+    console.log('➡️ Redirecting to onboarding: Authenticated user without complete profile');
     return <Redirect href="/(onboarding)" />;
   }
 
+  // Case 3: User with complete profile OR offline mode
+  console.log('➡️ Allowing access to main app');
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
