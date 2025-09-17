@@ -587,8 +587,8 @@ export default function DashboardScreen() {
               })}
             </View>
             
-            {/* Ultra-Compact Activity Legend - NO SPACING! */}
-            <View style={styles.modernActivityLegend}>
+            {/* ABSOLUTE POSITIONED Activity Legend - BYPASS LAYOUT SYSTEM */}
+            <View style={styles.absoluteActivityLegend}>
               <Text style={styles.modernLegendTitle}>Activity Level</Text>
               <View style={styles.modernLegendItems}>
                 {[
@@ -1472,9 +1472,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#141414', // Match the stats card
     borderRadius: 24,
     padding: 20, // Tighter padding
+    paddingBottom: 70, // Extra space for absolute positioned legend
     marginBottom: 32, // Consistent card spacing
     width: '100%',
-    overflow: 'hidden',
+    overflow: 'visible', // Allow absolute positioning to work
     borderWidth: 0.5,
     borderColor: '#333333',
     shadowColor: '#000',
@@ -1482,6 +1483,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 12,
+    position: 'relative', // Enable absolute positioning for children
   },
   modernCalendarHeader: {
     flexDirection: 'row',
@@ -1553,9 +1555,15 @@ const styles = StyleSheet.create({
     right: 2,
     fontSize: 8,
   },
-  modernActivityLegend: {
-    marginTop: -8, // NEGATIVE MARGIN to eliminate iOS spacing bug
-    paddingTop: 8, // Even more minimal padding
+  absoluteActivityLegend: {
+    position: 'absolute',
+    bottom: 0, // Stick to bottom of calendar card
+    left: 0,
+    right: 0,
+    backgroundColor: '#141414', // Match card background
+    paddingTop: 8,
+    paddingBottom: 12,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderTopColor: '#333333',
   },
