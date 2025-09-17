@@ -1277,7 +1277,7 @@ const styles = StyleSheet.create({
   },
   motivationCard: {
     padding: 24,
-    marginBottom: 32,
+    marginBottom: 0, // Remove margin to eliminate blank space
     backgroundColor: '#1E3A8A',
     borderColor: '#3B82F6',
     borderWidth: 1,
