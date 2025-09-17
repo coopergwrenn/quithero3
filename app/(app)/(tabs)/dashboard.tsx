@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    paddingTop: 60, // Add more top padding since we removed SafeAreaView
+    paddingTop: 90, // Push welcome message down even more
     paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   noDataContainer: {
