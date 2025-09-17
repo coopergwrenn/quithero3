@@ -529,33 +529,33 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Modern Quit Calendar - Completely Rebuilt */}
-          <View style={styles.modernCalendarCard}>
-            {/* Compact Header */}
-            <View style={styles.modernCalendarHeader}>
-              <Text style={styles.modernCalendarTitle}>Quit Calendar</Text>
-              <View style={styles.modernMonthNav}>
-                <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.modernNavButton}>
-                  <Text style={styles.modernNavText}>‹</Text>
+          {/* Clean Quit Calendar - Fresh Rebuild */}
+          <View style={styles.cleanCalendarCard}>
+            {/* Simple Header */}
+            <View style={styles.cleanCalendarHeader}>
+              <Text style={styles.cleanCalendarTitle}>Quit Calendar</Text>
+              <View style={styles.cleanMonthNav}>
+                <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.cleanNavButton}>
+                  <Text style={styles.cleanNavText}>‹</Text>
                 </TouchableOpacity>
-                <Text style={styles.modernMonthText}>
+                <Text style={styles.cleanMonthText}>
                   {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </Text>
-                <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.modernNavButton}>
-                  <Text style={styles.modernNavText}>›</Text>
+                <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.cleanNavButton}>
+                  <Text style={styles.cleanNavText}>›</Text>
                 </TouchableOpacity>
               </View>
             </View>
             
-            {/* Tight Day Headers */}
-            <View style={styles.modernDayHeaders}>
+            {/* Day Headers */}
+            <View style={styles.cleanDayHeaders}>
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                <Text key={index} style={styles.modernDayHeader}>{day}</Text>
+                <Text key={index} style={styles.cleanDayHeader}>{day}</Text>
               ))}
             </View>
             
-            {/* Compact Calendar Grid */}
-            <View style={styles.modernCalendarGrid}>
+            {/* Calendar Grid - NO ACTIVITY LEVEL! */}
+            <View style={styles.cleanCalendarGrid}>
               {getDaysInMonth(currentMonth).map((day, index) => {
                 const score = calculateDayScore(day);
                 const isToday = day.toDateString() === new Date().toDateString();
@@ -565,7 +565,7 @@ export default function DashboardScreen() {
                   <TouchableOpacity
                     key={index}
                     style={[
-                      styles.modernDayCell,
+                      styles.cleanDayCell,
                       {
                         backgroundColor: getCalendarCellColor(score),
                         opacity: isCurrentMonth ? 1 : 0.3,
@@ -576,33 +576,15 @@ export default function DashboardScreen() {
                     onPress={() => openDayModal(day)}
                   >
                     <Text style={[
-                      styles.modernDayText,
+                      styles.cleanDayText,
                       { color: isCurrentMonth ? '#FFFFFF' : '#666666' }
                     ]}>
                       {day.getDate()}
                     </Text>
-                    {score > 70 && <Text style={styles.modernScoreIndicator}>✨</Text>}
+                    {score > 70 && <Text style={styles.cleanScoreIndicator}>✨</Text>}
                   </TouchableOpacity>
                 );
               })}
-            </View>
-            
-            {/* ABSOLUTE POSITIONED Activity Legend - BYPASS LAYOUT SYSTEM */}
-            <View style={styles.absoluteActivityLegend}>
-              <Text style={styles.modernLegendTitle}>Activity Level</Text>
-              <View style={styles.modernLegendItems}>
-                {[
-                  { color: '#4B5563', label: 'No Activity' },
-                  { color: '#8B5CF6', label: 'Low' },
-                  { color: '#A855F7', label: 'Medium' },
-                  { color: '#9333EA', label: 'High' }
-                ].map((item, index) => (
-                  <View key={index} style={styles.modernLegendItem}>
-                    <View style={[styles.modernLegendDot, { backgroundColor: item.color }]} />
-                    <Text style={styles.modernLegendLabel}>{item.label}</Text>
-                  </View>
-                ))}
-              </View>
             </View>
           </View>
 
@@ -1467,15 +1449,13 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   
-  // Modern Calendar Styles - Completely Rebuilt
-  modernCalendarCard: {
-    backgroundColor: '#141414', // Match the stats card
+  // Clean Calendar Styles - Fresh Start, No Activity Level
+  cleanCalendarCard: {
+    backgroundColor: '#141414',
     borderRadius: 24,
-    padding: 20, // Tighter padding
-    paddingBottom: 70, // Extra space for absolute positioned legend
-    marginBottom: 32, // Consistent card spacing
+    padding: 24,
+    marginBottom: 32,
     width: '100%',
-    overflow: 'visible', // Allow absolute positioning to work
     borderWidth: 0.5,
     borderColor: '#333333',
     shadowColor: '#000',
@@ -1483,115 +1463,86 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 12,
-    position: 'relative', // Enable absolute positioning for children
+    // FORCE EXACT HEIGHT - NO EXTRA SPACE ALLOWED!
+    minHeight: 'auto',
+    maxHeight: 400,
+    alignSelf: 'stretch',
+    flexShrink: 1,
   },
-  modernCalendarHeader: {
+  cleanCalendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16, // Tight spacing
+    marginBottom: 20,
   },
-  modernCalendarTitle: {
+  cleanCalendarTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  modernMonthNav: {
+  cleanMonthNav: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
-  modernNavButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  cleanNavButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modernNavText: {
+  cleanNavText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
-  modernMonthText: {
+  cleanMonthText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '500',
+    minWidth: 140,
+    textAlign: 'center',
   },
-  modernDayHeaders: {
+  cleanDayHeaders: {
     flexDirection: 'row',
-    marginBottom: 8, // Minimal spacing
+    marginBottom: 12,
   },
-  modernDayHeader: {
+  cleanDayHeader: {
     flex: 1,
     textAlign: 'center',
     color: '#888888',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    paddingVertical: 4,
+    paddingVertical: 8,
   },
-  modernCalendarGrid: {
+  cleanCalendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 0, // ZERO margin - let negative margin handle it
+    // FORCE TIGHT LAYOUT - NO EXPANSION!
+    flex: 0,
+    minHeight: 'auto',
+    alignSelf: 'stretch',
   },
-  modernDayCell: {
-    width: '14.28%', // 7 days per week
+  cleanDayCell: {
+    width: '14.28%',
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    margin: 1,
+    borderRadius: 10,
+    margin: 2,
   },
-  modernDayText: {
-    fontSize: 14,
+  cleanDayText: {
+    fontSize: 15,
     fontWeight: '500',
     color: '#FFFFFF',
   },
-  modernScoreIndicator: {
+  cleanScoreIndicator: {
     position: 'absolute',
     top: 2,
     right: 2,
-    fontSize: 8,
-  },
-  absoluteActivityLegend: {
-    position: 'absolute',
-    bottom: 0, // Stick to bottom of calendar card
-    left: 0,
-    right: 0,
-    backgroundColor: '#141414', // Match card background
-    paddingTop: 8,
-    paddingBottom: 12,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#333333',
-  },
-  modernLegendTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 8,
-  },
-  modernLegendItems: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modernLegendItem: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    flex: 1,
-  },
-  modernLegendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  modernLegendLabel: {
     fontSize: 10,
-    color: '#CCCCCC',
-    textAlign: 'center',
   },
   calendarHeader: {
     flexDirection: 'row',
