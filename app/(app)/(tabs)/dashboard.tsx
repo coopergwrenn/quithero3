@@ -529,93 +529,82 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Quit Calendar */}
-          <Card style={styles.calendarCard}>
-            <View style={styles.calendarHeader}>
-              <Text style={styles.calendarTitle}>Quit Calendar</Text>
-              <View style={styles.monthNavigation}>
-                <TouchableOpacity 
-                  style={styles.monthButton}
-                  onPress={() => navigateMonth('prev')}
-                >
-                  <Text style={styles.monthArrow}>‹</Text>
+          {/* Modern Quit Calendar - Completely Rebuilt */}
+          <View style={styles.modernCalendarCard}>
+            {/* Compact Header */}
+            <View style={styles.modernCalendarHeader}>
+              <Text style={styles.modernCalendarTitle}>Quit Calendar</Text>
+              <View style={styles.modernMonthNav}>
+                <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.modernNavButton}>
+                  <Text style={styles.modernNavText}>‹</Text>
                 </TouchableOpacity>
-                <Text style={styles.monthText}>
+                <Text style={styles.modernMonthText}>
                   {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </Text>
-                <TouchableOpacity 
-                  style={styles.monthButton}
-                  onPress={() => navigateMonth('next')}
-                >
-                  <Text style={styles.monthArrow}>›</Text>
+                <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.modernNavButton}>
+                  <Text style={styles.modernNavText}>›</Text>
                 </TouchableOpacity>
               </View>
             </View>
             
-            <View style={styles.calendarGrid}>
-              {/* Day headers */}
-              <View style={styles.dayHeadersRow}>
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                  <Text key={index} style={styles.dayHeader}>{day}</Text>
-                ))}
-              </View>
-              
-              {/* Calendar days */}
-              <View style={styles.daysGrid}>
-                {getDaysInMonth(currentMonth).map((day, index) => {
-                  const score = calculateDayScore(day);
-                  const isToday = day.toDateString() === new Date().toDateString();
-                  const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
-                  
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.dayCell,
-                        {
-                          backgroundColor: getCalendarCellColor(score),
-                          opacity: isCurrentMonth ? 1 : 0.3,
-                          borderWidth: isToday ? 2 : 0,
-                          borderColor: isToday ? '#8B5CF6' : 'transparent',
-                        }
-                      ]}
-                      onPress={() => openDayModal(day)}
-                    >
-                      <Text style={[
-                        styles.calendarDayNumber,
-                        { color: isCurrentMonth ? Theme.colors.text.primary : Theme.colors.text.tertiary }
-                      ]}>
-                        {day.getDate()}
-                      </Text>
-                      {score > 70 && <Text style={styles.highScoreIndicator}>✨</Text>}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            {/* Tight Day Headers */}
+            <View style={styles.modernDayHeaders}>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                <Text key={index} style={styles.modernDayHeader}>{day}</Text>
+              ))}
             </View>
             
-            <View style={styles.calendarLegend}>
-              <Text style={styles.legendTitle}>Activity Level</Text>
-              <View style={styles.legendRow}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendColor, { backgroundColor: '#374151' }]} />
-                  <Text style={styles.legendText}>No Activity</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendColor, { backgroundColor: 'rgba(139, 92, 246, 0.4)' }]} />
-                  <Text style={styles.legendText}>Low</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendColor, { backgroundColor: 'rgba(139, 92, 246, 0.7)' }]} />
-                  <Text style={styles.legendText}>Medium</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendColor, { backgroundColor: 'rgba(139, 92, 246, 1)' }]} />
-                  <Text style={styles.legendText}>High</Text>
-                </View>
+            {/* Compact Calendar Grid */}
+            <View style={styles.modernCalendarGrid}>
+              {getDaysInMonth(currentMonth).map((day, index) => {
+                const score = calculateDayScore(day);
+                const isToday = day.toDateString() === new Date().toDateString();
+                const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+                
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.modernDayCell,
+                      {
+                        backgroundColor: getCalendarCellColor(score),
+                        opacity: isCurrentMonth ? 1 : 0.3,
+                        borderWidth: isToday ? 2 : 0,
+                        borderColor: isToday ? '#8B5CF6' : 'transparent',
+                      }
+                    ]}
+                    onPress={() => openDayModal(day)}
+                  >
+                    <Text style={[
+                      styles.modernDayText,
+                      { color: isCurrentMonth ? '#FFFFFF' : '#666666' }
+                    ]}>
+                      {day.getDate()}
+                    </Text>
+                    {score > 70 && <Text style={styles.modernScoreIndicator}>✨</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            
+            {/* Ultra-Compact Activity Legend - NO SPACING! */}
+            <View style={styles.modernActivityLegend}>
+              <Text style={styles.modernLegendTitle}>Activity Level</Text>
+              <View style={styles.modernLegendItems}>
+                {[
+                  { color: '#4B5563', label: 'No Activity' },
+                  { color: '#8B5CF6', label: 'Low' },
+                  { color: '#A855F7', label: 'Medium' },
+                  { color: '#9333EA', label: 'High' }
+                ].map((item, index) => (
+                  <View key={index} style={styles.modernLegendItem}>
+                    <View style={[styles.modernLegendDot, { backgroundColor: item.color }]} />
+                    <Text style={styles.modernLegendLabel}>{item.label}</Text>
+                  </View>
+                ))}
               </View>
             </View>
-          </Card>
+          </View>
 
           {/* Motivational Message */}
           <Card style={styles.motivationCard}>
@@ -1478,22 +1467,123 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   
-  // Calendar styles
-  calendarCard: {
-    backgroundColor: '#141414', // Slightly lighter to match the visual appearance of the stats card
-    borderRadius: 24, // Match the modern border radius
-    padding: 24, // Reduced padding to eliminate wasted space
-    paddingBottom: 16, // Even less bottom padding
-    marginBottom: 32, // Match the large spacing between other cards
+  // Modern Calendar Styles - Completely Rebuilt
+  modernCalendarCard: {
+    backgroundColor: '#141414', // Match the stats card
+    borderRadius: 24,
+    padding: 20, // Tighter padding
+    marginBottom: 32, // Consistent card spacing
     width: '100%',
     overflow: 'hidden',
     borderWidth: 0.5,
-    borderColor: '#333333', // Same subtle border
+    borderColor: '#333333',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 12,
+  },
+  modernCalendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16, // Tight spacing
+  },
+  modernCalendarTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modernMonthNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modernNavButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modernNavText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modernMonthText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  modernDayHeaders: {
+    flexDirection: 'row',
+    marginBottom: 8, // Minimal spacing
+  },
+  modernDayHeader: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#888888',
+    fontSize: 12,
+    fontWeight: '600',
+    paddingVertical: 4,
+  },
+  modernCalendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12, // Tight spacing to legend
+  },
+  modernDayCell: {
+    width: '14.28%', // 7 days per week
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    margin: 1,
+  },
+  modernDayText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#FFFFFF',
+  },
+  modernScoreIndicator: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    fontSize: 8,
+  },
+  modernActivityLegend: {
+    marginTop: 0, // NO spacing - directly attached to calendar
+    paddingTop: 12, // Minimal padding
+    borderTopWidth: 1,
+    borderTopColor: '#333333',
+  },
+  modernLegendTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  modernLegendItems: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modernLegendItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    flex: 1,
+  },
+  modernLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  modernLegendLabel: {
+    fontSize: 10,
+    color: '#CCCCCC',
+    textAlign: 'center',
   },
   calendarHeader: {
     flexDirection: 'row',
