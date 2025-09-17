@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    paddingTop: 60,
+    paddingTop: 32,
   },
   noDataContainer: {
     flex: 1,

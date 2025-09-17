@@ -90,13 +90,7 @@
     "extra": {
       "router": {
         "origin": false
-      },
-      "eas": {
-        "projectId": "TBD"
       }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/TBD"
     }
   }
 }

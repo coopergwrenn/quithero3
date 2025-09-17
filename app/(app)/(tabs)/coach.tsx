@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -15,6 +15,16 @@ export default function CoachScreen() {
   const [useNativeChatbot, setUseNativeChatbot] = useState(false); // Toggle for development
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
+
+  // Move escaped user data to top level with useMemo to prevent hooks violations
+  const escapedUserData = useMemo(() => ({
+    userId: (user?.id || 'anonymous').toString().replace(/['"]/g, ''),
+    quitDate: (quitData.quitDate ? quitData.quitDate.toString() : '').replace(/['"]/g, ''),
+    motivation: (quitData.motivation || '').toString().replace(/['"]/g, ''),
+    substanceType: (quitData.substanceType || '').replace(/['"]/g, ''),
+    usageAmount: (quitData.usageAmount || '').toString().replace(/['"]/g, ''),
+    triggers: (quitData.triggers ? quitData.triggers.join(',') : '').replace(/['"]/g, '')
+  }), [user?.id, quitData.quitDate, quitData.motivation, quitData.substanceType, quitData.usageAmount, quitData.triggers]);
 
   useEffect(() => {
     analytics.track('ai_coach_opened');
@@ -112,14 +122,6 @@ export default function CoachScreen() {
 
   // Voiceflow chat component
   const renderVoiceflowChat = () => {
-    const escapedUserData = {
-      userId: (user?.id || 'anonymous').toString().replace(/['"]/g, ''),
-      quitDate: (quitData.quitDate ? quitData.quitDate.toString() : '').replace(/['"]/g, ''),
-      motivation: (quitData.motivation || '').toString().replace(/['"]/g, ''),
-      substanceType: (quitData.substanceType || '').replace(/['"]/g, ''),
-      usageAmount: (quitData.usageAmount || '').toString().replace(/['"]/g, ''),
-      triggers: (quitData.triggers ? quitData.triggers.join(',') : '').replace(/['"]/g, '')
-    };
 
     const htmlContent = `
       <!DOCTYPE html>
