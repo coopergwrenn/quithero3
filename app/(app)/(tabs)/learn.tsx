@@ -2412,7 +2412,7 @@ The goal isn't perfection - it's **progress toward a permanently smoke-free life
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {renderHeader()}
       
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -2452,7 +2452,7 @@ The goal isn't perfection - it's **progress toward a permanently smoke-free life
       </ScrollView>
 
       {renderArticleModal()}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -2463,6 +2463,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: Theme.spacing.lg,
+    paddingTop: 90, // Add top padding since we removed SafeAreaView
     paddingBottom: Theme.spacing.md,
   },
   title: {
@@ -2512,7 +2513,7 @@ const styles = StyleSheet.create({
   },
   contentSection: {
     paddingHorizontal: Theme.spacing.lg,
-    paddingBottom: Theme.spacing.xl,
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   articleCard: {
     marginBottom: Theme.spacing.md,
