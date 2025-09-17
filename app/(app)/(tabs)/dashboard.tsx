@@ -1485,6 +1485,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    gap: 8, // Tight spacing between all elements
   },
   cleanNavButton: {
     width: 32,
@@ -1493,7 +1494,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 12, // Add space from month text
   },
   cleanNavText: {
     color: '#FFFFFF',
@@ -1504,9 +1504,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
-    minWidth: 160,
     textAlign: 'center',
-    paddingHorizontal: 8,
   },
   cleanDayHeaders: {
     flexDirection: 'row',
