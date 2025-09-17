@@ -1277,7 +1277,8 @@ const styles = StyleSheet.create({
   },
   motivationCard: {
     padding: 24,
-    marginBottom: 0, // Remove margin to eliminate blank space
+    marginTop: 16, // Add top margin for spacing from calendar
+    marginBottom: 16, // Add bottom margin for spacing to next section
     backgroundColor: '#1E3A8A',
     borderColor: '#3B82F6',
     borderWidth: 1,
@@ -1579,8 +1580,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 4, // Minimal spacing to eliminate gap
-    paddingTop: 8, // Minimal padding
+    marginTop: 12, // Proper spacing from calendar
+    paddingTop: 12, // Proper padding
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },
