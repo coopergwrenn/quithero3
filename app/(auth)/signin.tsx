@@ -7,7 +7,7 @@ import { useAuthStore } from '@/src/stores/authStore';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn, signInWithOTP, verifyOTP, debugCheckUsers } = useAuthStore();
+  const { signIn, signInWithOTP, verifyOTP, resetPassword, debugCheckUsers } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,6 +58,31 @@ export default function SignInScreen() {
       console.log('✅ Sign in successful, letting app layout handle routing');
     } catch (error: any) {
       Alert.alert('Sign In Error', error.message || 'Failed to sign in');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await resetPassword(email);
+      if (result.error) {
+        Alert.alert('Password Reset Error', result.error);
+      } else {
+        Alert.alert(
+          'Password Reset Sent', 
+          'Check your email for password reset instructions. After resetting, come back and try logging in again.'
+        );
+      }
+    } catch (error: any) {
+      console.error('Password reset error:', error);
+      Alert.alert('Error', 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -144,6 +169,19 @@ export default function SignInScreen() {
           >
             {useOTP && !otpSent ? 'Send Code' : useOTP && otpSent ? 'Verify Code' : 'Sign In'}
           </Button>
+
+          {!useOTP && (
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onPress={handlePasswordReset}
+              loading={loading}
+              style={styles.resetButton}
+            >
+              Forgot Password?
+            </Button>
+          )}
         </Card>
 
         <View style={styles.footer}>
@@ -207,6 +245,9 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     marginTop: Theme.spacing.md,
+  },
+  resetButton: {
+    marginTop: Theme.spacing.sm,
   },
   footer: {
     alignItems: 'center',

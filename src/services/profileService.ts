@@ -5,6 +5,10 @@ export interface UserProfile {
   id?: string;
   user_id?: string;
   
+  // User identification
+  email?: string;
+  signup_method?: 'email' | 'google' | 'phone' | 'apple';
+  
   // Badge and Identity
   badge_type: string;
   badge_display_name: string;
@@ -47,14 +51,35 @@ export const profileService = {
   async saveOnboardingProfile(
     responses: any, 
     badge: UserBadge, 
-    dependencyScore: VapingDependencyScore
+    dependencyScore: VapingDependencyScore,
+    signupMethod?: 'email' | 'google' | 'phone' | 'apple'
   ): Promise<UserProfile | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
       
+      // Determine signup method if not provided
+      let detectedSignupMethod = signupMethod;
+      if (!detectedSignupMethod) {
+        // Try to detect from user metadata
+        const userMetadata = user.app_metadata;
+        if (userMetadata?.provider === 'google') {
+          detectedSignupMethod = 'google';
+        } else if (userMetadata?.provider === 'phone') {
+          detectedSignupMethod = 'phone';
+        } else if (userMetadata?.provider === 'apple') {
+          detectedSignupMethod = 'apple';
+        } else {
+          detectedSignupMethod = 'email'; // Default fallback
+        }
+      }
+      
       const profileData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'> = {
         user_id: user.id,
+        
+        // User identification
+        email: user.email || '',
+        signup_method: detectedSignupMethod,
         
         // Badge data
         badge_type: badge.type,

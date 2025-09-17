@@ -41,22 +41,46 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- Users can insert their own data (for signup)
-CREATE POLICY "Users can insert own data"
-  ON users
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'users' 
+    AND policyname = 'Users can insert own data'
+  ) THEN
+    CREATE POLICY "Users can insert own data"
+      ON users
+      FOR INSERT
+      TO authenticated
+      WITH CHECK (auth.uid() = id);
+  END IF;
+END $$;
 
 -- Users can read their own data
-CREATE POLICY "Users can read own data"
-  ON users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'users' 
+    AND policyname = 'Users can read own data'
+  ) THEN
+    CREATE POLICY "Users can read own data"
+      ON users
+      FOR SELECT
+      TO authenticated
+      USING (auth.uid() = id);
+  END IF;
+END $$;
 
 -- Users can update their own data
-CREATE POLICY "Users can update own data"
-  ON users
-  FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = id);
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'users' 
+    AND policyname = 'Users can update own data'
+  ) THEN
+    CREATE POLICY "Users can update own data"
+      ON users
+      FOR UPDATE
+      TO authenticated
+      USING (auth.uid() = id);
+  END IF;
+END $$;

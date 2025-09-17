@@ -177,7 +177,7 @@ export default function OnboardingScreen() {
   
   const [showAuth, setShowAuth] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '' });
+  const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '', password: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   
   console.log('🔍 Debug - showAuth:', showAuth, 'authMethod:', authMethod);
@@ -368,14 +368,22 @@ export default function OnboardingScreen() {
   };
 
   const signInWithEmail = async () => {
-    if (!userInfo.email || !userInfo.name) return;
+    if (!userInfo.email || !userInfo.name || !userInfo.password) return;
+    
+    // Basic password validation
+    if (userInfo.password.length < 6) {
+      Alert.alert('Password Too Short', 'Password must be at least 6 characters long.');
+      return;
+    }
+    
     setAuthLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
+      // Create account with email and password
+      const { data, error } = await supabase.auth.signUp({
         email: userInfo.email,
+        password: userInfo.password,
         options: {
-          shouldCreateUser: true,
           data: {
             full_name: userInfo.name
           }
@@ -390,20 +398,30 @@ export default function OnboardingScreen() {
         email: userInfo.email
       }));
       
-      console.log('✅ Email OTP sent (should be 6-digit code)');
-      setAuthMethod('email_otp');
-      Alert.alert('6-Digit Code Sent', 'Check your email for a 6-digit verification code (not a link).');
+      console.log('✅ Account created successfully:', data.user?.email);
       
-    } catch (error) {
-      console.error('Email auth error:', error);
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        Alert.alert(
+          'Check Your Email', 
+          'We sent you a confirmation email. Please click the link to verify your account, then come back to continue.',
+          [{ text: 'OK', onPress: () => setAuthMethod('email_confirmation') }]
+        );
+      } else {
+        // User is immediately signed in
+        console.log('✅ User signed in immediately');
+        setShowAuth(false);
+      }
       
-      // Handle rate limiting
-      if (error.message?.includes('3 seconds')) {
-        Alert.alert('Please Wait', 'For security, please wait a few seconds before trying again.');
+    } catch (error: any) {
+      console.error('Email signup error:', error);
+      
+      if (error.message?.includes('already registered')) {
+        Alert.alert('Account Exists', 'An account with this email already exists. Please sign in instead.');
       } else if (error.message?.includes('rate')) {
         Alert.alert('Too Many Attempts', 'Please wait a moment before trying again.');
       } else {
-        Alert.alert('Error', 'Email sign-up failed. Please try again.');
+        Alert.alert('Signup Error', error.message || 'Account creation failed. Please try again.');
       }
     } finally {
       setAuthLoading(false);
@@ -650,13 +668,22 @@ export default function OnboardingScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          <TextInput
+            style={styles.input}
+            placeholder="Create a password"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.password}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, password: text }))}
+            secureTextEntry
+            autoCapitalize="none"
+          />
           <TouchableOpacity 
-            style={[styles.continueButton, (!userInfo.name || !userInfo.email || authLoading) && styles.disabledButton]}
+            style={[styles.continueButton, (!userInfo.name || !userInfo.email || !userInfo.password || authLoading) && styles.disabledButton]}
             onPress={signInWithEmail}
-            disabled={!userInfo.name || !userInfo.email || authLoading}
+            disabled={!userInfo.name || !userInfo.email || !userInfo.password || authLoading}
           >
             <Text style={styles.continueButtonText}>
-              {authLoading ? 'Sending Code...' : 'Send Verification Code'}
+              {authLoading ? 'Creating Account...' : 'Create Account'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setAuthMethod(null)}>

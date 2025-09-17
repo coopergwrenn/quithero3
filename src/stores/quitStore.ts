@@ -93,9 +93,25 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
       
       if (user) {
         const currentState = get();
+        // Determine signup method from user metadata
+        let signupMethod = 'email'; // Default
+        const userMetadata = user.app_metadata;
+        if (userMetadata?.provider === 'google') {
+          signupMethod = 'google';
+        } else if (userMetadata?.provider === 'phone') {
+          signupMethod = 'phone';
+        } else if (userMetadata?.provider === 'apple') {
+          signupMethod = 'apple';
+        }
+
         // Map our data to the actual database schema
         const profileData = {
           user_id: user.id,
+          
+          // User identification
+          email: user.email || '',
+          signup_method: signupMethod,
+          
           // Badge data (required fields) - use fallback values for now
           badge_type: 'VapeBreaker',
           badge_display_name: 'Vape Breaker', 

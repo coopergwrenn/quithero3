@@ -14,6 +14,8 @@ interface AuthState {
   signInWithOTP: (email: string) => Promise<{ error?: string }>;
   verifyOTP: (email: string, token: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string) => Promise<{ error?: string }>;
+  resetPassword: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ error?: string }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
@@ -151,6 +153,56 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({ loading: false });
       return { error: 'An unexpected error occurred' };
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    set({ loading: true });
+    try {
+      console.log('🔍 Sending password reset to:', email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://quithero.app/reset-password', // Professional domain
+      });
+
+      if (error) {
+        console.error('❌ Password reset error:', error);
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      console.log('✅ Password reset email sent successfully');
+      set({ loading: false });
+      return {};
+    } catch (error) {
+      console.error('❌ Password reset exception:', error);
+      set({ loading: false });
+      return { error: 'Failed to send password reset email' };
+    }
+  },
+
+  updatePassword: async (newPassword: string) => {
+    set({ loading: true });
+    try {
+      console.log('🔍 Updating password');
+      
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        console.error('❌ Password update error:', error);
+        set({ loading: false });
+        return { error: error.message };
+      }
+
+      console.log('✅ Password updated successfully');
+      set({ loading: false });
+      return {};
+    } catch (error) {
+      console.error('❌ Password update exception:', error);
+      set({ loading: false });
+      return { error: 'Failed to update password' };
     }
   },
 
