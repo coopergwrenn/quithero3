@@ -1532,7 +1532,7 @@ const styles = StyleSheet.create({
   modernCalendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 12, // Tight spacing to legend
+    marginBottom: 0, // ZERO margin - let negative margin handle it
   },
   modernDayCell: {
     width: '14.28%', // 7 days per week
@@ -1554,8 +1554,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   modernActivityLegend: {
-    marginTop: 0, // NO spacing - directly attached to calendar
-    paddingTop: 12, // Minimal padding
+    marginTop: -8, // NEGATIVE MARGIN to eliminate iOS spacing bug
+    paddingTop: 8, // Even more minimal padding
     borderTopWidth: 1,
     borderTopColor: '#333333',
   },
