@@ -1541,7 +1541,7 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   calendarGrid: {
-    marginBottom: 8, // Reduced to eliminate extra space
+    marginBottom: 0, // Remove all margin to eliminate space
   },
   dayHeadersRow: {
     flexDirection: 'row',
@@ -1579,8 +1579,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 24, // Increased for better spacing from calendar
-    paddingTop: 16, // Slightly more padding
+    marginTop: 4, // Minimal spacing to eliminate gap
+    paddingTop: 8, // Minimal padding
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },
