@@ -465,18 +465,20 @@ export default function DashboardScreen() {
             </View>
             
             {/* Unified Stats Card */}
-            <Card style={styles.unifiedStatsCard} variant="elevated">
-              <Animated.View style={[{ transform: [{ scale: celebrationAnimation }] }]}>
-                {/* Main Days Counter */}
-                <Text style={styles.mainDaysNumber}>{daysSinceQuit}</Text>
-                <Text style={styles.daysCleanLabel}>DAYS CLEAN</Text>
-                
-                {/* Elite Status Badge */}
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusBadgeText}>Elite Status</Text>
-                </View>
-                
-                {/* Horizontal Scrollable Circular Progress Stats */}
+            <View style={styles.unifiedStatsCard}>
+              {/* Header Section */}
+              <View style={styles.statsHeader}>
+                <Animated.View style={[styles.mainStatsSection, { transform: [{ scale: celebrationAnimation }] }]}>
+                  <Text style={styles.mainDaysNumber}>{daysSinceQuit}</Text>
+                  <Text style={styles.daysCleanLabel}>DAYS CLEAN</Text>
+                  <View style={styles.statusBadge}>
+                    <Text style={styles.statusBadgeText}>Elite Status</Text>
+                  </View>
+                </Animated.View>
+              </View>
+              
+              {/* Metrics Section */}
+              <View style={styles.metricsSection}>
                 <ScrollView 
                   horizontal 
                   showsHorizontalScrollIndicator={false}
@@ -488,45 +490,43 @@ export default function DashboardScreen() {
                   scrollEventThrottle={16}
                   removeClippedSubviews={false}
                 >
-                  <View style={styles.circularStat}>
-                    <View style={styles.circularProgress}>
-                      <Text style={styles.circularStatValue}>{formatCurrency(moneySaved)}</Text>
-                      <Text style={styles.circularStatLabel}>SAVED</Text>
+                  <View style={styles.metricItem}>
+                    <View style={[styles.metricRing, { borderColor: '#22C55E' }]}>
+                      <Text style={styles.metricValue}>{formatCurrency(moneySaved)}</Text>
                     </View>
+                    <Text style={styles.metricLabel}>SAVED</Text>
                   </View>
                   
-                  <View style={styles.circularStat}>
-                    <View style={styles.circularProgress}>
-                      <Text style={styles.circularStatValue}>{formatNumber(substancesAvoided)}</Text>
-                      <Text style={styles.circularStatLabel}>
-                        {substanceType === 'cigarettes' ? 'CIGARETTES' : 'PUFFS'} AVOIDED
-                      </Text>
+                  <View style={styles.metricItem}>
+                    <View style={[styles.metricRing, { borderColor: '#EF4444' }]}>
+                      <Text style={styles.metricValue}>{formatNumber(substancesAvoided)}</Text>
                     </View>
+                    <Text style={styles.metricLabel}>AVOIDED</Text>
                   </View>
                   
-                  <View style={styles.circularStat}>
-                    <View style={styles.circularProgress}>
-                      <Text style={styles.circularStatValue}>{Math.floor(daysSinceQuit * 24)}</Text>
-                      <Text style={styles.circularStatLabel}>HOURS CLEAN</Text>
+                  <View style={styles.metricItem}>
+                    <View style={[styles.metricRing, { borderColor: '#3B82F6' }]}>
+                      <Text style={styles.metricValue}>{Math.floor(daysSinceQuit * 24)}</Text>
                     </View>
+                    <Text style={styles.metricLabel}>HOURS</Text>
                   </View>
                   
-                  <View style={styles.circularStat}>
-                    <View style={styles.circularProgress}>
-                      <Text style={styles.circularStatValue}>{achievedMilestones.length}</Text>
-                      <Text style={styles.circularStatLabel}>MILESTONES</Text>
+                  <View style={styles.metricItem}>
+                    <View style={[styles.metricRing, { borderColor: '#F59E0B' }]}>
+                      <Text style={styles.metricValue}>{achievedMilestones.length}</Text>
                     </View>
+                    <Text style={styles.metricLabel}>MILESTONES</Text>
                   </View>
                   
-                  <View style={styles.circularStat}>
-                    <View style={styles.circularProgress}>
-                      <Text style={styles.circularStatValue}>{totalUses}</Text>
-                      <Text style={styles.circularStatLabel}>TOOLS USED</Text>
+                  <View style={styles.metricItem}>
+                    <View style={[styles.metricRing, { borderColor: '#8B5CF6' }]}>
+                      <Text style={styles.metricValue}>{totalUses}</Text>
                     </View>
+                    <Text style={styles.metricLabel}>TOOLS</Text>
                   </View>
                 </ScrollView>
-              </Animated.View>
-            </Card>
+              </View>
+            </View>
           </View>
 
           {/* Quit Calendar */}
@@ -822,7 +822,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: '#FFFFFF', // Clean white background
   },
   scrollView: {
     flex: 1,
@@ -1030,13 +1030,13 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Theme.colors.text.primary,
+    color: '#1A1A1A', // Dark text for white background
     textAlign: 'center',
     marginBottom: 4,
   },
   heroSubtext: {
     fontSize: 16,
-    color: Theme.colors.text.secondary,
+    color: '#666666', // Medium gray for white background
     textAlign: 'center',
     opacity: 0.8,
   },
@@ -1099,59 +1099,91 @@ const styles = StyleSheet.create({
   },
   // Unified Stats Card - Back to original beautiful design
   unifiedStatsCard: {
-    padding: 24,
-    alignItems: 'center',
-    backgroundColor: Theme.colors.dark.surfaceElevated,
-    marginTop: 20,
+    backgroundColor: '#0F0F0F', // Even deeper, more premium background
+    borderRadius: 24, // Larger radius for modern feel
+    marginTop: 32,
+    marginBottom: 8,
     width: '100%',
-    maxWidth: '100%',
-    height: 360, // Extended height for more breathing room
-    maxHeight: 360,
-    overflow: 'hidden', // Contain all content within the card
-    borderRadius: Theme.borderRadius.lg,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: '#333333', // Very subtle border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  statsHeader: {
+    paddingTop: 40,
+    paddingBottom: 32,
+    paddingHorizontal: 40,
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#1A1A1A',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)', // Subtle glass effect
+  },
+  mainStatsSection: {
+    alignItems: 'center',
   },
   mainDaysNumber: {
-    fontSize: 72,
-    fontWeight: '800',
-    color: '#87CEEB', // Light blue like the reference
+    fontSize: 96, // Bigger and more impactful
+    fontWeight: '100', // Ultra-light for premium feel
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 12,
+    letterSpacing: -4,
+    textShadowColor: 'rgba(135, 206, 235, 0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
   },
   daysCleanLabel: {
-    fontSize: 16,
+    fontSize: 11,
     fontWeight: '600',
-    color: Theme.colors.text.secondary,
-    letterSpacing: 2,
+    color: '#666666',
+    letterSpacing: 2.5,
     textAlign: 'center',
     marginBottom: 20,
+    textTransform: 'uppercase',
+    opacity: 0.8,
   },
   statusBadge: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#FF69B4', // Pink like the reference
-    borderRadius: 25,
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    borderWidth: 1,
+    borderColor: '#EC4899',
+    borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 8,
-    marginBottom: 24,
+    marginTop: 12,
     alignSelf: 'center',
+    shadowColor: '#EC4899',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   statusBadgeText: {
-    color: '#FF69B4',
-    fontSize: 14,
+    color: '#EC4899',
+    fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  metricsSection: {
+    paddingTop: 32,
+    paddingBottom: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.01)', // Subtle background separation
   },
   scrollableStatsView: {
     width: '100%',
-    height: 140, // More height for bigger circles
+    height: 140,
   },
   scrollableStatsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingRight: 100, // Extra padding to ensure scrollable content
-    gap: 20,
+    paddingHorizontal: 40,
+    paddingRight: 120,
+    gap: 40, // Even more generous spacing for premium feel
     alignItems: 'center',
-    minWidth: '150%', // Force content to be wider than container
+    minWidth: '160%',
   },
   circularStat: {
     alignItems: 'center',
@@ -1183,6 +1215,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.3,
     lineHeight: 11,
+  },
+  // Premium metric styles
+  metricItem: {
+    alignItems: 'center',
+    width: 100,
+    justifyContent: 'center',
+  },
+  metricRing: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 2.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  metricValue: {
+    fontSize: 18,
+    fontWeight: '300', // Ultra-light for elegance
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  metricLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: '#777777',
+    textAlign: 'center',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    opacity: 0.9,
   },
 
   statCard: {
