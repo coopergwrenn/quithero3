@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingTop: 90, // Push welcome message down even more
-    paddingBottom: 40, // Much smaller bottom padding to prevent mobile inflation
+    paddingBottom: 0, // Remove all bottom padding to eliminate spacing issues
   },
   noDataContainer: {
     flex: 1,
@@ -1483,7 +1483,7 @@ const styles = StyleSheet.create({
     borderRadius: 24, // Match the modern border radius
     padding: 24, // Reduced padding to eliminate wasted space
     paddingBottom: 16, // Even less bottom padding
-    marginBottom: 16, // Slightly more margin for mobile consistency
+    marginBottom: 0, // Remove all margin to eliminate blank space
     width: '100%',
     overflow: 'hidden',
     borderWidth: 0.5,
@@ -1579,8 +1579,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 12, // Reduced spacing
-    paddingTop: 12, // Reduced padding
+    marginTop: 24, // Increased for better spacing from calendar
+    paddingTop: 16, // Slightly more padding
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },
