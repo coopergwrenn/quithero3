@@ -1580,8 +1580,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 16, // Consistent 4x spacing from calendar
-    paddingTop: 16, // Consistent 4x padding
+    marginTop: 8, // Minimal internal spacing within card
+    paddingTop: 8, // Minimal internal padding within card
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },
