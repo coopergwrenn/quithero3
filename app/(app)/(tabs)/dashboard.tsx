@@ -1277,8 +1277,8 @@ const styles = StyleSheet.create({
   },
   motivationCard: {
     padding: 24,
-    marginTop: 24, // Standard card spacing (4x rule)
-    marginBottom: 24, // Standard card spacing (4x rule)
+    marginTop: 0, // No top margin since calendar card has bottom margin
+    marginBottom: 32, // Match the large card spacing
     backgroundColor: '#1E3A8A',
     borderColor: '#3B82F6',
     borderWidth: 1,
@@ -1292,7 +1292,7 @@ const styles = StyleSheet.create({
   },
   healthSection: {
     padding: 24,
-    marginBottom: 24, // Consistent card spacing (4x rule)
+    marginBottom: 32, // Match the large card spacing
     backgroundColor: '#1A1A1A',
   },
   sectionTitle: {
@@ -1484,7 +1484,7 @@ const styles = StyleSheet.create({
     borderRadius: 24, // Match the modern border radius
     padding: 24, // Reduced padding to eliminate wasted space
     paddingBottom: 16, // Even less bottom padding
-    marginBottom: 0, // Remove all margin to eliminate blank space
+    marginBottom: 32, // Match the large spacing between other cards
     width: '100%',
     overflow: 'hidden',
     borderWidth: 0.5,
