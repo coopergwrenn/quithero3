@@ -15,8 +15,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: Theme.colors.dark.surface,
-          borderTopColor: Theme.colors.dark.borderSubtle,
-          borderTopWidth: 1,
+          borderTopWidth: 0, // Remove the dark blue border/container
           paddingTop: Theme.spacing.xs,
           paddingBottom: Theme.spacing.sm,
           height: 88,

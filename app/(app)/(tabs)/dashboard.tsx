@@ -483,9 +483,10 @@ export default function DashboardScreen() {
                   contentContainerStyle={styles.scrollableStatsContainer}
                   style={styles.scrollableStatsView}
                   decelerationRate="normal"
-                  snapToInterval={0}
-                  snapToAlignment="start"
                   pagingEnabled={false}
+                  bounces={true}
+                  scrollEventThrottle={16}
+                  removeClippedSubviews={false}
                 >
                   <View style={styles.circularStat}>
                     <View style={styles.circularProgress}>
@@ -1146,9 +1147,10 @@ const styles = StyleSheet.create({
   scrollableStatsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
+    paddingRight: 100, // Extra padding to ensure scrollable content
     gap: 20,
     alignItems: 'center',
-    // Removed justifyContent: 'center' to allow free scrolling
+    minWidth: '150%', // Force content to be wider than container
   },
   circularStat: {
     alignItems: 'center',
