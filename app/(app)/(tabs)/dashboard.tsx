@@ -450,7 +450,7 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
@@ -815,7 +815,7 @@ export default function DashboardScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -830,6 +830,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingTop: 32,
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   noDataContainer: {
     flex: 1,
