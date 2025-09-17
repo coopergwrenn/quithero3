@@ -482,6 +482,10 @@ export default function DashboardScreen() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.scrollableStatsContainer}
                   style={styles.scrollableStatsView}
+                  decelerationRate="normal"
+                  snapToInterval={0}
+                  snapToAlignment="start"
+                  pagingEnabled={false}
                 >
                   <View style={styles.circularStat}>
                     <View style={styles.circularProgress}>
@@ -1099,8 +1103,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: '100%',
     maxWidth: '100%',
-    height: 320, // Fixed height to prevent infinite expansion
-    maxHeight: 320,
+    height: 360, // Extended height for more breathing room
+    maxHeight: 360,
     overflow: 'hidden', // Contain all content within the card
     borderRadius: Theme.borderRadius.lg,
   },
@@ -1137,14 +1141,14 @@ const styles = StyleSheet.create({
   },
   scrollableStatsView: {
     width: '100%',
-    height: 120,
+    height: 140, // More height for bigger circles
   },
   scrollableStatsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     gap: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    // Removed justifyContent: 'center' to allow free scrolling
   },
   circularStat: {
     alignItems: 'center',
@@ -1152,29 +1156,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   circularProgress: {
-    width: 70, // Even smaller to fit properly
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 4,
+    width: 95, // Even bigger circles
+    height: 95,
+    borderRadius: 47.5,
+    borderWidth: 5,
     borderColor: '#87CEEB', // Light blue progress ring
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 6,
+    padding: 10,
   },
   circularStatValue: {
-    fontSize: 12, // Smaller font for smaller circles
+    fontSize: 13, // Smaller font size
     fontWeight: '700',
     color: Theme.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 1,
+    marginBottom: 2,
   },
   circularStatLabel: {
-    fontSize: 9,
+    fontSize: 9, // Smaller label text
     fontWeight: '600',
     color: Theme.colors.text.secondary,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+    lineHeight: 11,
   },
 
   statCard: {
