@@ -459,9 +459,9 @@ export default function DashboardScreen() {
           <View style={styles.heroSection}>
             <View style={styles.heroHeader}>
               <Text style={styles.welcomeText}>
-                Welcome back{userName ? ` ${userName}` : ''}!
+                Welcome back{userName ? ` ${userName}` : ''}
               </Text>
-              <Text style={styles.heroSubtext}>You're absolutely crushing it 🌟</Text>
+              <Text style={styles.heroSubtext}>You're absolutely crushing it</Text>
             </View>
             
             {/* Unified Stats Card */}
@@ -532,7 +532,7 @@ export default function DashboardScreen() {
           {/* Quit Calendar */}
           <Card style={styles.calendarCard}>
             <View style={styles.calendarHeader}>
-              <Text style={styles.calendarTitle}>📅 Quit Calendar</Text>
+              <Text style={styles.calendarTitle}>Quit Calendar</Text>
               <View style={styles.monthNavigation}>
                 <TouchableOpacity 
                   style={styles.monthButton}
@@ -822,7 +822,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // Clean white background
+    backgroundColor: '#1A1A1A', // Dark gray, slightly lighter than the card (#0F0F0F)
   },
   scrollView: {
     flex: 1,
@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingTop: 90, // Push welcome message down even more
-    paddingBottom: 120, // Ensure content flows cleanly behind tabs
+    paddingBottom: 40, // Much smaller bottom padding to prevent mobile inflation
   },
   noDataContainer: {
     flex: 1,
@@ -1025,18 +1025,18 @@ const styles = StyleSheet.create({
   },
   heroHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16, // Reduced from 24 to close the gap
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1A1A1A', // Dark text for white background
+    color: '#FFFFFF', // White text for dark background
     textAlign: 'center',
     marginBottom: 4,
   },
   heroSubtext: {
     fontSize: 16,
-    color: '#666666', // Medium gray for white background
+    color: '#CCCCCC', // Light gray for dark background
     textAlign: 'center',
     opacity: 0.8,
   },
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
   unifiedStatsCard: {
     backgroundColor: '#0F0F0F', // Even deeper, more premium background
     borderRadius: 24, // Larger radius for modern feel
-    marginTop: 32,
+    marginTop: 20, // Reduced from 32 to close the gap
     marginBottom: 8,
     width: '100%',
     overflow: 'hidden',
@@ -1127,7 +1127,7 @@ const styles = StyleSheet.create({
   },
   mainDaysNumber: {
     fontSize: 96, // Bigger and more impactful
-    fontWeight: '100', // Ultra-light for premium feel
+    fontWeight: '400', // Medium weight for better visibility and impact
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 12,
@@ -1479,9 +1479,20 @@ const styles = StyleSheet.create({
   
   // Calendar styles
   calendarCard: {
-    padding: 24,
-    marginBottom: 32,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#141414', // Slightly lighter to match the visual appearance of the stats card
+    borderRadius: 24, // Match the modern border radius
+    padding: 24, // Reduced padding to eliminate wasted space
+    paddingBottom: 16, // Even less bottom padding
+    marginBottom: 16, // Slightly more margin for mobile consistency
+    width: '100%',
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: '#333333', // Same subtle border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
   },
   calendarHeader: {
     flexDirection: 'row',
@@ -1530,7 +1541,7 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   calendarGrid: {
-    marginBottom: 16,
+    marginBottom: 8, // Reduced to eliminate extra space
   },
   dayHeadersRow: {
     flexDirection: 'row',
@@ -1568,8 +1579,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 12, // Reduced spacing
+    paddingTop: 12, // Reduced padding
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },

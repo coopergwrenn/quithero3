@@ -14,15 +14,15 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Theme.colors.dark.surface,
-          borderTopWidth: 0, // Remove the dark blue border/container
+          backgroundColor: '#0F0F0F', // Dark background to match the premium card
+          borderTopWidth: 0,
           paddingTop: Theme.spacing.xs,
           paddingBottom: Theme.spacing.sm,
           height: 88,
-          borderRadius: 0, // Keep bottom tabs square
+          borderRadius: 0,
         },
         tabBarActiveTintColor: Theme.colors.purple[500],
-        tabBarInactiveTintColor: Theme.colors.text.tertiary,
+        tabBarInactiveTintColor: '#888888', // Lighter gray for better contrast on dark background
         tabBarLabelStyle: {
           ...Theme.typography.caption1,
           fontWeight: '500',
