@@ -1277,8 +1277,8 @@ const styles = StyleSheet.create({
   },
   motivationCard: {
     padding: 24,
-    marginTop: 16, // Add top margin for spacing from calendar
-    marginBottom: 16, // Add bottom margin for spacing to next section
+    marginTop: 24, // Standard card spacing (4x rule)
+    marginBottom: 24, // Standard card spacing (4x rule)
     backgroundColor: '#1E3A8A',
     borderColor: '#3B82F6',
     borderWidth: 1,
@@ -1292,7 +1292,7 @@ const styles = StyleSheet.create({
   },
   healthSection: {
     padding: 24,
-    marginBottom: 32,
+    marginBottom: 24, // Consistent card spacing (4x rule)
     backgroundColor: '#1A1A1A',
   },
   sectionTitle: {
@@ -1580,8 +1580,8 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   calendarLegend: {
-    marginTop: 12, // Proper spacing from calendar
-    paddingTop: 12, // Proper padding
+    marginTop: 16, // Consistent 4x spacing from calendar
+    paddingTop: 16, // Consistent 4x padding
     borderTopWidth: 1,
     borderTopColor: '#2A2A2A',
   },
