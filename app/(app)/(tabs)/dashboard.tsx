@@ -1483,27 +1483,30 @@ const styles = StyleSheet.create({
   cleanMonthNav: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    justifyContent: 'center',
+    flex: 1,
   },
   cleanNavButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 12, // Add space from month text
   },
   cleanNavText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   cleanMonthText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
-    minWidth: 140,
+    minWidth: 160,
     textAlign: 'center',
+    paddingHorizontal: 8,
   },
   cleanDayHeaders: {
     flexDirection: 'row',
