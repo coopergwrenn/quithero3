@@ -458,7 +458,7 @@ export default function CommunityScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {renderTabBar()}
       
       {activeTab === 'feed' && (
@@ -481,7 +481,7 @@ export default function CommunityScreen() {
       {activeTab === 'achievements' && renderAchievements()}
       
       {renderCreatePostModal()}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -513,6 +513,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
+    paddingTop: 90, // Add top padding since we removed SafeAreaView
   },
   tabBar: {
     flexDirection: 'row',
@@ -543,6 +544,7 @@ const styles = StyleSheet.create({
   },
   feedContainer: {
     padding: 16,
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   feedHeader: {
     marginBottom: 16,
@@ -684,6 +686,7 @@ const styles = StyleSheet.create({
   leaderboardContainer: {
     flex: 1,
     padding: 16,
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   leaderboardTabs: {
     flexDirection: 'row',
@@ -765,6 +768,7 @@ const styles = StyleSheet.create({
   achievementsContainer: {
     flex: 1,
     padding: 16,
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   achievementSectionTitle: {
     fontSize: 20,

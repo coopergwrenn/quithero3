@@ -281,9 +281,9 @@ export default function CoachScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {showChat ? (useNativeChatbot ? renderNativeChatbot() : renderVoiceflowChat()) : renderCoachIntro()}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -294,6 +294,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingTop: 90, // Add top padding since we removed SafeAreaView
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   introCard: {
     margin: Theme.spacing.md,
@@ -393,6 +395,8 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flex: 1,
+    paddingTop: 90, // Add top padding since we removed SafeAreaView
+    paddingBottom: 120, // Ensure content flows cleanly behind tabs
   },
   chatHeader: {
     flexDirection: 'row',
