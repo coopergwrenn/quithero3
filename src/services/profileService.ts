@@ -7,6 +7,7 @@ export interface UserProfile {
   
   // User identification
   email?: string;
+  first_name?: string;
   signup_method?: 'email' | 'google' | 'phone' | 'apple';
   
   // Badge and Identity
@@ -148,6 +149,36 @@ export const profileService = {
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return null;
+    }
+  },
+
+  // Get user's display name
+  async getUserDisplayName(): Promise<string> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'User';
+      
+      // First try to get from user profile
+      const profile = await this.getUserProfile();
+      if (profile?.first_name) {
+        return profile.first_name;
+      }
+      
+      // Then try user metadata (from OAuth providers like Google)
+      if (user.user_metadata?.full_name) {
+        const fullName = user.user_metadata.full_name;
+        return fullName.split(' ')[0]; // Get first name
+      }
+      
+      // Fallback to email prefix
+      if (user.email) {
+        return user.email.split('@')[0];
+      }
+      
+      return 'User';
+    } catch (error) {
+      console.error('Error getting user display name:', error);
+      return 'User';
     }
   },
 

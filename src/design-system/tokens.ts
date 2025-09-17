@@ -18,22 +18,36 @@ export const Colors = {
     900: '#4C1D95',
   },
 
-  // Dark Theme Base
-  dark: {
-    background: '#000000',
-    surface: '#1A1A1A',
-    surfaceElevated: '#2A2A2A',
-    border: '#3A3A3A',
-    borderSubtle: '#2A2A2A',
+  // Teal accent for active states (matches your design)
+  teal: {
+    50: '#F0FDFA',
+    100: '#CCFBF1',
+    200: '#99F6E4',
+    300: '#5EEAD4',
+    400: '#2DD4BF',
+    500: '#14B8A6', // Active state accent
+    600: '#0D9488',
+    700: '#0F766E',
+    800: '#115E59',
+    900: '#134E4A',
   },
 
-  // Text Colors (WCAG AA+ compliant)
+  // Dark Theme Base - Updated to match new design
+  dark: {
+    background: '#0B1426', // Deep navy background
+    surface: '#1E2A3A', // Navy blue cards
+    surfaceElevated: '#2A3441', // Elevated card state
+    border: '#334155', // Subtle card borders
+    borderSubtle: '#1E293B', // Very subtle borders
+  },
+
+  // Text Colors (WCAG AA+ compliant) - Updated for new design
   text: {
     primary: '#FFFFFF',
-    secondary: '#B3B3B3',
-    tertiary: '#808080',
+    secondary: '#94A3B8', // Softer secondary text
+    tertiary: '#64748B', // Muted tertiary text
     inverse: '#000000',
-    accent: '#8B5CF6',
+    accent: '#60A5FA', // Light blue accent to match design
   },
 
   // Semantic Colors
@@ -71,9 +85,9 @@ export const Spacing = {
 
 export const BorderRadius = {
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  md: 16, // Increased for more modern look
+  lg: 20, // Larger radius for cards
+  xl: 28, // Extra large for hero elements
   full: 9999,
 } as const;
 

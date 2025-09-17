@@ -5,6 +5,7 @@ import { Theme } from '@/src/design-system/theme';
 import { Button, TextField, Card } from '@/src/design-system/components';
 import { useAuthStore } from '@/src/stores/authStore';
 import { supabase } from '@/src/lib/supabase';
+import { validatePassword, handleAuthCallback } from '@/src/utils/authHelpers';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -16,22 +17,61 @@ export default function ResetPasswordScreen() {
   const [isValidSession, setIsValidSession] = useState(false);
 
   useEffect(() => {
-    // Check if we have a valid password reset session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setIsValidSession(true);
+    // Handle auth callback if present in URL params
+    const handleCallback = async () => {
+      const tokenHash = params.token_hash as string;
+      const type = params.type as string;
+      
+      if (tokenHash && type === 'recovery') {
+        // Handle password recovery callback
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery'
+          });
+
+          if (error) {
+            console.error('Recovery token verification error:', error);
+            Alert.alert(
+              'Invalid Reset Link',
+              'This password reset link is invalid or has expired. Please request a new one.',
+              [{ text: 'OK', onPress: () => router.replace('/(auth)/signin') }]
+            );
+            return;
+          }
+
+          if (data.session) {
+            setIsValidSession(true);
+          }
+        } catch (error) {
+          console.error('Recovery callback error:', error);
+          Alert.alert(
+            'Reset Link Error',
+            'There was an error processing your reset link. Please try again.',
+            [{ text: 'OK', onPress: () => router.replace('/(auth)/signin') }]
+          );
+        }
       } else {
-        Alert.alert(
-          'Invalid Reset Link',
-          'This password reset link is invalid or has expired. Please request a new one.',
-          [{ text: 'OK', onPress: () => router.replace('/(auth)/signin') }]
-        );
+        // Check if we already have a valid session
+        const checkSession = async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            setIsValidSession(true);
+          } else {
+            Alert.alert(
+              'Invalid Reset Link',
+              'This password reset link is invalid or has expired. Please request a new one.',
+              [{ text: 'OK', onPress: () => router.replace('/(auth)/signin') }]
+            );
+          }
+        };
+
+        checkSession();
       }
     };
 
-    checkSession();
-  }, []);
+    handleCallback();
+  }, [params]);
 
   const handleResetPassword = async () => {
     if (!newPassword || !confirmPassword) {
@@ -44,8 +84,10 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      Alert.alert('Weak Password', passwordValidation.error);
       return;
     }
 

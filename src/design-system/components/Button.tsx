@@ -62,7 +62,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: Theme.borderRadius.md,
+    borderRadius: Theme.borderRadius.lg, // Larger radius for modern look
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

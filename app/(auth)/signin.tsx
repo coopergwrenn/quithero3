@@ -54,8 +54,9 @@ export default function SignInScreen() {
         return;
       }
       
-      // Success - let the app layout handle routing
-      console.log('✅ Sign in successful, letting app layout handle routing');
+      // Success - redirect to main app
+      console.log('✅ Sign in successful, redirecting to main app');
+      router.replace('/(app)/(tabs)/dashboard');
     } catch (error: any) {
       Alert.alert('Sign In Error', error.message || 'Failed to sign in');
     } finally {

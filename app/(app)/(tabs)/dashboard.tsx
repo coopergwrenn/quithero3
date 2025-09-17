@@ -6,6 +6,7 @@ import { Theme } from '@/src/design-system/theme';
 import { Card, Button, Badge } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useToolStore } from '@/src/stores/toolStore';
+import { profileService } from '@/src/services/profileService';
 import { analytics } from '@/src/services/analytics';
 
 // Health milestones based on medical research
@@ -108,8 +109,11 @@ const TOOL_NAMES = {
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { quitData } = useQuitStore();
+  const { quitData, updateQuitData } = useQuitStore();
   const { getToolStats } = useToolStore();
+  
+  // User state
+  const [userName, setUserName] = useState('');
   
   const [currentTime, setCurrentTime] = useState(new Date());
   const [celebrationAnimation] = useState(new Animated.Value(1));
@@ -132,6 +136,16 @@ export default function DashboardScreen() {
     ...quitData
   };
   
+  // Fetch user's display name
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const displayName = await profileService.getUserDisplayName();
+      setUserName(displayName);
+    };
+    
+    fetchUserName();
+  }, []);
+
   // Update time every minute for real-time calculations
   useEffect(() => {
     const interval = setInterval(() => {
@@ -399,6 +413,7 @@ export default function DashboardScreen() {
   const { toolStats, totalUses, mostUsedTool } = getToolUsageStats();
   const substanceType = effectiveQuitData.substanceType || 'cigarettes';
 
+
   if (!quitData.quitDate && Object.keys(quitData).length === 0) {
     return (
       <SafeAreaView style={styles.container}>
@@ -407,9 +422,28 @@ export default function DashboardScreen() {
           <Text style={styles.noDataText}>
             Complete your onboarding to start tracking your amazing progress.
           </Text>
-          <Button onPress={() => router.push('/(onboarding)')}>
-            Get Started
-          </Button>
+          <View style={styles.buttonContainer}>
+            <Button onPress={() => router.push('/(onboarding)')} style={styles.primaryButton}>
+              Get Started
+            </Button>
+            <Button 
+              variant="ghost" 
+              onPress={() => {
+                // Use mock data to show dashboard
+                const mockQuitDate = new Date();
+                mockQuitDate.setDate(mockQuitDate.getDate() - 7);
+                updateQuitData({
+                  quitDate: mockQuitDate,
+                  substanceType: 'cigarettes',
+                  usageAmount: 20,
+                  primaryMotivation: 'health'
+                });
+              }}
+              style={styles.secondaryButton}
+            >
+              Skip for now
+            </Button>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -417,54 +451,77 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           
           {/* Hero Stats Section */}
           <View style={styles.heroSection}>
             <View style={styles.heroHeader}>
-              <Text style={styles.welcomeText}>Welcome back!</Text>
+              <Text style={styles.welcomeText}>
+                Welcome back{userName ? ` ${userName}` : ''}!
+              </Text>
               <Text style={styles.heroSubtext}>You're absolutely crushing it 🌟</Text>
             </View>
             
-            <Animated.View style={[styles.dayCounter, { transform: [{ scale: celebrationAnimation }] }]}>
-              <View style={styles.dayNumberContainer}>
-                <View style={styles.numberBackground}>
-                  <Text style={styles.dayNumber}>{daysSinceQuit}</Text>
+            {/* Unified Stats Card */}
+            <Card style={styles.unifiedStatsCard} variant="elevated">
+              <Animated.View style={[{ transform: [{ scale: celebrationAnimation }] }]}>
+                {/* Main Days Counter */}
+                <Text style={styles.mainDaysNumber}>{daysSinceQuit}</Text>
+                <Text style={styles.daysCleanLabel}>DAYS CLEAN</Text>
+                
+                {/* Elite Status Badge */}
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusBadgeText}>Elite Status</Text>
                 </View>
-                {daysSinceQuit >= 7 && (
-                  <Text style={styles.streakEmoji}>🔥</Text>
-                )}
-              </View>
-              <Text style={styles.dayLabel}>
-                {daysSinceQuit === 1 ? 'Day Strong' : 'Days Strong'}
-              </Text>
-              <Text style={styles.heroMotivation}>
-                {daysSinceQuit === 1 ? "Every journey begins with one day!" :
-                 daysSinceQuit < 7 ? "Building unstoppable momentum!" :
-                 daysSinceQuit < 30 ? "Your new habits are forming!" :
-                 daysSinceQuit < 100 ? "You're becoming smoke-free for life!" :
-                 "You're a quit hero! Absolutely inspiring!"}
-              </Text>
-            </Animated.View>
-
-            <View style={styles.statsGrid}>
-              <Card style={styles.statCard}>
-                <Text style={styles.statIcon}>💰</Text>
-                <Text style={styles.statValue}>{formatCurrency(moneySaved)}</Text>
-                <Text style={styles.statLabel}>Money Saved</Text>
-              </Card>
-
-              <Card style={styles.statCard}>
-                <Text style={styles.statIcon}>
-                  {substanceType === 'cigarettes' ? '🚭' : '💨'}
-                </Text>
-                <Text style={styles.statValue}>{formatNumber(substancesAvoided)}</Text>
-                <Text style={styles.statLabel}>
-                  {substanceType === 'cigarettes' ? 'Cigarettes' : 'Puffs'} Avoided
-                </Text>
-              </Card>
-            </View>
+                
+                {/* Horizontal Scrollable Circular Progress Stats */}
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.scrollableStatsContainer}
+                  style={styles.scrollableStatsView}
+                >
+                  <View style={styles.circularStat}>
+                    <View style={styles.circularProgress}>
+                      <Text style={styles.circularStatValue}>{formatCurrency(moneySaved)}</Text>
+                      <Text style={styles.circularStatLabel}>SAVED</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.circularStat}>
+                    <View style={styles.circularProgress}>
+                      <Text style={styles.circularStatValue}>{formatNumber(substancesAvoided)}</Text>
+                      <Text style={styles.circularStatLabel}>
+                        {substanceType === 'cigarettes' ? 'CIGARETTES' : 'PUFFS'} AVOIDED
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.circularStat}>
+                    <View style={styles.circularProgress}>
+                      <Text style={styles.circularStatValue}>{Math.floor(daysSinceQuit * 24)}</Text>
+                      <Text style={styles.circularStatLabel}>HOURS CLEAN</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.circularStat}>
+                    <View style={styles.circularProgress}>
+                      <Text style={styles.circularStatValue}>{achievedMilestones.length}</Text>
+                      <Text style={styles.circularStatLabel}>MILESTONES</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.circularStat}>
+                    <View style={styles.circularProgress}>
+                      <Text style={styles.circularStatValue}>{totalUses}</Text>
+                      <Text style={styles.circularStatLabel}>TOOLS USED</Text>
+                    </View>
+                  </View>
+                </ScrollView>
+              </Animated.View>
+            </Card>
           </View>
 
           {/* Quit Calendar */}
@@ -767,6 +824,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
+    paddingTop: 60,
   },
   noDataContainer: {
     flex: 1,
@@ -787,6 +845,173 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: Theme.spacing.md,
+  },
+  primaryButton: {
+    width: '100%',
+  },
+  secondaryButton: {
+    width: '100%',
+  },
+  
+  // New design styles
+  
+  // Activity Card
+  activityCard: {
+    marginBottom: Theme.spacing.lg,
+    padding: Theme.spacing.lg,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  cardTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+  },
+  cardAction: {
+    backgroundColor: Theme.colors.dark.surfaceElevated,
+    borderRadius: Theme.borderRadius.sm,
+    padding: Theme.spacing.xs,
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardActionIcon: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+  },
+  
+  // Calendar
+  calendar: {
+    gap: Theme.spacing.md,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingBottom: Theme.spacing.sm,
+  },
+  calendarDayHeader: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    width: 32,
+  },
+  calendarDays: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Theme.spacing.sm,
+  },
+  calendarDay: {
+    width: 36,
+    height: 36,
+    borderRadius: Theme.borderRadius.md,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarDayActive: {
+    backgroundColor: Theme.colors.teal[500],
+  },
+  calendarDayText: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+    fontWeight: '500',
+  },
+  calendarDayTextActive: {
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+  },
+  
+  // Coach Card
+  coachCard: {
+    marginBottom: Theme.spacing.lg,
+    padding: Theme.spacing.lg,
+  },
+  coachHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.md,
+  },
+  coachAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: Theme.borderRadius.lg,
+    backgroundColor: Theme.colors.dark.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Theme.spacing.md,
+    position: 'relative',
+  },
+  coachAvatarIcon: {
+    fontSize: 24,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.teal[500],
+    borderWidth: 2,
+    borderColor: Theme.colors.dark.surface,
+  },
+  coachInfo: {
+    flex: 1,
+  },
+  coachName: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.primary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  coachStatus: {
+    ...Theme.typography.footnote,
+    color: Theme.colors.text.secondary,
+  },
+  coachMessage: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  
+  // Action Grid
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Theme.spacing.md,
+    marginBottom: Theme.spacing.lg,
+  },
+  actionCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: Theme.colors.dark.surface,
+    borderRadius: Theme.borderRadius.lg,
+    padding: Theme.spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.dark.borderSubtle,
+    minHeight: 100,
+  },
+  actionIcon: {
+    fontSize: 32,
+    marginBottom: Theme.spacing.sm,
+  },
+  actionLabel: {
+    ...Theme.typography.callout,
+    color: Theme.colors.text.primary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   heroSection: {
     alignItems: 'center',
@@ -826,7 +1051,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   numberBackground: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Theme.colors.teal[500],
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -866,11 +1091,97 @@ const styles = StyleSheet.create({
     gap: 16,
     width: '100%',
   },
+  // Unified Stats Card - Back to original beautiful design
+  unifiedStatsCard: {
+    padding: 24,
+    alignItems: 'center',
+    backgroundColor: Theme.colors.dark.surfaceElevated,
+    marginTop: 20,
+    width: '100%',
+    maxWidth: '100%',
+    height: 320, // Fixed height to prevent infinite expansion
+    maxHeight: 320,
+    overflow: 'hidden', // Contain all content within the card
+    borderRadius: Theme.borderRadius.lg,
+  },
+  mainDaysNumber: {
+    fontSize: 72,
+    fontWeight: '800',
+    color: '#87CEEB', // Light blue like the reference
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  daysCleanLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.colors.text.secondary,
+    letterSpacing: 2,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  statusBadge: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#FF69B4', // Pink like the reference
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginBottom: 24,
+    alignSelf: 'center',
+  },
+  statusBadgeText: {
+    color: '#FF69B4',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  scrollableStatsView: {
+    width: '100%',
+    height: 120,
+  },
+  scrollableStatsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circularStat: {
+    alignItems: 'center',
+    width: 100, // Smaller width to fit better
+    justifyContent: 'center',
+  },
+  circularProgress: {
+    width: 70, // Even smaller to fit properly
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 4,
+    borderColor: '#87CEEB', // Light blue progress ring
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 6,
+  },
+  circularStatValue: {
+    fontSize: 12, // Smaller font for smaller circles
+    fontWeight: '700',
+    color: Theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: 1,
+  },
+  circularStatLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+
   statCard: {
     flex: 1,
     padding: 20,
     alignItems: 'center',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: Theme.colors.dark.surfaceElevated,
   },
   statIcon: {
     fontSize: 32,

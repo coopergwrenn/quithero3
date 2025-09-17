@@ -32,12 +32,13 @@ export function Card({
 const styles = StyleSheet.create({
   base: {
     backgroundColor: Theme.colors.dark.surface,
-    borderRadius: Theme.borderRadius.md,
+    borderRadius: Theme.borderRadius.lg, // Larger radius for modern look
     borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
+    borderColor: Theme.colors.dark.borderSubtle, // Subtle border
   },
   elevated: {
     backgroundColor: Theme.colors.dark.surfaceElevated,
-    ...Theme.shadows.md,
+    borderColor: Theme.colors.dark.border,
+    ...Theme.shadows.lg, // Stronger shadow for elevated cards
   },
 });

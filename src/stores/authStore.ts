@@ -159,10 +159,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   resetPassword: async (email: string) => {
     set({ loading: true });
     try {
+      // Use different redirect URLs based on environment
+      const isDevelopment = __DEV__ || process.env.NODE_ENV === 'development';
+      const redirectTo = isDevelopment 
+        ? 'exp://localhost:19000/--/(auth)/reset-password'
+        : 'https://tryquithero.com/reset-password';
+      
       console.log('🔍 Sending password reset to:', email);
+      console.log('🔗 Using redirect URL:', redirectTo);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://quithero.app/reset-password', // Professional domain
+        redirectTo,
       });
 
       if (error) {

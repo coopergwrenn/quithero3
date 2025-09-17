@@ -29,7 +29,7 @@
           "reservedClientId": "810493281597-eflva65r53e64rg7easuv09um4218rf9.apps.googleusercontent.com"
         }
       },
-      "associatedDomains": ["applinks:quithero.app"],
+      "associatedDomains": ["applinks:tryquithero.com"],
       "infoPlist": {
         "NSUserTrackingUsageDescription": "This app uses analytics to improve your quit success rate and personalize your experience.",
         "NSHealthShareUsageDescription": "QuitHero can integrate with Health app to track your smoke-free progress.",

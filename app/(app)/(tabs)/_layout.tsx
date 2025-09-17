@@ -15,11 +15,12 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: Theme.colors.dark.surface,
-          borderTopColor: Theme.colors.dark.border,
+          borderTopColor: Theme.colors.dark.borderSubtle,
           borderTopWidth: 1,
           paddingTop: Theme.spacing.xs,
           paddingBottom: Theme.spacing.sm,
           height: 88,
+          borderRadius: 0, // Keep bottom tabs square
         },
         tabBarActiveTintColor: Theme.colors.purple[500],
         tabBarInactiveTintColor: Theme.colors.text.tertiary,
