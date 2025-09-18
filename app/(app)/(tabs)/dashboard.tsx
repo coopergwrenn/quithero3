@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -184,8 +185,8 @@ export default function DashboardScreen() {
   const [celebrationAnimation] = useState(new Animated.Value(1));
   const badgeGlow = useRef(new Animated.Value(0)).current;
   const treeGrow = useRef(new Animated.Value(0)).current;
-  const [showSeedPrompt, setShowSeedPrompt] = useState(true);  // TEST: Show seed prompt
-  const [treePlanted, setTreePlanted] = useState(false); // TEST: Tree not planted yet
+  const [showSeedPrompt, setShowSeedPrompt] = useState(false);
+  const [treePlanted, setTreePlanted] = useState(true); // Default to planted
   
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -244,13 +245,44 @@ export default function DashboardScreen() {
     ).start();
   }, []);
 
-  // Check if user needs to plant seed on first visit
+  // Load and check tree state with persistence
   useEffect(() => {
-    const daysSinceQuit = calculateDaysSinceQuit();
-    if (daysSinceQuit === 0 && !treePlanted) {
-      setShowSeedPrompt(true);
-    }
-  }, [treePlanted]);
+    const loadTreeState = async () => {
+      try {
+        // Load saved tree state
+        const savedTreeState = await AsyncStorage.getItem('treeState');
+        const treeData = savedTreeState ? JSON.parse(savedTreeState) : null;
+        
+        const daysSinceQuit = calculateDaysSinceQuit();
+        
+        if (treeData) {
+          // Use saved state
+          setTreePlanted(treeData.planted);
+          setShowSeedPrompt(!treeData.planted && daysSinceQuit === 0);
+        } else {
+          // New user logic
+          if (daysSinceQuit === 0 && !quitData.quitDate) {
+            // Completely new user - show seed prompt
+            setShowSeedPrompt(true);
+            setTreePlanted(false);
+          } else {
+            // User with existing quit data - tree is planted
+            setTreePlanted(true);
+            setShowSeedPrompt(false);
+            // Save this state
+            await AsyncStorage.setItem('treeState', JSON.stringify({ planted: true }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading tree state:', error);
+        // Fallback to safe defaults
+        setTreePlanted(true);
+        setShowSeedPrompt(false);
+      }
+    };
+    
+    loadTreeState();
+  }, [quitData.quitDate]);
 
   // Calculate days since quit
   const calculateDaysSinceQuit = (): number => {
@@ -424,18 +456,28 @@ export default function DashboardScreen() {
   };
 
   // Handle planting the seed
-  const plantSeed = () => {
-    setTreePlanted(true);
-    setShowSeedPrompt(false);
-    // Here you would save to storage that the seed is planted
+  const plantSeed = async () => {
+    try {
+      setTreePlanted(true);
+      setShowSeedPrompt(false);
+      // Save tree state to storage
+      await AsyncStorage.setItem('treeState', JSON.stringify({ planted: true }));
+    } catch (error) {
+      console.error('Error saving tree state:', error);
+    }
   };
 
   // Handle tree reset (when user relapses)
-  const resetTree = () => {
-    setTreePlanted(false);
-    setShowSeedPrompt(true);
-    // Show firewood animation briefly, then reset to seed prompt
-    // This would be called when user resets their quit journey
+  const resetTree = async () => {
+    try {
+      setTreePlanted(false);
+      setShowSeedPrompt(true);
+      // Save reset state to storage
+      await AsyncStorage.setItem('treeState', JSON.stringify({ planted: false }));
+      // Show firewood animation briefly, then reset to seed prompt
+    } catch (error) {
+      console.error('Error saving tree reset:', error);
+    }
   };
 
   // Format currency
@@ -464,7 +506,7 @@ export default function DashboardScreen() {
     router.push(`/(app)/tools/${toolId}` as any);
   };
 
-  // Calendar functions
+  // Calendar functions - FIXED: No more random flashing!
   const calculateDayScore = (date: Date): number => {
     const dateStr = date.toISOString().split('T')[0];
     const quitDate = new Date(effectiveQuitData.quitDate);
@@ -472,21 +514,26 @@ export default function DashboardScreen() {
     
     if (!isQuitDay) return 0;
     
-    // Mock activity data - in real app this would come from actual usage
+    // STABLE activity data - use date as seed for consistent results
+    const dayNumber = date.getDate();
+    const monthNumber = date.getMonth();
+    const seed = dayNumber + monthNumber * 31; // Consistent seed per day
+    
+    // Deterministic "random" values based on date seed
     const mockActivities = {
-      pledgeCompleted: Math.random() > 0.3 ? 1 : 0,
-      panicModeUses: Math.floor(Math.random() * 3),
-      urgeTimerCompletes: Math.floor(Math.random() * 2),
-      breathworkSessions: Math.floor(Math.random() * 2),
-      communityInteractions: Math.floor(Math.random() * 5),
+      pledgeCompleted: (seed % 7) > 2 ? 1 : 0, // ~70% completion rate
+      panicModeUses: (seed % 5), // 0-4 uses
+      urgeTimerCompletes: Math.floor((seed % 13) / 6), // 0-2 completes  
+      breathworkSessions: Math.floor((seed % 11) / 5), // 0-2 sessions
+      communityInteractions: (seed % 8), // 0-7 interactions
     };
     
     const dayActivities = {
       pledgeCompleted: mockActivities.pledgeCompleted * 25,
-      panicModeUses: mockActivities.panicModeUses * 20,
+      panicModeUses: Math.min(mockActivities.panicModeUses, 2) * 20, // Cap at 2
       urgeTimerCompletes: mockActivities.urgeTimerCompletes * 15,
       breathworkSessions: mockActivities.breathworkSessions * 10,
-      communityInteractions: mockActivities.communityInteractions * 5,
+      communityInteractions: Math.min(mockActivities.communityInteractions, 4) * 5, // Cap at 4
       baseQuitDay: 10
     };
     
@@ -497,6 +544,14 @@ export default function DashboardScreen() {
     if (score === 0) return '#374151'; // Gray for non-quit days
     const intensity = score / 100;
     return `rgba(139, 92, 246, ${0.3 + (intensity * 0.7)})`; // Purple gradient
+  };
+
+  // Premium calendar cell colors with glass morphism
+  const getPremiumCellColor = (score: number): string => {
+    if (score === 0) return 'rgba(255, 255, 255, 0.05)'; // Very subtle for inactive days
+    if (score < 30) return 'rgba(139, 92, 246, 0.15)'; // Light purple for low activity
+    if (score < 70) return 'rgba(139, 92, 246, 0.25)'; // Medium purple
+    return 'rgba(139, 92, 246, 0.4)'; // Strong purple for high activity days
   };
 
   const getDaysInMonth = (date: Date): Date[] => {
@@ -794,59 +849,68 @@ export default function DashboardScreen() {
             <Text style={styles.panicButtonText}>Panic Button</Text>
           </TouchableOpacity>
 
-          {/* Clean Quit Calendar - Fresh Rebuild */}
-          <View style={styles.cleanCalendarCard}>
-            {/* Simple Header */}
-            <View style={styles.cleanCalendarHeader}>
-              <Text style={styles.cleanCalendarTitle}>Quit Calendar</Text>
-              <View style={styles.cleanMonthNav}>
-                <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.cleanNavButton}>
-                  <Text style={styles.cleanNavText}>‹</Text>
+          {/* Premium Quit Calendar */}
+          <View style={styles.premiumCalendarCard}>
+            {/* Premium Header */}
+            <View style={styles.premiumCalendarHeader}>
+              <Text style={styles.premiumCalendarTitle}>Your Quit Journey</Text>
+              <View style={styles.premiumMonthNav}>
+                <TouchableOpacity onPress={() => navigateMonth('prev')} style={styles.premiumNavButton}>
+                  <Text style={styles.premiumNavText}>‹</Text>
                 </TouchableOpacity>
-                <Text style={styles.cleanMonthText}>
+                <Text style={styles.premiumMonthText}>
                   {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </Text>
-                <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.cleanNavButton}>
-                  <Text style={styles.cleanNavText}>›</Text>
+                <TouchableOpacity onPress={() => navigateMonth('next')} style={styles.premiumNavButton}>
+                  <Text style={styles.premiumNavText}>›</Text>
                 </TouchableOpacity>
               </View>
             </View>
             
-            {/* Day Headers */}
-            <View style={styles.cleanDayHeaders}>
+            {/* Premium Day Headers */}
+            <View style={styles.premiumDayHeaders}>
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-                <Text key={index} style={styles.cleanDayHeader}>{day}</Text>
+                <Text key={index} style={styles.premiumDayHeader}>{day}</Text>
               ))}
             </View>
             
-            {/* Calendar Grid - NO ACTIVITY LEVEL! */}
-            <View style={styles.cleanCalendarGrid}>
+            {/* Premium Calendar Grid */}
+            <View style={styles.premiumCalendarGrid}>
               {getDaysInMonth(currentMonth).map((day, index) => {
                 const score = calculateDayScore(day);
                 const isToday = day.toDateString() === new Date().toDateString();
                 const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+                const quitDate = new Date(effectiveQuitData.quitDate);
+                const isQuitDay = day >= quitDate;
                 
                 return (
                   <TouchableOpacity
                     key={index}
                     style={[
-                      styles.cleanDayCell,
+                      styles.premiumDayCell,
                       {
-                        backgroundColor: getCalendarCellColor(score),
-                        opacity: isCurrentMonth ? 1 : 0.3,
-                        borderWidth: isToday ? 2 : 0,
-                        borderColor: isToday ? '#8B5CF6' : 'transparent',
+                        backgroundColor: isQuitDay ? getPremiumCellColor(score) : 'rgba(255, 255, 255, 0.03)',
+                        opacity: isCurrentMonth ? 1 : 0.4,
+                        borderWidth: isToday ? 2 : 1,
+                        borderColor: isToday ? '#8B5CF6' : 'rgba(255, 255, 255, 0.1)',
                       }
                     ]}
                     onPress={() => openDayModal(day)}
                   >
                     <Text style={[
-                      styles.cleanDayText,
-                      { color: isCurrentMonth ? '#FFFFFF' : '#666666' }
+                      styles.premiumDayText,
+                      { 
+                        color: isCurrentMonth ? '#FFFFFF' : '#888888',
+                        fontWeight: isToday ? '600' : '400'
+                      }
                     ]}>
                       {day.getDate()}
                     </Text>
-                    {score > 70 && <Text style={styles.cleanScoreIndicator}>✨</Text>}
+                    {isQuitDay && score > 70 && (
+                      <View style={styles.premiumSuccessIndicator}>
+                        <Text style={styles.premiumSuccessIcon}>✨</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -2326,100 +2390,128 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   
-  // Clean Calendar Styles - Fresh Start, No Activity Level
-  cleanCalendarCard: {
-    backgroundColor: '#141414',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 32,
+  // Premium Calendar Styles - MOBILE RESPONSIVE FIX
+  premiumCalendarCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Glass morphism background
+    borderRadius: 20, // Smaller radius
+    padding: 16, // Much smaller padding - was 24
+    marginBottom: 20, // Reduced margin - was 32
     width: '100%',
-    borderWidth: 0.5,
-    borderColor: '#333333',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle glass border
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
-    // FORCE EXACT HEIGHT - NO EXTRA SPACE ALLOWED!
+    shadowOffset: { width: 0, height: 8 }, // Reduced shadow
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 10,
+    // CRITICAL MOBILE FIX - FORCE EXACT HEIGHT!
     minHeight: 'auto',
-    maxHeight: 400,
+    maxHeight: 380, // Prevent iOS expansion
     alignSelf: 'stretch',
     flexShrink: 1,
   },
-  cleanCalendarHeader: {
+  premiumCalendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16, // Reduced - was 24
+    paddingBottom: 12, // Reduced - was 16
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  cleanCalendarTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  premiumCalendarTitle: {
+    fontSize: 18, // Smaller - was 20
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
-  cleanMonthNav: {
+  premiumMonthNav: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    gap: 8, // Tight spacing between all elements
+    gap: 8, // Much tighter - was 12
   },
-  cleanNavButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  premiumNavButton: {
+    width: 28, // Smaller - was 32
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  cleanNavText: {
+  premiumNavText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14, // Smaller - was 16
     fontWeight: '600',
   },
-  cleanMonthText: {
+  premiumMonthText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 16, // Smaller - was 17
+    fontWeight: '600',
     textAlign: 'center',
+    minWidth: 120, // Smaller - was 140
+    letterSpacing: 0.3,
   },
-  cleanDayHeaders: {
+  premiumDayHeaders: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 12, // Reduced - was 16
+    paddingHorizontal: 2, // Reduced - was 4
   },
-  cleanDayHeader: {
+  premiumDayHeader: {
     flex: 1,
     textAlign: 'center',
-    color: '#888888',
-    fontSize: 13,
+    color: '#CCCCCC',
+    fontSize: 12, // Smaller - was 14
     fontWeight: '600',
-    paddingVertical: 8,
+    paddingVertical: 6, // Reduced - was 8
+    letterSpacing: 0.5,
   },
-  cleanCalendarGrid: {
+  premiumCalendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    // FORCE TIGHT LAYOUT - NO EXPANSION!
+    gap: 3, // Smaller gap - was 4
+    // CRITICAL MOBILE FIX - FORCE TIGHT LAYOUT!
     flex: 0,
     minHeight: 'auto',
     alignSelf: 'stretch',
   },
-  cleanDayCell: {
-    width: '14.28%',
+  premiumDayCell: {
+    width: '13.5%', // Adjusted for smaller gap
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    margin: 2,
+    borderRadius: 8, // Smaller radius - was 12
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 }, // Minimal shadow
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  cleanDayText: {
-    fontSize: 15,
+  premiumDayText: {
+    fontSize: 14, // Smaller - was 16
     fontWeight: '500',
     color: '#FFFFFF',
+    textAlign: 'center',
   },
-  cleanScoreIndicator: {
+  premiumSuccessIndicator: {
     position: 'absolute',
     top: 2,
     right: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(34, 197, 94, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumSuccessIcon: {
     fontSize: 10,
   },
   calendarHeader: {
