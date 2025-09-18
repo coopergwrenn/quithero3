@@ -593,43 +593,52 @@ export default function DashboardScreen() {
             <Text style={styles.motivationText}>{getMotivationalMessage()}</Text>
           </Card>
 
-          {/* Health Recovery Progress */}
-          <Card style={styles.healthSection}>
-            <Text style={styles.sectionTitle}>🫁 Health Recovery Timeline</Text>
-            <Text style={styles.sectionSubtitle}>
-              Your body is healing! {achievedMilestones.length} of {milestoneStatus.length} milestones achieved.
-            </Text>
+          {/* Premium Health Recovery Timeline */}
+          <View style={styles.premiumHealthCard}>
+            {/* Header Section */}
+            <View style={styles.premiumHealthHeader}>
+              <View style={styles.healthIconContainer}>
+                <Text style={styles.healthIcon}>🫁</Text>
+              </View>
+              <View style={styles.healthHeaderText}>
+                <Text style={styles.premiumHealthTitle}>Health Recovery Timeline</Text>
+                <Text style={styles.premiumHealthSubtitle}>
+                  Your body is healing! {achievedMilestones.length} of {milestoneStatus.length} milestones achieved.
+                </Text>
+              </View>
+            </View>
             
-            <View style={styles.milestonesContainer}>
+            {/* Milestones List */}
+            <View style={styles.premiumMilestonesContainer}>
               {milestoneStatus.slice(0, 6).map((milestone, index) => (
-                <View key={index} style={styles.milestoneItem}>
+                <View key={index} style={styles.premiumMilestoneItem}>
                   <View style={[
-                    styles.milestoneIcon,
-                    milestone.isAchieved && styles.milestoneIconAchieved
+                    styles.premiumMilestoneIcon,
+                    milestone.isAchieved && styles.premiumMilestoneIconAchieved
                   ]}>
-                    <Text style={styles.milestoneEmoji}>
-                      {milestone.isAchieved ? '✅' : milestone.icon}
+                    <Text style={styles.premiumMilestoneCheck}>
+                      {milestone.isAchieved ? '✓' : milestone.icon}
                     </Text>
                   </View>
-                  <View style={styles.milestoneContent}>
+                  <View style={styles.premiumMilestoneContent}>
                     <Text style={[
-                      styles.milestoneTitle,
-                      milestone.isAchieved && styles.milestoneTitleAchieved
+                      styles.premiumMilestoneTitle,
+                      milestone.isAchieved && styles.premiumMilestoneTitleAchieved
                     ]}>
                       {milestone.title}
                     </Text>
-                    <Text style={styles.milestoneDescription}>
+                    <Text style={styles.premiumMilestoneDescription}>
                       {milestone.description}
                     </Text>
                     {!milestone.isAchieved && (
-                      <View style={styles.progressContainer}>
-                        <View style={styles.progressBar}>
+                      <View style={styles.premiumProgressContainer}>
+                        <View style={styles.premiumProgressBar}>
                           <View style={[
-                            styles.progressFill,
+                            styles.premiumProgressFill,
                             { width: `${milestone.progress}%` }
                           ]} />
                         </View>
-                        <Text style={styles.progressText}>{milestone.progress}%</Text>
+                        <Text style={styles.premiumProgressText}>{milestone.progress}%</Text>
                       </View>
                     )}
                   </View>
@@ -638,14 +647,14 @@ export default function DashboardScreen() {
             </View>
 
             {nextMilestone && (
-              <View style={styles.nextMilestoneCard}>
-                <Text style={styles.nextMilestoneTitle}>Next Milestone</Text>
-                <Text style={styles.nextMilestoneText}>
+              <View style={styles.premiumNextMilestoneCard}>
+                <Text style={styles.premiumNextMilestoneLabel}>Next Milestone</Text>
+                <Text style={styles.premiumNextMilestoneTitle}>
                   {nextMilestone.title} in {nextMilestone.time - daysSinceQuit} days
                 </Text>
               </View>
             )}
-          </Card>
+          </View>
 
           {/* Tool Usage Summary */}
           <Card style={styles.toolsSection}>
@@ -1260,6 +1269,146 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     fontWeight: '500',
+  },
+  // Premium Health Recovery Timeline Styles
+  premiumHealthCard: {
+    backgroundColor: '#141414',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 32,
+    width: '100%',
+    borderWidth: 0.5,
+    borderColor: '#333333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  premiumHealthHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  healthIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  healthIcon: {
+    fontSize: 24,
+  },
+  healthHeaderText: {
+    flex: 1,
+  },
+  premiumHealthTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  premiumHealthSubtitle: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    lineHeight: 20,
+  },
+  premiumMilestonesContainer: {
+    gap: 16,
+  },
+  premiumMilestoneItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 4,
+  },
+  premiumMilestoneIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(75, 85, 99, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(75, 85, 99, 0.5)',
+  },
+  premiumMilestoneIconAchieved: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    borderColor: '#22C55E',
+  },
+  premiumMilestoneCheck: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  premiumMilestoneContent: {
+    flex: 1,
+  },
+  premiumMilestoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  premiumMilestoneTitleAchieved: {
+    color: '#22C55E',
+  },
+  premiumMilestoneDescription: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  premiumProgressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  premiumProgressBar: {
+    flex: 1,
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  premiumProgressFill: {
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    borderRadius: 3,
+  },
+  premiumProgressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8B5CF6',
+    minWidth: 32,
+  },
+  premiumNextMilestoneCard: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  premiumNextMilestoneLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8B5CF6',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  premiumNextMilestoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   healthSection: {
     padding: 24,
