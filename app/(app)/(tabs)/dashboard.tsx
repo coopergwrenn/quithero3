@@ -183,6 +183,9 @@ export default function DashboardScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [celebrationAnimation] = useState(new Animated.Value(1));
   const badgeGlow = useRef(new Animated.Value(0)).current;
+  const treeGrow = useRef(new Animated.Value(0)).current;
+  const [showSeedPrompt, setShowSeedPrompt] = useState(true);  // TEST: Show seed prompt
+  const [treePlanted, setTreePlanted] = useState(false); // TEST: Tree not planted yet
   
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -223,23 +226,31 @@ export default function DashboardScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // Badge glow animation
+  // Tree growth animation
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(badgeGlow, {
+        Animated.timing(treeGrow, {
           toValue: 1,
-          duration: 2000,
+          duration: 3000,
           useNativeDriver: true,
         }),
-        Animated.timing(badgeGlow, {
+        Animated.timing(treeGrow, {
           toValue: 0,
-          duration: 2000,
+          duration: 3000,
           useNativeDriver: true,
         }),
       ])
     ).start();
   }, []);
+
+  // Check if user needs to plant seed on first visit
+  useEffect(() => {
+    const daysSinceQuit = calculateDaysSinceQuit();
+    if (daysSinceQuit === 0 && !treePlanted) {
+      setShowSeedPrompt(true);
+    }
+  }, [treePlanted]);
 
   // Calculate days since quit
   const calculateDaysSinceQuit = (): number => {
@@ -369,6 +380,62 @@ export default function DashboardScreen() {
   const getNextMilestone = () => {
     const milestones = calculateMilestoneStatus();
     return milestones.find(m => !m.isAchieved);
+  };
+
+  // Calculate tree growth stage based on quit progress
+  const getTreeStage = () => {
+    const daysSinceQuit = calculateDaysSinceQuit();
+    
+    if (!treePlanted) return 'seed_prompt';
+    if (daysSinceQuit === 0) return 'seed_planted';
+    if (daysSinceQuit < 3) return 'seed_planted';
+    if (daysSinceQuit < 7) return 'sprout';
+    if (daysSinceQuit < 14) return 'small_sapling';
+    if (daysSinceQuit < 30) return 'medium_tree';
+    if (daysSinceQuit < 90) return 'large_tree';
+    return 'mighty_tree';
+  };
+
+  // Get tree emoji and description for current stage
+  const getTreeDisplay = () => {
+    const stage = getTreeStage();
+    const daysSinceQuit = calculateDaysSinceQuit();
+    
+    switch (stage) {
+      case 'seed_prompt':
+        return { emoji: '🌱', description: 'Tap to plant your recovery seed!', glow: '#4ADE80' };
+      case 'seed_planted':
+        return { emoji: '🌱', description: 'Your recovery seed is planted', glow: '#4ADE80' };
+      case 'sprout':
+        return { emoji: '🌱', description: 'Your lungs are starting to heal!', glow: '#4ADE80' };
+      case 'small_sapling':
+        return { emoji: '🌿', description: 'Growing stronger each day', glow: '#22C55E' };
+      case 'medium_tree':
+        return { emoji: '🌳', description: 'Your health tree is thriving', glow: '#16A34A' };
+      case 'large_tree':
+        return { emoji: '🌳', description: 'Strong and healthy lungs', glow: '#15803D' };
+      case 'mighty_tree':
+        return { emoji: '🌳', description: 'Fully healed - you did it!', glow: '#166534' };
+      case 'firewood':
+        return { emoji: '🪵', description: 'Tree cut down... plant again?', glow: '#DC2626' };
+      default:
+        return { emoji: '🌱', description: 'Ready to grow again', glow: '#4ADE80' };
+    }
+  };
+
+  // Handle planting the seed
+  const plantSeed = () => {
+    setTreePlanted(true);
+    setShowSeedPrompt(false);
+    // Here you would save to storage that the seed is planted
+  };
+
+  // Handle tree reset (when user relapses)
+  const resetTree = () => {
+    setTreePlanted(false);
+    setShowSeedPrompt(true);
+    // Show firewood animation briefly, then reset to seed prompt
+    // This would be called when user resets their quit journey
   };
 
   // Format currency
@@ -542,7 +609,7 @@ export default function DashboardScreen() {
           
           {/* App Logo/Icon */}
           <View style={styles.appIconContainer}>
-            <Text style={styles.appIcon}>QUITTR</Text>
+            <Text style={styles.appIcon}>QUITHERO</Text>
             <View style={styles.streakBadge}>
               <Text style={styles.streakIcon}>🔥</Text>
               <Text style={styles.streakNumber}>1</Text>
@@ -576,29 +643,66 @@ export default function DashboardScreen() {
             })}
           </View>
 
-          {/* Central Metallic Badge */}
-          <View style={styles.centralBadgeContainer}>
-            <Animated.View style={[
-              styles.metallicBadge,
-              {
-                shadowOpacity: badgeGlow.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.3, 0.8],
-                }),
-                shadowRadius: badgeGlow.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [15, 25],
-                }),
-              }
-            ]}>
-              <View style={styles.metallicRing}>
-                <View style={styles.metallicInner}>
-                  <View style={styles.metallicCore}>
-                    <View style={styles.metallicHighlight} />
-                  </View>
-                </View>
-              </View>
-            </Animated.View>
+          {/* Tree Growth System */}
+          <View style={styles.treeContainer}>
+            <TouchableOpacity 
+              style={[
+                styles.treeCircle,
+                {
+                  shadowColor: getTreeDisplay().glow,
+                }
+              ]}
+              onPress={showSeedPrompt ? plantSeed : undefined}
+              activeOpacity={showSeedPrompt ? 0.7 : 1}
+            >
+              <Animated.View style={[
+                styles.treeInner,
+                {
+                  shadowOpacity: treeGrow.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.3, 0.8],
+                  }),
+                  shadowRadius: treeGrow.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [15, 25],
+                  }),
+                  shadowColor: getTreeDisplay().glow,
+                  transform: [{
+                    scale: treeGrow.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [1, 1.05],
+                    })
+                  }]
+                }
+              ]}>
+                <Text style={styles.treeEmoji}>{getTreeDisplay().emoji}</Text>
+                {showSeedPrompt && (
+                  <Animated.View style={[
+                    styles.seedPromptPulse,
+                    {
+                      opacity: treeGrow.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 1],
+                      }),
+                    }
+                  ]} />
+                )}
+              </Animated.View>
+            </TouchableOpacity>
+            
+            {/* Tree Stage Description */}
+            <Text style={styles.treeDescription}>{getTreeDisplay().description}</Text>
+            
+            {/* Progress Ring */}
+            <View style={styles.treeProgressRing}>
+              <View style={[
+                styles.treeProgressFill,
+                {
+                  width: `${Math.min(100, (calculateDaysSinceQuit() / 90) * 100)}%`,
+                  backgroundColor: getTreeDisplay().glow,
+                }
+              ]} />
+            </View>
           </View>
 
           {/* Quit Counter */}
@@ -638,8 +742,10 @@ export default function DashboardScreen() {
             <TouchableOpacity 
               style={styles.actionButton} 
               onPress={() => {
-                // Reset functionality - could show confirmation modal
-                console.log('Reset pressed');
+                // Reset functionality - tree gets cut down
+                resetTree();
+                // Also reset quit data
+                updateQuitData({ quitDate: new Date() });
               }}
             >
               <View style={styles.actionButtonIcon}>
@@ -1083,78 +1189,74 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   
-  // Central Metallic Badge - Compact Size
-  centralBadgeContainer: {
+  // Tree Growth System - Compact
+  treeContainer: {
     alignItems: 'center',
-    marginBottom: 24, // Reduced margin (multiple of 4)
+    marginBottom: 20, // Reduced from 24
   },
-  metallicBadge: {
-    width: 160, // Much smaller - was 220
-    height: 160,
-    borderRadius: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#DAA520',
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 20,
-  },
-  metallicRing: {
-    width: 144, // Proportionally smaller
-    height: 144,
-    borderRadius: 72,
-    backgroundColor: '#B8860B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#FFD700',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 16,
-  },
-  metallicInner: {
-    width: 124,
-    height: 124,
-    borderRadius: 62,
-    backgroundColor: '#CD853F',
-    justifyContent: 'center',
-    alignItems: 'center',
+  treeCircle: {
+    width: 120, // Much smaller - was 160
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 2,
-    borderColor: '#F4A460',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
     elevation: 12,
+    position: 'relative',
   },
-  metallicCore: {
-    width: 100,
+  treeInner: {
+    width: 100, // Proportionally smaller
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#DEB887',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8B4513',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.2,
     elevation: 8,
   },
-  metallicHighlight: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F5DEB3',
+  treeEmoji: {
+    fontSize: 48, // Smaller - was 64
+    textAlign: 'center',
+  },
+  seedPromptPulse: {
     position: 'absolute',
-    top: 16,
-    left: 28,
-    opacity: 0.7,
-    shadowColor: '#FFFFFF',
+    width: 120, // Match new size
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+    borderWidth: 2,
+    borderColor: '#4ADE80',
+  },
+  treeDescription: {
+    color: '#FFFFFF',
+    fontSize: 12, // Smaller text
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 8, // Reduced spacing
+    opacity: 0.9,
+    letterSpacing: 0.3,
+  },
+  treeProgressRing: {
+    width: 100, // Smaller progress bar
+    height: 3, // Thinner
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 2,
+    marginTop: 8, // Less spacing
+    overflow: 'hidden',
+  },
+  treeProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+    shadowColor: '#4ADE80',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+    elevation: 3,
   },
   
   // Quit Counter - Compact Spacing
