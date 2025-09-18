@@ -2390,23 +2390,24 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   
-  // Premium Calendar Styles - MOBILE RESPONSIVE FIX
+  // Premium Calendar Styles - BALANCED COMPACT
   premiumCalendarCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)', // Glass morphism background
-    borderRadius: 20, // Smaller radius
-    padding: 16, // Much smaller padding - was 24
-    marginBottom: 20, // Reduced margin - was 32
+    borderRadius: 16, // Compact radius
+    padding: 12, // Tight internal padding
+    paddingBottom: 16, // Perfect bottom padding for calendar days
+    marginBottom: 32, // PROPER section spacing - restored!
     width: '100%',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle glass border
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 }, // Reduced shadow
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 10,
-    // CRITICAL MOBILE FIX - FORCE EXACT HEIGHT!
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    // CRITICAL MOBILE FIX - FORCE EXACT HEIGHT BUT ALLOW FOR BOTTOM PADDING!
     minHeight: 'auto',
-    maxHeight: 380, // Prevent iOS expansion
+    maxHeight: 336, // Adjusted for reduced bottom padding (320 + 16)
     alignSelf: 'stretch',
     flexShrink: 1,
   },
@@ -2414,8 +2415,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16, // Reduced - was 24
-    paddingBottom: 12, // Reduced - was 16
+    marginBottom: 12, // Even tighter - was 16
+    paddingBottom: 8, // Tighter - was 12
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -2460,22 +2461,23 @@ const styles = StyleSheet.create({
   },
   premiumDayHeaders: {
     flexDirection: 'row',
-    marginBottom: 12, // Reduced - was 16
-    paddingHorizontal: 2, // Reduced - was 4
+    marginBottom: 8, // Even tighter - was 12
+    paddingHorizontal: 2,
   },
   premiumDayHeader: {
     flex: 1,
     textAlign: 'center',
     color: '#CCCCCC',
-    fontSize: 12, // Smaller - was 14
+    fontSize: 12,
     fontWeight: '600',
-    paddingVertical: 6, // Reduced - was 8
+    paddingVertical: 4, // Tighter - was 6
     letterSpacing: 0.5,
   },
   premiumCalendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 3, // Smaller gap - was 4
+    justifyContent: 'space-between', // Perfect edge alignment
     // CRITICAL MOBILE FIX - FORCE TIGHT LAYOUT!
     flex: 0,
     minHeight: 'auto',
