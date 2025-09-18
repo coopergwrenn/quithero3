@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -107,6 +107,71 @@ const TOOL_NAMES = {
   'daily-pledge': 'Daily Pledge'
 };
 
+// Starfield Component for Premium Background
+const StarField = () => {
+  const [stars] = useState(() => {
+    const starArray = [];
+    for (let i = 0; i < 150; i++) {
+      starArray.push({
+        id: i,
+        x: Math.random() * Dimensions.get('window').width,
+        y: Math.random() * Dimensions.get('window').height,
+        size: Math.random() * 2 + 0.5,
+        opacity: Math.random() * 0.8 + 0.2,
+      });
+    }
+    return starArray;
+  });
+
+  const animatedValues = useRef(stars.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const animations = animatedValues.map((animValue, index) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 2000 + Math.random() * 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animValue, {
+            toValue: 0,
+            duration: 2000 + Math.random() * 3000,
+            useNativeDriver: true,
+          }),
+        ])
+      )
+    );
+
+    animations.forEach(anim => anim.start());
+
+    return () => animations.forEach(anim => anim.stop());
+  }, []);
+
+  return (
+    <View style={styles.starfield}>
+      {stars.map((star, index) => (
+        <Animated.View
+          key={star.id}
+          style={[
+            styles.star,
+            {
+              left: star.x,
+              top: star.y,
+              width: star.size,
+              height: star.size,
+              opacity: animatedValues[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [star.opacity * 0.3, star.opacity],
+              }),
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { quitData, updateQuitData } = useQuitStore();
@@ -117,6 +182,7 @@ export default function DashboardScreen() {
   
   const [currentTime, setCurrentTime] = useState(new Date());
   const [celebrationAnimation] = useState(new Animated.Value(1));
+  const badgeGlow = useRef(new Animated.Value(0)).current;
   
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -146,15 +212,33 @@ export default function DashboardScreen() {
     fetchUserName();
   }, []);
 
-  // Update time every minute for real-time calculations
+  // Update time every second for real-time calculations
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 1000); // Update every second for live counter
     
     analytics.track('dashboard_viewed');
     
     return () => clearInterval(interval);
+  }, []);
+
+  // Badge glow animation
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(badgeGlow, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(badgeGlow, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
 
   // Calculate days since quit
@@ -451,83 +535,158 @@ export default function DashboardScreen() {
 
   return (
     <View style={styles.container}>
+      <StarField />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           
-          {/* Hero Stats Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.heroHeader}>
-              <Text style={styles.welcomeText}>
-                Welcome back{userName ? ` ${userName}` : ''}
-              </Text>
-              <Text style={styles.heroSubtext}>You're absolutely crushing it</Text>
-            </View>
-            
-            {/* Unified Stats Card */}
-            <View style={styles.unifiedStatsCard}>
-              {/* Header Section */}
-              <View style={styles.statsHeader}>
-                <Animated.View style={[styles.mainStatsSection, { transform: [{ scale: celebrationAnimation }] }]}>
-                  <Text style={styles.mainDaysNumber}>{daysSinceQuit}</Text>
-                  <Text style={styles.daysCleanLabel}>DAYS CLEAN</Text>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusBadgeText}>Elite Status</Text>
-                  </View>
-                </Animated.View>
-              </View>
-              
-              {/* Metrics Section */}
-              <View style={styles.metricsSection}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.scrollableStatsContainer}
-                  style={styles.scrollableStatsView}
-                  decelerationRate="normal"
-                  pagingEnabled={false}
-                  bounces={true}
-                  scrollEventThrottle={16}
-                  removeClippedSubviews={false}
-                >
-                  <View style={styles.metricItem}>
-                    <View style={[styles.metricRing, { borderColor: '#22C55E' }]}>
-                      <Text style={styles.metricValue}>{formatCurrency(moneySaved)}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>SAVED</Text>
-                  </View>
-                  
-                  <View style={styles.metricItem}>
-                    <View style={[styles.metricRing, { borderColor: '#EF4444' }]}>
-                      <Text style={styles.metricValue}>{formatNumber(substancesAvoided)}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>AVOIDED</Text>
-                  </View>
-                  
-                  <View style={styles.metricItem}>
-                    <View style={[styles.metricRing, { borderColor: '#3B82F6' }]}>
-                      <Text style={styles.metricValue}>{Math.floor(daysSinceQuit * 24)}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>HOURS</Text>
-                  </View>
-                  
-                  <View style={styles.metricItem}>
-                    <View style={[styles.metricRing, { borderColor: '#F59E0B' }]}>
-                      <Text style={styles.metricValue}>{achievedMilestones.length}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>MILESTONES</Text>
-                  </View>
-                  
-                  <View style={styles.metricItem}>
-                    <View style={[styles.metricRing, { borderColor: '#8B5CF6' }]}>
-                      <Text style={styles.metricValue}>{totalUses}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>TOOLS</Text>
-                  </View>
-                </ScrollView>
-              </View>
+          {/* App Logo/Icon */}
+          <View style={styles.appIconContainer}>
+            <Text style={styles.appIcon}>QUITTR</Text>
+            <View style={styles.streakBadge}>
+              <Text style={styles.streakIcon}>🔥</Text>
+              <Text style={styles.streakNumber}>1</Text>
             </View>
           </View>
+          
+          {/* Weekly Progress Circles */}
+          <View style={styles.weeklyProgressContainer}>
+            {['F', 'S', 'S', 'M', 'T', 'W', 'T'].map((day, index) => {
+              const dayDate = new Date();
+              dayDate.setDate(dayDate.getDate() - (6 - index)); // Calculate each day
+              const isCompleted = dayDate >= new Date(effectiveQuitData.quitDate);
+              const isToday = index === 6; // Thursday is today in the reference
+              
+              return (
+                <View key={index} style={styles.weeklyProgressItem}>
+                  <View style={[
+                    styles.weeklyProgressCircle,
+                    isCompleted && styles.weeklyProgressCompleted,
+                    isToday && styles.weeklyProgressToday
+                  ]}>
+                    {isCompleted ? (
+                      <Text style={styles.weeklyProgressCheck}>✓</Text>
+                    ) : (
+                      <Text style={styles.weeklyProgressMinus}>−</Text>
+                    )}
+                  </View>
+                  <Text style={styles.weeklyProgressDay}>{day}</Text>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Central Metallic Badge */}
+          <View style={styles.centralBadgeContainer}>
+            <Animated.View style={[
+              styles.metallicBadge,
+              {
+                shadowOpacity: badgeGlow.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 0.8],
+                }),
+                shadowRadius: badgeGlow.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [15, 25],
+                }),
+              }
+            ]}>
+              <View style={styles.metallicRing}>
+                <View style={styles.metallicInner}>
+                  <View style={styles.metallicCore}>
+                    <View style={styles.metallicHighlight} />
+                  </View>
+                </View>
+              </View>
+            </Animated.View>
+          </View>
+
+          {/* Quit Counter */}
+          <View style={styles.quitCounterContainer}>
+            <Text style={styles.quitCounterText}>You've been vape-free for:</Text>
+            <View style={styles.timeDisplayContainer}>
+              <Text style={styles.timeDisplayMain}>{calculateTimeSinceQuit().days > 0 ? `${calculateTimeSinceQuit().days}d` : `${calculateTimeSinceQuit().hours}h`}</Text>
+              <Text style={styles.timeDisplaySub}>{calculateTimeSinceQuit().minutes}m</Text>
+            </View>
+            <View style={styles.secondsContainer}>
+              <Text style={styles.secondsText}>{Math.floor((currentTime.getTime() - new Date(effectiveQuitData.quitDate).getTime()) / 1000) % 60}s</Text>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => router.push('/(app)/tools/pledge' as any)}
+            >
+              <View style={styles.actionButtonIcon}>
+                <Text style={styles.actionButtonEmoji}>✋</Text>
+              </View>
+              <Text style={styles.actionButtonLabel}>Pledge</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => router.push('/(app)/tools/breathwork' as any)}
+            >
+              <View style={styles.actionButtonIcon}>
+                <Text style={styles.actionButtonEmoji}>🧘</Text>
+              </View>
+              <Text style={styles.actionButtonLabel}>Meditate</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => {
+                // Reset functionality - could show confirmation modal
+                console.log('Reset pressed');
+              }}
+            >
+              <View style={styles.actionButtonIcon}>
+                <Text style={styles.actionButtonEmoji}>⏰</Text>
+              </View>
+              <Text style={styles.actionButtonLabel}>Reset</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => router.push('/(app)/(tabs)/tools')}
+            >
+              <View style={styles.actionButtonIcon}>
+                <Text style={styles.actionButtonEmoji}>✏️</Text>
+              </View>
+              <Text style={styles.actionButtonLabel}>More</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Brain Rewiring Progress */}
+          <View style={styles.brainRewiringContainer}>
+            <View style={styles.brainRewiringHeader}>
+              <Text style={styles.brainRewiringLabel}>Brain Rewiring</Text>
+              <Text style={styles.brainRewiringPercent}>{Math.floor(Math.min(100, (daysSinceQuit / 90) * 100))}%</Text>
+            </View>
+            <View style={styles.brainRewiringBar}>
+              <View style={[styles.brainRewiringFill, { width: `${Math.min(100, (daysSinceQuit / 90) * 100)}%` }]} />
+            </View>
+          </View>
+
+          {/* Motivational Message */}
+          <View style={styles.motivationalSection}>
+            <Text style={styles.motivationalText}>
+              Today marks the beginning of a powerful journey.{'\n'}
+              This decision is a commitment to a better you.{'\n'}
+              Remember, small steps lead to great changes.
+            </Text>
+          </View>
+
+          {/* Panic Button */}
+          <TouchableOpacity 
+            style={styles.panicButton}
+            onPress={() => router.push('/(app)/tools/panic' as any)}
+          >
+            <Text style={styles.panicButtonIcon}>⚠️</Text>
+            <Text style={styles.panicButtonText}>Panic Button</Text>
+          </TouchableOpacity>
 
           {/* Clean Quit Calendar - Fresh Rebuild */}
           <View style={styles.cleanCalendarCard}>
@@ -813,15 +972,362 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1A1A1A', // Dark gray, slightly lighter than the card (#0F0F0F)
+    backgroundColor: '#0B0B1A', // Deep space background with subtle blue tint
+  },
+  
+  // Starfield Background
+  starfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 2,
   },
   scrollView: {
     flex: 1,
+    zIndex: 1,
   },
   content: {
-    padding: 24,
-    paddingTop: 90, // Push welcome message down even more
-    paddingBottom: 0, // Remove all bottom padding to eliminate spacing issues
+    padding: 20,
+    paddingTop: 80, // Reduced top padding to move content up
+    paddingBottom: 120, // More bottom padding for navigation safety
+  },
+  
+  // App Icon/Logo Section
+  appIconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 28, // Multiple of 4
+  },
+  appIcon: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 165, 0, 0.2)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#FFA500',
+  },
+  streakIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  streakNumber: {
+    color: '#FFA500',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  // Weekly Progress Circles (Top Row)
+  weeklyProgressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 28, // Multiple of 4 - reduced
+    paddingHorizontal: 20,
+  },
+  weeklyProgressItem: {
+    alignItems: 'center',
+  },
+  weeklyProgressCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(75, 85, 99, 0.3)',
+    borderWidth: 2,
+    borderColor: 'rgba(75, 85, 99, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  weeklyProgressCompleted: {
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    borderColor: '#8B5CF6',
+  },
+  weeklyProgressToday: {
+    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    borderColor: '#8B5CF6',
+    borderWidth: 3,
+  },
+  weeklyProgressCheck: {
+    color: '#8B5CF6',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  weeklyProgressMinus: {
+    color: '#6B7280',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  weeklyProgressDay: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  
+  // Central Metallic Badge - Compact Size
+  centralBadgeContainer: {
+    alignItems: 'center',
+    marginBottom: 24, // Reduced margin (multiple of 4)
+  },
+  metallicBadge: {
+    width: 160, // Much smaller - was 220
+    height: 160,
+    borderRadius: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#DAA520',
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 20,
+  },
+  metallicRing: {
+    width: 144, // Proportionally smaller
+    height: 144,
+    borderRadius: 72,
+    backgroundColor: '#B8860B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFD700',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  metallicInner: {
+    width: 124,
+    height: 124,
+    borderRadius: 62,
+    backgroundColor: '#CD853F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#F4A460',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  metallicCore: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#DEB887',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#8B4513',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  metallicHighlight: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5DEB3',
+    position: 'absolute',
+    top: 16,
+    left: 28,
+    opacity: 0.7,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  
+  // Quit Counter - Compact Spacing
+  quitCounterContainer: {
+    alignItems: 'center',
+    marginBottom: 32, // Multiple of 4 - reduced from 60
+  },
+  quitCounterText: {
+    color: '#FFFFFF',
+    fontSize: 18, // Slightly smaller
+    fontWeight: '400',
+    marginBottom: 16, // Multiple of 4
+    letterSpacing: 0.5,
+    opacity: 0.9,
+  },
+  timeDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: 12, // Multiple of 4
+  },
+  timeDisplayMain: {
+    color: '#FFFFFF',
+    fontSize: 72, // Slightly smaller to save space
+    fontWeight: '600', // Much bolder - was 200
+    letterSpacing: -4,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+  timeDisplaySub: {
+    color: '#FFFFFF',
+    fontSize: 36, // Proportionally smaller
+    fontWeight: '500', // Bolder - was 200
+    marginLeft: 8, // Multiple of 4
+    opacity: 0.9, // Slightly more opaque for better visibility
+  },
+  secondsContainer: {
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  secondsText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '500',
+    letterSpacing: 1,
+  },
+  
+  // Action Buttons - Compact Spacing
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32, // Multiple of 4 - reduced from 50
+    paddingHorizontal: 20,
+  },
+  actionButton: {
+    alignItems: 'center',
+    width: 75,
+  },
+  actionButtonIcon: {
+    width: 56, // Slightly smaller
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8, // Multiple of 4 - reduced
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  actionButtonEmoji: {
+    fontSize: 28,
+  },
+  actionButtonLabel: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+    opacity: 0.9,
+  },
+  
+  // Brain Rewiring Progress Bar
+  brainRewiringContainer: {
+    marginBottom: 28, // Multiple of 4 - reduced
+    paddingHorizontal: 20,
+  },
+  brainRewiringHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8, // Multiple of 4
+  },
+  brainRewiringBar: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  brainRewiringFill: {
+    height: '100%',
+    backgroundColor: '#8B5CF6',
+    borderRadius: 4,
+  },
+  brainRewiringLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  brainRewiringPercent: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
+  // Motivational Section
+  motivationalSection: {
+    marginBottom: 28, // Multiple of 4 - reduced
+    paddingHorizontal: 20,
+  },
+  motivationalText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '400',
+    textAlign: 'center',
+    lineHeight: 24,
+    opacity: 0.9,
+  },
+  
+  // Panic Button - Compact
+  panicButton: {
+    backgroundColor: '#DC2626',
+    borderRadius: 28, // Multiple of 4
+    paddingVertical: 16, // Multiple of 4
+    paddingHorizontal: 36, // Multiple of 4
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32, // Multiple of 4 - reduced from 50
+    marginHorizontal: 20,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  panicButtonIcon: {
+    fontSize: 22,
+    marginRight: 14,
+  },
+  panicButtonText: {
+    color: '#FFFFFF',
+    fontSize: 19,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   noDataContainer: {
     flex: 1,
