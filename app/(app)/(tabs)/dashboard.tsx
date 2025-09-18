@@ -656,27 +656,38 @@ export default function DashboardScreen() {
             )}
           </View>
 
-          {/* Tool Usage Summary */}
-          <Card style={styles.toolsSection}>
-            <Text style={styles.sectionTitle}>🛠️ Your Tools</Text>
-            <Text style={styles.sectionSubtitle}>
-              {totalUses} total uses • Most used: {mostUsedTool.name} {mostUsedTool.icon}
-            </Text>
+          {/* Premium Your Tools Section */}
+          <View style={styles.premiumToolsCard}>
+            {/* Header Section */}
+            <View style={styles.premiumToolsHeader}>
+              <View style={styles.toolsIconContainer}>
+                <Text style={styles.toolsIcon}>🛠️</Text>
+              </View>
+              <View style={styles.toolsHeaderText}>
+                <Text style={styles.premiumToolsTitle}>Your Tools</Text>
+                <Text style={styles.premiumToolsSubtitle}>
+                  {totalUses} total uses • Most used: {mostUsedTool.name} {mostUsedTool.icon}
+                </Text>
+              </View>
+            </View>
             
-            <View style={styles.toolsGrid}>
+            {/* Tools Grid */}
+            <View style={styles.premiumToolsGrid}>
               {toolStats.map((tool) => (
                 <TouchableOpacity
                   key={tool.id}
-                  style={styles.toolCard}
+                  style={styles.premiumToolCard}
                   onPress={() => navigateToTool(tool.id)}
                 >
-                  <Text style={styles.toolIcon}>{tool.icon}</Text>
-                  <Text style={styles.toolName}>{tool.name}</Text>
-                  <Text style={styles.toolUses}>{tool.uses} uses</Text>
+                  <View style={styles.premiumToolIconContainer}>
+                    <Text style={styles.premiumToolIcon}>{tool.icon}</Text>
+                  </View>
+                  <Text style={styles.premiumToolName}>{tool.name}</Text>
+                  <Text style={styles.premiumToolUses}>{tool.uses} uses</Text>
                 </TouchableOpacity>
               ))}
             </View>
-          </Card>
+          </View>
 
           {/* AI Coach Support */}
           <Card style={styles.supportCard}>
@@ -1410,6 +1421,97 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+  
+  // Premium Tools Section Styles
+  premiumToolsCard: {
+    backgroundColor: '#141414',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 32,
+    width: '100%',
+    borderWidth: 0.5,
+    borderColor: '#333333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  premiumToolsHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  toolsIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  toolsIcon: {
+    fontSize: 24,
+  },
+  toolsHeaderText: {
+    flex: 1,
+  },
+  premiumToolsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  premiumToolsSubtitle: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    lineHeight: 20,
+  },
+  premiumToolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  premiumToolCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  premiumToolIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  premiumToolIcon: {
+    fontSize: 24,
+  },
+  premiumToolName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  premiumToolUses: {
+    fontSize: 12,
+    color: '#CCCCCC',
+    textAlign: 'center',
+  },
+  
   healthSection: {
     padding: 24,
     marginBottom: 32, // Match the large card spacing
