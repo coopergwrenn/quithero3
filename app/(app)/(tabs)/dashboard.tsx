@@ -665,7 +665,7 @@ export default function DashboardScreen() {
               </View>
               <View style={styles.toolsHeaderText}>
                 <Text style={styles.premiumToolsTitle}>Your Tools</Text>
-                <Text style={styles.premiumToolsSubtitle}>
+                <Text style={styles.premiumToolsSubtitle} numberOfLines={1}>
                   {totalUses} total uses • Most used: {mostUsedTool.name} {mostUsedTool.icon}
                 </Text>
               </View>
@@ -1478,6 +1478,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#CCCCCC',
     lineHeight: 20,
+    flexShrink: 1,
   },
   premiumToolsGrid: {
     flexDirection: 'row',
