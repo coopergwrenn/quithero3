@@ -13,6 +13,77 @@ interface ChatInterfaceProps {
   sessionType?: 'coaching' | 'crisis' | 'checkin' | 'general';
 }
 
+// Styles defined first so they can be used by components
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent', // Let StarField show through
+  },
+  gestureContainer: {
+    flex: 1,
+  },
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: 'transparent', // Let StarField show through
+  },
+  mainContent: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  crisisMode: {
+    backgroundColor: 'rgba(26, 15, 15, 0.85)', // Semi-transparent darker background for crisis mode
+  },
+  // Starfield Background
+  starfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0B0B1A', // Deep space background
+    zIndex: 0,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  messagesContainer: {
+    flex: 1, // Takes all available space above input area
+    minHeight: 0, // Important: allows flex child to shrink
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  messagesContent: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    flexGrow: 1,
+    justifyContent: 'flex-end', // Messages stick to bottom
+  },
+  inputAreaWrapper: {
+    // NO absolute positioning - natural layout flow
+    backgroundColor: 'rgba(11, 11, 26, 0.95)', // Slightly more opaque for better contrast
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: 8,
+    // Flex: 0 means it won't grow, only takes needed space
+    flexShrink: 0, // Won't shrink smaller than content
+  },
+  inputContainer: {
+    backgroundColor: 'transparent', // Let parent handle background
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
+});
+
 // Starfield Component for Premium Background
 const StarField = () => {
   const [stars] = useState(() => {
@@ -32,7 +103,7 @@ const StarField = () => {
   const animatedValues = useRef(stars.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
-    const animations = animatedValues.map((animValue, index) =>
+    const animations = animatedValues.map((animValue) =>
       Animated.loop(
         Animated.sequence([
           Animated.timing(animValue, {
@@ -50,7 +121,6 @@ const StarField = () => {
     );
 
     animations.forEach(anim => anim.start());
-
     return () => animations.forEach(anim => anim.stop());
   }, []);
 
@@ -90,6 +160,7 @@ export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) 
   
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   // Start session on mount
   useEffect(() => {
@@ -97,11 +168,40 @@ export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) 
       startNewSession(sessionType);
     }
   }, [currentSession, sessionType, startNewSession]);
+
+  // Keyboard event listeners for better handling
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        // Scroll to bottom when keyboard appears
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 150);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
   
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: true });
+      // Small delay to ensure layout is complete
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   }, [messages, isTyping]);
   
@@ -120,111 +220,62 @@ export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) 
   };
   
   return (
-    <View style={[styles.container, isCrisisMode && styles.crisisMode]}>
+    <View style={styles.container}>
       <StarField />
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.gestureContainer}>
         <KeyboardAvoidingView 
           style={styles.keyboardContainer}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? -18 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
         >
-      {/* Messages Container - Takes available space */}
-      <View style={styles.messagesContainer}>
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-        >
-          {messages.map((message) => (
-            <MessageBubble 
-              key={message.id} 
-              message={message}
-              isCrisisMode={isCrisisMode}
-            />
-          ))}
-          
-          {isTyping && <TypingIndicator />}
-        </ScrollView>
-      </View>
-      
-      {/* Input Area - Fixed at bottom, NOT absolutely positioned */}
-      <PanGestureHandler onGestureEvent={handleSwipeDown}>
-        <View style={[styles.inputAreaWrapper, { paddingBottom: Math.max(insets.bottom - 10, 2) }]}>
-          {/* Quick Replies - Above input */}
-          <QuickReplies onSelectReply={handleSendMessage} />
-          
-          {/* Input Field */}
-          <View style={styles.inputContainer}>
-            <ChatInput onSendMessage={handleSendMessage} />
+          {/* Main Content Container - Flexbox Layout */}
+          <View style={[styles.mainContent, isCrisisMode && styles.crisisMode]}>
+            
+            {/* Messages Container - Takes remaining space */}
+            <View style={styles.messagesContainer}>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.scrollView}
+                contentContainerStyle={styles.messagesContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                maintainVisibleContentPosition={{
+                  minIndexForVisible: 0,
+                  autoscrollToTopThreshold: 10,
+                }}
+              >
+                {messages.map((message) => (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message}
+                    isCrisisMode={isCrisisMode}
+                  />
+                ))}
+                
+                {isTyping && <TypingIndicator />}
+              </ScrollView>
+            </View>
+            
+            {/* Input Area - Natural layout flow, NOT absolutely positioned */}
+            <PanGestureHandler onGestureEvent={handleSwipeDown}>
+              <View style={[
+                styles.inputAreaWrapper, 
+                { paddingBottom: Math.max(insets.bottom, 8) }
+              ]}>
+                {/* Quick Replies - Above input */}
+                <QuickReplies onSelectReply={handleSendMessage} />
+                
+                {/* Input Field */}
+                <View style={styles.inputContainer}>
+                  <ChatInput onSendMessage={handleSendMessage} />
+                </View>
+              </View>
+            </PanGestureHandler>
+            
           </View>
-        </View>
-      </PanGestureHandler>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0B0B1A', // Deep space background with subtle blue tint - same as dashboard
-  },
-  keyboardContainer: {
-    flex: 1,
-    backgroundColor: 'transparent', // Let StarField show through
-  },
-  crisisMode: {
-    backgroundColor: '#1a0f0f', // Darker background for crisis mode
-  },
-  // Starfield Background
-  starfield: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 0,
-  },
-  star: {
-    position: 'absolute',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  messagesContainer: {
-    flex: 1, // Takes available space above input area
-    zIndex: 1, // Above starfield
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  messagesContent: {
-    paddingTop: 8,
-    paddingBottom: 16,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-  inputAreaWrapper: {
-    // NO absolute positioning - part of normal layout flow
-    backgroundColor: 'rgba(11, 11, 26, 0.7)', // More transparent to show stars behind
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    paddingTop: 2,
-    zIndex: 1, // Above starfield
-  },
-  inputContainer: {
-    backgroundColor: 'transparent', // Let the parent handle background
-    paddingHorizontal: 16,
-    paddingTop: 2,
-    paddingBottom: 4,
-  },
-});

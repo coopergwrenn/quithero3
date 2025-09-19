@@ -78,12 +78,14 @@ export function QuickReplies({ onSelectReply }: QuickRepliesProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 6,
+    paddingVertical: 8,
     backgroundColor: 'transparent', // Let parent handle background
+    maxHeight: 60, // Prevent quick replies from taking too much space
   },
   scrollContent: {
     paddingHorizontal: 16,
     gap: 8,
+    alignItems: 'center', // Center align the buttons
   },
   replyButton: {
     paddingHorizontal: 16,
