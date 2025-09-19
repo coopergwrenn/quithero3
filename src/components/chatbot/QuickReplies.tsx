@@ -79,7 +79,7 @@ export function QuickReplies({ onSelectReply }: QuickRepliesProps) {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 6,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: 'transparent', // Let parent handle background
   },
   scrollContent: {
     paddingHorizontal: 16,

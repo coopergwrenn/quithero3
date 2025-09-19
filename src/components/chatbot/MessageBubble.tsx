@@ -62,16 +62,34 @@ function renderFormattedText(text: string, options: {
   isCrisis: boolean;
   isCrisisMode: boolean;
 }) {
-  // Split text by **bold** patterns
-  const parts = text.split(/(\*\*.*?\*\*)/g);
+  // Split text by both **bold** and ## header patterns - capture groups to preserve the matches
+  const parts = text.split(/(##\s[^\n\r]+|\*\*[^*]+\*\*)/g);
   
   return parts.map((part, index) => {
     // Skip empty parts
     if (!part) return null;
     
+    // Check if this part is a header (starts with ##)
+    if (part.startsWith('## ')) {
+      const headerText = part.slice(3).trim(); // Remove ## and space, trim whitespace
+      return (
+        <Text 
+          key={`header-${index}-${headerText.slice(0, 10)}`}
+          style={[
+            options.textStyle,
+            styles.headerText,
+            options.isCrisis && styles.crisisText,
+            options.isCrisisMode && styles.crisisModeText
+          ]}
+        >
+          {headerText}
+        </Text>
+      );
+    }
+    
     // Check if this part is bold (wrapped in **)
     if (part.startsWith('**') && part.endsWith('**')) {
-      const boldText = part.slice(2, -2); // Remove ** from both ends
+      const boldText = part.slice(2, -2).trim(); // Remove ** from both ends, trim whitespace
       return (
         <Text 
           key={`bold-${index}-${boldText.slice(0, 10)}`}
@@ -156,6 +174,12 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: '700',
+  },
+  headerText: {
+    fontWeight: '700',
+    fontSize: 18,
+    marginTop: 8,
+    marginBottom: 4,
   },
   userText: {
     color: Theme.colors.text.primary,
