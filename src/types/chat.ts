@@ -39,5 +39,6 @@ export interface QuickReply {
   id: string;
   text: string;
   action?: 'crisis_mode' | 'urge_timer' | 'breathing_exercise' | 'community';
-  category: 'crisis' | 'support' | 'tools' | 'general';
+  category: 'crisis' | 'support' | 'tools' | 'general' | 'ai_generated';
+  voiceflowRequest?: any; // For AI-generated quick replies from Voiceflow
 }

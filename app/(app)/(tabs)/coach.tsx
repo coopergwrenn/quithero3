@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
@@ -11,20 +10,8 @@ import { ChatInterface } from '@/src/components/chatbot';
 
 export default function CoachScreen() {
   const [showChat, setShowChat] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [useNativeChatbot, setUseNativeChatbot] = useState(false); // Toggle for development
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
-
-  // Move escaped user data to top level with useMemo to prevent hooks violations
-  const escapedUserData = useMemo(() => ({
-    userId: (user?.id || 'anonymous').toString().replace(/['"]/g, ''),
-    quitDate: (quitData.quitDate ? quitData.quitDate.toString() : '').replace(/['"]/g, ''),
-    motivation: (quitData.motivation || '').toString().replace(/['"]/g, ''),
-    substanceType: (quitData.substanceType || '').replace(/['"]/g, ''),
-    usageAmount: (quitData.usageAmount || '').toString().replace(/['"]/g, ''),
-    triggers: (quitData.triggers ? quitData.triggers.join(',') : '').replace(/['"]/g, '')
-  }), [user?.id, quitData.quitDate, quitData.motivation, quitData.substanceType, quitData.usageAmount, quitData.triggers]);
 
   useEffect(() => {
     analytics.track('ai_coach_opened');
@@ -96,24 +83,14 @@ export default function CoachScreen() {
           size="lg"
           onPress={() => {
             setShowChat(true);
-            analytics.track('ai_coach_chat_started');
+            analytics.track('ai_coach_chat_started', { type: 'custom_voiceflow' });
           }}
           style={styles.startButton}
         >
-          Start Coaching Session {useNativeChatbot ? '(Native)' : '(Voiceflow)'}
+          Start Coaching Session
         </Button>
         
-        {/* Development toggle - your co-worker can use this to switch between versions */}
-        <TouchableOpacity 
-          onPress={() => setUseNativeChatbot(!useNativeChatbot)}
-          style={styles.toggleButton}
-        >
-          <Text style={styles.toggleText}>
-            Switch to {useNativeChatbot ? 'Voiceflow' : 'Native'} Chatbot
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity onPress={() => Alert.alert('Coach Info', 'This AI coach is powered by Voiceflow and trained on evidence-based smoking cessation methods. Your conversations are private and secure.')}>
+        <TouchableOpacity onPress={() => Alert.alert('Coach Info', 'This AI coach uses advanced AI technology trained on evidence-based smoking cessation methods. Your conversations are private and secure, and the coach adapts to your personal quit journey.')}>
           <Text style={styles.infoLink}>How does this work?</Text>
         </TouchableOpacity>
       </Card>
@@ -159,10 +136,38 @@ export default function CoachScreen() {
       <body>
         <div id="voiceflow-chat"></div>
         <script type="text/javascript">
+          console.log('🚀 Starting Voiceflow integration...');
+          console.log('📊 User data:', {
+            userId: '${escapedUserData.userId}',
+            quitDate: '${escapedUserData.quitDate}',
+            motivation: '${escapedUserData.motivation}',
+            substanceType: '${escapedUserData.substanceType}',
+            usageAmount: '${escapedUserData.usageAmount}',
+            triggers: '${escapedUserData.triggers}'
+          });
+          
           (function(d, t) {
+              console.log('📦 Loading Voiceflow script...');
               var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+              
+              v.onerror = function() {
+                console.error('❌ Failed to load Voiceflow script from CDN');
+                document.getElementById('voiceflow-chat').innerHTML = 
+                  '<div style="padding: 20px; color: white; text-align: center;">' +
+                  '<h3>Script Loading Error</h3>' +
+                  '<p>Unable to load Voiceflow script. Check your internet connection.</p>' +
+                  '</div>';
+              };
+              
               v.onload = function() {
+                console.log('✅ Voiceflow script loaded successfully');
                 try {
+                  console.log('🔧 Initializing Voiceflow chat...');
+                  
+                  if (!window.voiceflow) {
+                    throw new Error('Voiceflow object not available');
+                  }
+                  
                   window.voiceflow.chat.load({
                     verify: { projectID: '689cbc694a6d0113b8ffd747' },
                     url: 'https://general-runtime.voiceflow.com',
@@ -189,15 +194,22 @@ export default function CoachScreen() {
                     },
                     autostart: true
                   });
+                  
+                  console.log('🎉 Voiceflow chat initialization complete');
+                  
                 } catch (error) {
-                  console.error('Voiceflow loading error:', error);
+                  console.error('❌ Voiceflow loading error:', error);
+                  console.error('Error details:', error.message, error.stack);
                   document.getElementById('voiceflow-chat').innerHTML = 
                     '<div style="padding: 20px; color: white; text-align: center;">' +
                     '<h3>Connection Issue</h3>' +
-                    '<p>Unable to connect to the AI coach. Please check your internet connection and try again.</p>' +
+                    '<p>Unable to connect to the AI coach: ' + error.message + '</p>' +
+                    '<p style="font-size: 12px; margin-top: 10px;">Check console for details</p>' +
                     '</div>';
                 }
               }
+              
+              console.log('📡 Requesting Voiceflow script from CDN...');
               v.src = "https://cdn.voiceflow.com/widget-next/bundle.mjs"; 
               v.type = "text/javascript"; 
               s.parentNode.insertBefore(v, s);
@@ -232,19 +244,66 @@ export default function CoachScreen() {
           javaScriptEnabled={true}
           domStorageEnabled={true}
           startInLoadingState={true}
-          onLoadStart={() => setIsLoading(true)}
-          onLoadEnd={() => setIsLoading(false)}
+          onLoadStart={() => {
+            console.log('🌐 WebView: Starting to load Voiceflow chat...');
+            setIsLoading(true);
+          }}
+          onLoadEnd={() => {
+            console.log('✅ WebView: Load completed');
+            setIsLoading(false);
+          }}
+          onLoadProgress={(event) => {
+            console.log('📊 WebView: Load progress:', event.nativeEvent.progress);
+          }}
           allowsInlineMediaPlayback={true}
           mixedContentMode="compatibility"
+          onMessage={(event) => {
+            console.log('📨 WebView message:', event.nativeEvent.data);
+          }}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            console.warn('WebView error: ', nativeEvent);
-            Alert.alert('Connection Error', 'Unable to load the AI coach. Please check your internet connection.');
+            console.error('❌ WebView error:', nativeEvent);
+            Alert.alert('Connection Error', `Unable to load the AI coach: ${nativeEvent.description}. Please check your internet connection.`);
           }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            console.warn('WebView HTTP error: ', nativeEvent);
+            console.error('🌐 WebView HTTP error:', nativeEvent);
+            Alert.alert('HTTP Error', `HTTP error ${nativeEvent.statusCode}: ${nativeEvent.description}`);
           }}
+          injectedJavaScript={`
+            // Capture console logs from WebView
+            (function() {
+              const originalLog = console.log;
+              const originalError = console.error;
+              const originalWarn = console.warn;
+              
+              console.log = function(...args) {
+                window.ReactNativeWebView?.postMessage('LOG: ' + args.join(' '));
+                originalLog.apply(console, args);
+              };
+              
+              console.error = function(...args) {
+                window.ReactNativeWebView?.postMessage('ERROR: ' + args.join(' '));
+                originalError.apply(console, args);
+              };
+              
+              console.warn = function(...args) {
+                window.ReactNativeWebView?.postMessage('WARN: ' + args.join(' '));
+                originalWarn.apply(console, args);
+              };
+              
+              // Catch unhandled errors
+              window.onerror = function(message, source, lineno, colno, error) {
+                window.ReactNativeWebView?.postMessage('UNCAUGHT ERROR: ' + message + ' at ' + source + ':' + lineno);
+                return false;
+              };
+              
+              window.addEventListener('unhandledrejection', function(event) {
+                window.ReactNativeWebView?.postMessage('UNHANDLED PROMISE REJECTION: ' + event.reason);
+              });
+            })();
+            true;
+          `}
         />
         
         {isLoading && (
@@ -280,9 +339,11 @@ export default function CoachScreen() {
     </View>
   );
 
+
+
   return (
     <View style={styles.container}>
-      {showChat ? (useNativeChatbot ? renderNativeChatbot() : renderVoiceflowChat()) : renderCoachIntro()}
+      {showChat ? renderNativeChatbot() : renderCoachIntro()}
     </View>
   );
 }
@@ -373,20 +434,6 @@ const styles = StyleSheet.create({
   startButton: {
     width: '100%',
     marginBottom: Theme.spacing.md,
-  },
-  toggleButton: {
-    paddingVertical: Theme.spacing.sm,
-    paddingHorizontal: Theme.spacing.md,
-    backgroundColor: Theme.colors.dark.surface,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Theme.colors.dark.border,
-    marginBottom: Theme.spacing.md,
-  },
-  toggleText: {
-    ...Theme.typography.footnote,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
   },
   infoLink: {
     ...Theme.typography.footnote,

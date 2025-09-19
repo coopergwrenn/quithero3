@@ -671,8 +671,8 @@ export default function DashboardScreen() {
             </View>
           </View>
           
-          {/* Weekly Progress Circles */}
-          <View style={styles.weeklyProgressContainer}>
+          {/* Premium Weekly Progress Tracker */}
+          <View style={styles.premiumWeeklyContainer}>
             {['F', 'S', 'S', 'M', 'T', 'W', 'T'].map((day, index) => {
               const dayDate = new Date();
               dayDate.setDate(dayDate.getDate() - (6 - index)); // Calculate each day
@@ -680,19 +680,22 @@ export default function DashboardScreen() {
               const isToday = index === 6; // Thursday is today in the reference
               
               return (
-                <View key={index} style={styles.weeklyProgressItem}>
+                <View key={index} style={styles.premiumWeeklyItem}>
                   <View style={[
-                    styles.weeklyProgressCircle,
-                    isCompleted && styles.weeklyProgressCompleted,
-                    isToday && styles.weeklyProgressToday
+                    styles.premiumWeeklyCircle,
+                    isCompleted && styles.premiumWeeklyCompleted,
+                    isToday && styles.premiumWeeklyToday
                   ]}>
-                    {isCompleted ? (
-                      <Text style={styles.weeklyProgressCheck}>✓</Text>
-                    ) : (
-                      <Text style={styles.weeklyProgressMinus}>−</Text>
-                    )}
+                    <View style={styles.premiumWeeklyInner}>
+                      {isCompleted ? (
+                        <Text style={styles.premiumWeeklyCheck}>✓</Text>
+                      ) : (
+                        <Text style={styles.premiumWeeklyMinus}>−</Text>
+                      )}
+                    </View>
+                    {isCompleted && <View style={styles.premiumWeeklyGlow} />}
                   </View>
-                  <Text style={styles.weeklyProgressDay}>{day}</Text>
+                  <Text style={styles.premiumWeeklyDay}>{day}</Text>
                 </View>
               );
             })}
@@ -917,10 +920,10 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Motivational Message */}
-          <Card style={styles.motivationCard}>
-            <Text style={styles.motivationText}>{getMotivationalMessage()}</Text>
-          </Card>
+          {/* Premium Motivational Message */}
+          <View style={styles.premiumMotivationCard}>
+            <Text style={styles.premiumMotivationText}>{getMotivationalMessage()}</Text>
+          </View>
 
           {/* Premium Health Recovery Timeline */}
           <View style={styles.premiumHealthCard}>
@@ -1207,50 +1210,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   
-  // Weekly Progress Circles (Top Row)
-  weeklyProgressContainer: {
+  // Premium Weekly Progress Tracker - Glass Morphism
+  premiumWeeklyContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 28, // Multiple of 4 - reduced
+    marginBottom: 28,
     paddingHorizontal: 20,
   },
-  weeklyProgressItem: {
+  
+  premiumWeeklyItem: {
     alignItems: 'center',
   },
-  weeklyProgressCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(75, 85, 99, 0.3)',
-    borderWidth: 2,
-    borderColor: 'rgba(75, 85, 99, 0.5)',
+  
+  premiumWeeklyCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', // Glass background
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle glass border
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    position: 'relative',
   },
-  weeklyProgressCompleted: {
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+  
+  premiumWeeklyInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  
+  premiumWeeklyCompleted: {
+    backgroundColor: 'rgba(139, 92, 246, 0.15)', // Purple glass tint
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderWidth: 2,
+  },
+  
+  premiumWeeklyToday: {
+    backgroundColor: 'rgba(139, 92, 246, 0.25)', // Stronger purple for today
     borderColor: '#8B5CF6',
+    borderWidth: 2,
+    shadowColor: '#8B5CF6',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  weeklyProgressToday: {
-    backgroundColor: 'rgba(139, 92, 246, 0.3)',
-    borderColor: '#8B5CF6',
-    borderWidth: 3,
+  
+  premiumWeeklyGlow: {
+    position: 'absolute',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    zIndex: 1,
   },
-  weeklyProgressCheck: {
+  
+  premiumWeeklyCheck: {
     color: '#8B5CF6',
+    fontSize: 16,
+    fontWeight: '700',
+    textShadowColor: 'rgba(139, 92, 246, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  
+  premiumWeeklyMinus: {
+    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '300',
   },
-  weeklyProgressMinus: {
-    color: '#6B7280',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  weeklyProgressDay: {
+  
+  premiumWeeklyDay: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   
   // Tree Growth System - Compact
@@ -1357,6 +1403,7 @@ const styles = StyleSheet.create({
     fontWeight: '500', // Bolder - was 200
     marginLeft: 8, // Multiple of 4
     opacity: 0.9, // Slightly more opaque for better visibility
+    letterSpacing: -2,
   },
   secondsContainer: {
     backgroundColor: 'rgba(139, 92, 246, 0.2)',
@@ -1938,21 +1985,34 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.secondary,
     textAlign: 'center',
   },
-  motivationCard: {
+  // Premium Motivational Card - Solid Dark Design
+  premiumMotivationCard: {
+    backgroundColor: '#141414', // Match Health Recovery Timeline card
+    borderRadius: 20,
     padding: 24,
     marginTop: 0, // No top margin since calendar card has bottom margin
     marginBottom: 32, // Match the large card spacing
-    backgroundColor: '#1E3A8A',
-    borderColor: '#3B82F6',
+    width: '100%',
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)', // Subtle border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 12,
+    alignItems: 'center',
   },
-  motivationText: {
-    fontSize: 18,
-    color: Theme.colors.text.primary,
+  
+  premiumMotivationText: {
+    fontSize: 16,
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 24,
     fontWeight: '500',
+    letterSpacing: 0.3,
+    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
   },
+  
   // Premium Health Recovery Timeline Styles
   premiumHealthCard: {
     backgroundColor: '#141414',

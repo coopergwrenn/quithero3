@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { ChatMessage, ChatSession, ChatbotConfig, QuickReply } from '@/src/types/chat';
+import { voiceflowAPI } from '@/src/services/voiceflowAPI';
+import { useAuthStore } from './authStore';
+import { useQuitStore } from './quitStore';
 
 interface ChatStore {
   // Current session
@@ -15,7 +18,7 @@ interface ChatStore {
   
   // Actions
   startNewSession: (sessionType?: ChatSession['sessionType']) => void;
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string) => Promise<void>;
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   setTyping: (typing: boolean) => void;
   updateConfig: (newConfig: Partial<ChatbotConfig>) => void;
@@ -76,7 +79,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     });
   },
   
-  sendMessage: (content: string) => {
+  sendMessage: async (content: string) => {
     // Add user message
     get().addMessage({
       content,
@@ -86,19 +89,79 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     // Show typing indicator
     set({ isTyping: true });
     
-    // TODO: Send to AI service and get response
-    // For now, add a mock response
-    setTimeout(() => {
+    try {
+      // Get user context for Voiceflow
+      const authStore = useAuthStore.getState();
+      const quitStore = useQuitStore.getState();
+      const user = authStore.user;
+      const quitData = quitStore.quitData;
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Calculate days since quit
+      const daysSinceQuit = quitData.quitDate 
+        ? Math.floor((Date.now() - new Date(quitData.quitDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+
+      const userContext = {
+        userId: user.id,
+        quitDate: quitData.quitDate?.toString() || '',
+        motivation: quitData.motivation || '',
+        substanceType: quitData.substanceType || '',
+        usageAmount: quitData.usageAmount?.toString() || '',
+        triggers: quitData.triggers?.join(', ') || '',
+        daysSinceQuit
+      };
+
+      // Send message to Voiceflow
+      const response = await voiceflowAPI.sendMessage(user.id, content, userContext);
+      
+      // Process response messages
+      for (const message of response.messages) {
+        if (message.type === 'text' && message.payload.message) {
+          get().addMessage({
+            content: message.payload.message,
+            role: 'assistant',
+            metadata: {
+              messageType: 'ai_response',
+              sentiment: 'supportive',
+            },
+          });
+        }
+        
+        // Handle choice messages (quick replies)
+        if (message.type === 'choice' && message.payload.choices) {
+          // Update quick replies based on Voiceflow choices
+          const newQuickReplies = message.payload.choices.map((choice: any, index: number) => ({
+            id: `vf_${Date.now()}_${index}`,
+            text: choice.name,
+            category: 'ai_generated',
+            voiceflowRequest: choice.request
+          }));
+          
+          set(state => ({
+            quickReplies: [...state.quickReplies.filter(r => r.category !== 'ai_generated'), ...newQuickReplies]
+          }));
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to get AI response:', error);
+      
+      // Fallback message
       get().addMessage({
-        content: "I hear you. That's a completely normal feeling when quitting. Let's work through this together. What triggered this feeling?",
+        content: "I'm having trouble connecting right now, but I'm here for you. Can you tell me more about what's on your mind?",
         role: 'assistant',
         metadata: {
-          messageType: 'encouragement',
-          sentiment: 'positive',
+          messageType: 'fallback',
+          error: true,
         },
       });
+    } finally {
       set({ isTyping: false });
-    }, 1500);
+    }
   },
   
   addMessage: (messageData) => {
