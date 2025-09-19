@@ -39,7 +39,10 @@ class VoiceflowAPIService {
     this.config = {
       projectID: '689cbc694a6d0113b8ffd747',
       baseURL: 'https://general-runtime.voiceflow.com',
-      versionID: 'production'
+      versionID: 'production',
+      // TODO: Add your Voiceflow API key here
+      // You can get this from your Voiceflow project settings
+      apiKey: process.env.EXPO_PUBLIC_VOICEFLOW_API_KEY || ''
     };
   }
 
@@ -50,6 +53,11 @@ class VoiceflowAPIService {
     try {
       console.log('🚀 Starting Voiceflow session for user:', userContext.userId);
       
+      // Check if API key is available
+      if (!this.config.apiKey) {
+        throw new Error('Voiceflow API key is missing. Please add EXPO_PUBLIC_VOICEFLOW_API_KEY to your environment variables.');
+      }
+      
       const sessionId = `session_${userContext.userId}_${Date.now()}`;
       this.userSessions.set(userContext.userId, sessionId);
 
@@ -58,7 +66,7 @@ class VoiceflowAPIService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           action: {
@@ -127,7 +135,7 @@ class VoiceflowAPIService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': this.config.apiKey || '',
+          'Authorization': `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           action: {
