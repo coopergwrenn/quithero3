@@ -329,11 +329,8 @@ export default function CoachScreen() {
           >
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.chatTitle}>AI Quit Coach (Native)</Text>
-          <View style={styles.onlineIndicator}>
-            <View style={styles.onlineDot} />
-            <Text style={styles.onlineText}>Online</Text>
-          </View>
+          <Text style={styles.chatTitle}>Quit Hero</Text>
+          <View style={styles.headerPlaceholder} />
         </View>
       </SafeAreaView>
       
@@ -505,5 +502,9 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.primary,
     fontSize: 16,
     textAlign: 'center',
+  },
+  headerPlaceholder: {
+    padding: Theme.spacing.sm,
+    width: 60, // Approximate width to match back button
   },
 });
