@@ -17,9 +17,10 @@ export const Theme = {
   components: {
     button: {
       primary: {
-        background: Colors.purple[500],
+        background: 'rgba(30, 42, 58, 0.8)', // Dark navy glass-morphism
         text: Colors.text.primary,
         border: Colors.purple[500],
+        glow: Colors.purple[500],
       },
       secondary: {
         background: 'transparent',

@@ -70,6 +70,11 @@ const styles = StyleSheet.create({
   primary: {
     backgroundColor: Theme.components.button.primary.background,
     borderColor: Theme.components.button.primary.border,
+    shadowColor: Theme.components.button.primary.glow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   secondary: {
     backgroundColor: Theme.components.button.secondary.background,

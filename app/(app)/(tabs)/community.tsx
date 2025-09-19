@@ -570,13 +570,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   createButton: {
-    backgroundColor: Theme.colors.purple[500],
+    backgroundColor: 'rgba(30, 42, 58, 0.8)', // Dark navy glass-morphism
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '60',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   crisisButton: {
-    backgroundColor: '#EF4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red glass-morphism for crisis
+    borderColor: '#EF4444' + '60',
+    shadowColor: '#EF4444',
   },
   createButtonText: {
     color: Theme.colors.text.primary,

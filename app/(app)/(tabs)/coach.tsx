@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Button } from '@/src/design-system/components';
@@ -7,6 +7,70 @@ import { useQuitStore } from '@/src/stores/quitStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
 import { ChatInterface } from '@/src/components/chatbot';
+
+// Starfield Component for Premium Background
+const StarField = () => {
+  const [stars] = useState(() => {
+    const starArray = [];
+    for (let i = 0; i < 150; i++) {
+      starArray.push({
+        id: i,
+        x: Math.random() * Dimensions.get('window').width,
+        y: Math.random() * Dimensions.get('window').height,
+        size: Math.random() * 2 + 0.5,
+        opacity: Math.random() * 0.8 + 0.2,
+      });
+    }
+    return starArray;
+  });
+
+  const animatedValues = useRef(stars.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const animations = animatedValues.map((animValue) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 2000 + Math.random() * 3000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animValue, {
+            toValue: 0,
+            duration: 2000 + Math.random() * 3000,
+            useNativeDriver: true,
+          }),
+        ])
+      )
+    );
+
+    animations.forEach(anim => anim.start());
+    return () => animations.forEach(anim => anim.stop());
+  }, []);
+
+  return (
+    <View style={styles.starfield}>
+      {stars.map((star, index) => (
+        <Animated.View
+          key={star.id}
+          style={[
+            styles.star,
+            {
+              left: star.x,
+              top: star.y,
+              width: star.size,
+              height: star.size,
+              opacity: animatedValues[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [star.opacity * 0.3, star.opacity],
+              }),
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
 
 export default function CoachScreen() {
   const [showChat, setShowChat] = useState(false);
@@ -17,84 +81,127 @@ export default function CoachScreen() {
     analytics.track('ai_coach_opened');
   }, []);
 
-  // Coach intro before launching chat
+  // Premium Coach intro with starfield background
   const renderCoachIntro = () => (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <Card style={styles.introCard}>
-        <Text style={styles.robotIcon}>🤖</Text>
-        <Text style={styles.introTitle}>Meet Your AI Quit Coach</Text>
-        <Text style={styles.introDescription}>
-          I'm your personal AI coach, trained specifically on smoking cessation science. 
-          I'm here 24/7 to provide support, answer questions, and guide you through challenges.
-        </Text>
-        
-        <View style={styles.capabilitiesSection}>
-          <Text style={styles.sectionTitle}>How I can help you:</Text>
+    <View style={styles.introContainer}>
+      <StarField />
+      
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.robotIconContainer}>
+            <Text style={styles.robotIcon}>🤖</Text>
+            <View style={styles.robotGlow} />
+          </View>
           
-          <View style={styles.capabilityItem}>
-            <Text style={styles.capabilityIcon}>🆘</Text>
-            <View style={styles.capabilityText}>
+          <Text style={styles.heroTitle}>Meet Your AI Quit Coach</Text>
+          <Text style={styles.heroSubtitle}>
+            I'm your personal AI coach, trained specifically on smoking cessation science. 
+            I'm here 24/7 to provide support, answer questions, and guide you through challenges.
+          </Text>
+        </View>
+
+        {/* Capabilities Cards */}
+        <View style={styles.capabilitiesContainer}>
+          <Text style={styles.capabilitiesTitle}>How I can help you:</Text>
+          
+          <View style={styles.capabilityCard}>
+            <View style={styles.capabilityIconContainer}>
+              <Text style={styles.capabilityIcon}>🆘</Text>
+              <View style={styles.capabilityIconGlow} />
+            </View>
+            <View style={styles.capabilityContent}>
               <Text style={styles.capabilityTitle}>Crisis Support</Text>
-              <Text style={styles.capabilityDesc}>Immediate help during cravings and urges</Text>
+              <Text style={styles.capabilityDescription}>
+                Immediate help during cravings and urges
+              </Text>
             </View>
           </View>
-          
-          <View style={styles.capabilityItem}>
-            <Text style={styles.capabilityIcon}>📊</Text>
-            <View style={styles.capabilityText}>
+
+          <View style={styles.capabilityCard}>
+            <View style={styles.capabilityIconContainer}>
+              <Text style={styles.capabilityIcon}>📊</Text>
+              <View style={styles.capabilityIconGlow} />
+            </View>
+            <View style={styles.capabilityContent}>
               <Text style={styles.capabilityTitle}>Progress Analysis</Text>
-              <Text style={styles.capabilityDesc}>Review your quit journey and suggest improvements</Text>
+              <Text style={styles.capabilityDescription}>
+                Review your quit journey and suggest improvements
+              </Text>
             </View>
           </View>
-          
-          <View style={styles.capabilityItem}>
-            <Text style={styles.capabilityIcon}>🎯</Text>
-            <View style={styles.capabilityText}>
+
+          <View style={styles.capabilityCard}>
+            <View style={styles.capabilityIconContainer}>
+              <Text style={styles.capabilityIcon}>🎯</Text>
+              <View style={styles.capabilityIconGlow} />
+            </View>
+            <View style={styles.capabilityContent}>
               <Text style={styles.capabilityTitle}>Personalized Strategies</Text>
-              <Text style={styles.capabilityDesc}>Custom advice based on your triggers and patterns</Text>
+              <Text style={styles.capabilityDescription}>
+                Custom advice based on your triggers and patterns
+              </Text>
             </View>
           </View>
-          
-          <View style={styles.capabilityItem}>
-            <Text style={styles.capabilityIcon}>💊</Text>
-            <View style={styles.capabilityText}>
+
+          <View style={styles.capabilityCard}>
+            <View style={styles.capabilityIconContainer}>
+              <Text style={styles.capabilityIcon}>💊</Text>
+              <View style={styles.capabilityIconGlow} />
+            </View>
+            <View style={styles.capabilityContent}>
               <Text style={styles.capabilityTitle}>NRT Guidance</Text>
-              <Text style={styles.capabilityDesc}>Information about nicotine replacement therapy</Text>
+              <Text style={styles.capabilityDescription}>
+                Information about nicotine replacement therapy
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Context Card */}
         {quitData.quitDate && (
-          <Card style={styles.contextCard}>
+          <View style={styles.contextCard}>
             <Text style={styles.contextTitle}>I know about your quit journey:</Text>
-            <Text style={styles.contextItem}>• Quit date: {new Date(quitData.quitDate).toLocaleDateString()}</Text>
-            {quitData.motivation && <Text style={styles.contextItem}>• Motivation: {quitData.motivation}</Text>}
-            {quitData.usageAmount && quitData.substanceType && (
-              <Text style={styles.contextItem}>• Usage pattern: {quitData.usageAmount} {quitData.substanceType} daily</Text>
-            )}
-            {quitData.triggers && quitData.triggers.length > 0 && (
-              <Text style={styles.contextItem}>• Main triggers: {quitData.triggers.join(', ')}</Text>
-            )}
-          </Card>
+            <View style={styles.contextItems}>
+              <Text style={styles.contextItem}>• Quit date: {new Date(quitData.quitDate).toLocaleDateString()}</Text>
+              {quitData.motivation && <Text style={styles.contextItem}>• Motivation: {quitData.motivation}</Text>}
+              {quitData.usageAmount && quitData.substanceType && (
+                <Text style={styles.contextItem}>• Usage: {quitData.usageAmount} {quitData.substanceType} daily</Text>
+              )}
+              {quitData.triggers && quitData.triggers.length > 0 && (
+                <Text style={styles.contextItem}>• Triggers: {quitData.triggers.join(', ')}</Text>
+              )}
+            </View>
+          </View>
         )}
 
-        <Button
-          variant="primary"
-          size="lg"
-          onPress={() => {
-            setShowChat(true);
-            analytics.track('ai_coach_chat_started', { type: 'custom_voiceflow' });
-          }}
-          style={styles.startButton}
-        >
-          Start Coaching Session
-        </Button>
-        
-        <TouchableOpacity onPress={() => Alert.alert('Coach Info', 'This AI coach uses advanced AI technology trained on evidence-based smoking cessation methods. Your conversations are private and secure, and the coach adapts to your personal quit journey.')}>
-          <Text style={styles.infoLink}>How does this work?</Text>
-        </TouchableOpacity>
-      </Card>
-    </ScrollView>
+        {/* CTA Button */}
+        <View style={styles.ctaContainer}>
+          <TouchableOpacity
+            style={styles.startChatButton}
+            onPress={() => {
+              setShowChat(true);
+              analytics.track('ai_coach_chat_started', { type: 'native' });
+            }}
+          >
+            <View style={styles.buttonGlow} />
+            <Text style={styles.startChatButtonText}>Start Coaching Session</Text>
+            <Text style={styles.startChatButtonSubtext}>Let's begin your journey</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.infoButton}
+            onPress={() => Alert.alert('Coach Info', 'This AI coach uses advanced AI technology trained on evidence-based smoking cessation methods. Your conversations are private and secure, and the coach adapts to your personal quit journey.')}
+          >
+            <Text style={styles.infoButtonText}>How does this work?</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 
   // Voiceflow chat component
@@ -506,5 +613,235 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     padding: Theme.spacing.sm,
     width: 60, // Approximate width to match back button
+  },
+  
+  // Premium Intro Screen Styles
+  starfield: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0B0B1A', // Deep space background
+    zIndex: 0,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 1,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  introContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  scrollView: {
+    flex: 1,
+    zIndex: 1,
+  },
+  scrollContent: {
+    paddingTop: 80,
+    paddingBottom: 140,
+    paddingHorizontal: 20,
+  },
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  robotIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  robotIcon: {
+    fontSize: 64,
+    zIndex: 2,
+  },
+  robotGlow: {
+    position: 'absolute',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Theme.colors.purple[500] + '20',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 8,
+    zIndex: 1,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 12,
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(255, 255, 255, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  heroSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    lineHeight: 22,
+    paddingHorizontal: 16,
+    marginBottom: 6,
+  },
+  capabilitiesContainer: {
+    marginBottom: 24,
+  },
+  capabilitiesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 16,
+    letterSpacing: 0.2,
+  },
+  capabilityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 42, 58, 0.6)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  capabilityIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 42,
+    height: 42,
+    marginRight: 14,
+  },
+  capabilityIcon: {
+    fontSize: 24,
+    zIndex: 2,
+  },
+  capabilityIconGlow: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Theme.colors.purple[500] + '15',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 2,
+    zIndex: 1,
+  },
+  capabilityContent: {
+    flex: 1,
+  },
+  capabilityTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 2,
+    letterSpacing: 0.1,
+  },
+  capabilityDescription: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 18,
+  },
+  contextCard: {
+    backgroundColor: 'rgba(30, 42, 58, 0.6)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '40',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  contextTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    letterSpacing: 0.1,
+  },
+  contextItems: {
+    gap: 4,
+  },
+  contextItem: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 18,
+  },
+  ctaContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  startChatButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)', // Dark navy glass-morphism
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%', // Match the card width
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '60', // Light blue border with transparency
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  buttonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '40', // Additional inner glow
+  },
+  startChatButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+    zIndex: 2,
+  },
+  startChatButtonSubtext: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+    zIndex: 2,
+  },
+  infoButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  infoButtonText: {
+    fontSize: 14,
+    color: Theme.colors.purple[500],
+    textAlign: 'center',
+    opacity: 0.8,
   },
 });

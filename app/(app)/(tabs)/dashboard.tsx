@@ -1270,15 +1270,15 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    backgroundColor: Theme.colors.purple[500] + '1A', // 10% opacity
     zIndex: 1,
   },
   
   premiumWeeklyCheck: {
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
     fontSize: 16,
     fontWeight: '700',
-    textShadowColor: 'rgba(139, 92, 246, 0.5)',
+    textShadowColor: Theme.colors.purple[500] + '80', // 50% opacity
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
@@ -2410,10 +2410,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   coachButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)', // Dark navy glass-morphism
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '60',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   coachButtonText: {
     fontSize: 16,
