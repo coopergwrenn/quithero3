@@ -6,16 +6,16 @@
 export const Colors = {
   // Primary Purple Accent
   purple: {
-    50: '#F3F0FF',
-    100: '#E9E2FF',
-    200: '#D6CCFF',
-    300: '#B8A3FF',
-    400: '#9575FF',
-    500: '#8B5CF6', // Primary accent
-    600: '#7C3AED',
-    700: '#6D28D9',
-    800: '#5B21B6',
-    900: '#4C1D95',
+    50: '#F0F9FF',
+    100: '#E0F2FE',
+    200: '#BAE6FD',
+    300: '#7DD3FC',
+    400: '#38BDF8',
+    500: '#90D5FF', // Primary accent - Light Blue
+    600: '#0EA5E9',
+    700: '#0284C7',
+    800: '#0369A1',
+    900: '#0C4A6E',
   },
 
   // Teal accent for active states (matches your design)

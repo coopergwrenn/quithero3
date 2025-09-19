@@ -1251,16 +1251,16 @@ const styles = StyleSheet.create({
   },
   
   premiumWeeklyCompleted: {
-    backgroundColor: 'rgba(139, 92, 246, 0.15)', // Purple glass tint
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    backgroundColor: Theme.colors.purple[500] + '26', // 15% opacity  
+    borderColor: Theme.colors.purple[500] + '66', // 40% opacity
     borderWidth: 2,
   },
   
   premiumWeeklyToday: {
-    backgroundColor: 'rgba(139, 92, 246, 0.25)', // Stronger purple for today
-    borderColor: '#8B5CF6',
+    backgroundColor: Theme.colors.purple[500] + '40', // 25% opacity
+    borderColor: Theme.colors.purple[500],
     borderWidth: 2,
-    shadowColor: '#8B5CF6',
+    shadowColor: Theme.colors.purple[500],
     shadowOpacity: 0.3,
     shadowRadius: 12,
   },
@@ -1406,13 +1406,13 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   secondsContainer: {
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: Theme.colors.purple[500] + '33', // 20% opacity
     borderRadius: 25,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
-    shadowColor: '#8B5CF6',
+    borderColor: Theme.colors.purple[500] + '4D', // 30% opacity
+    shadowColor: Theme.colors.purple[500],
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1482,7 +1482,7 @@ const styles = StyleSheet.create({
   },
   brainRewiringFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Theme.colors.purple[500],
     borderRadius: 4,
   },
   brainRewiringLabel: {
