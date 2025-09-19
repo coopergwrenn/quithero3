@@ -115,8 +115,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         daysSinceQuit
       };
 
+      // Ensure we have an active Voiceflow session
+      if (!voiceflowAPI.hasActiveSession(user.id)) {
+        console.log('🚀 No active session found, starting new Voiceflow session...');
+        await voiceflowAPI.startSession(userContext);
+      }
+
       // Send message to Voiceflow
-      const response = await voiceflowAPI.sendMessage(user.id, content, userContext);
+      const response = await voiceflowAPI.sendMessage(user.id, content);
       
       // Process response messages
       for (const message of response.messages) {
