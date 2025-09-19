@@ -1,8 +1,8 @@
 import { analytics } from './analytics';
+import { getVoiceflowAPIKey } from './apiKeyService';
 
 interface VoiceflowConfig {
   projectID: string;
-  apiKey?: string;
   baseURL: string;
   versionID: string;
 }
@@ -39,10 +39,22 @@ class VoiceflowAPIService {
     this.config = {
       projectID: '689cbc694a6d0113b8ffd747',
       baseURL: 'https://general-runtime.voiceflow.com',
-      versionID: 'production',
-      // TODO: Add your Voiceflow API key here
-      // You can get this from your Voiceflow project settings
-      apiKey: process.env.EXPO_PUBLIC_VOICEFLOW_API_KEY || ''
+      versionID: 'production'
+    };
+  }
+
+  /**
+   * Get authorization headers with API key
+   */
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    const apiKey = await getVoiceflowAPIKey();
+    if (!apiKey) {
+      throw new Error('Voiceflow API key not available from backend.');
+    }
+    
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
     };
   }
 
@@ -53,21 +65,13 @@ class VoiceflowAPIService {
     try {
       console.log('🚀 Starting Voiceflow session for user:', userContext.userId);
       
-      // Check if API key is available
-      if (!this.config.apiKey) {
-        throw new Error('Voiceflow API key is missing. Please add EXPO_PUBLIC_VOICEFLOW_API_KEY to your environment variables.');
-      }
-      
       const sessionId = `session_${userContext.userId}_${Date.now()}`;
       this.userSessions.set(userContext.userId, sessionId);
 
       // Initialize session with user context
       const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
-        },
+        headers: await this.getAuthHeaders(),
         body: JSON.stringify({
           action: {
             type: 'launch',
@@ -98,45 +102,37 @@ class VoiceflowAPIService {
       console.log('✅ Voiceflow session started:', sessionId);
       
       analytics.track('voiceflow_session_started', {
-        sessionId,
-        userId: userContext.userId
+        userId: userContext.userId,
+        sessionId
       });
 
       return sessionId;
+
     } catch (error) {
-      console.error('❌ Failed to start Voiceflow session:', error);
+      console.error('❌ Error starting Voiceflow session:', error);
       analytics.track('voiceflow_session_error', {
-        error: error.message,
-        userId: userContext.userId
+        userId: userContext.userId,
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
   }
 
   /**
-   * Send a message and get AI response
+   * Send a message to the Voiceflow API
    */
-  async sendMessage(userId: string, message: string, userContext?: UserContext): Promise<VoiceflowResponse> {
+  async sendMessage(userId: string, message: string): Promise<VoiceflowResponse> {
     try {
-      console.log('📤 Sending message to Voiceflow:', message);
+      console.log('💬 Sending message to Voiceflow:', { userId, message });
 
-      let sessionId = this.userSessions.get(userId);
-      
-      // Start new session if none exists
-      if (!sessionId && userContext) {
-        sessionId = await this.startSession(userContext);
-      }
-
+      const sessionId = this.userSessions.get(userId);
       if (!sessionId) {
-        throw new Error('No active session found and no user context provided');
+        throw new Error('No active session found. Please start a session first.');
       }
 
       const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
-        },
+        headers: await this.getAuthHeaders(),
         body: JSON.stringify({
           action: {
             type: 'text',
@@ -152,90 +148,93 @@ class VoiceflowAPIService {
       });
 
       if (!response.ok) {
-        throw new Error(`Voiceflow API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Voiceflow API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('📥 Voiceflow response:', data);
+      console.log('✅ Voiceflow response received:', { messageCount: data.length });
 
-      const processedResponse = this.processVoiceflowResponse(data);
-      
+      // Transform the response to our format
+      const voiceflowResponse: VoiceflowResponse = {
+        messages: data || [],
+        isEnding: false // You can implement logic to detect conversation end
+      };
+
       analytics.track('voiceflow_message_sent', {
-        sessionId,
         userId,
+        sessionId,
         messageLength: message.length,
-        responseCount: processedResponse.messages.length
+        responseCount: data.length
       });
 
-      return processedResponse;
+      return voiceflowResponse;
+
     } catch (error) {
-      console.error('❌ Failed to send message to Voiceflow:', error);
+      console.error('❌ Error sending message to Voiceflow:', error);
       analytics.track('voiceflow_message_error', {
-        error: error.message,
         userId,
-        message: message.substring(0, 100) // Log first 100 chars for debugging
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;
     }
   }
 
   /**
-   * Process raw Voiceflow response into our format
+   * Send a choice/button response to Voiceflow
    */
-  private processVoiceflowResponse(rawResponse: any): VoiceflowResponse {
-    const messages: VoiceflowMessage[] = [];
-    let isEnding = false;
+  async sendChoice(userId: string, choiceRequest: any): Promise<VoiceflowResponse> {
+    try {
+      console.log('🎯 Sending choice to Voiceflow:', { userId, choiceRequest });
 
-    // Process each trace in the response
-    if (rawResponse && Array.isArray(rawResponse)) {
-      for (const trace of rawResponse) {
-        switch (trace.type) {
-          case 'text':
-            if (trace.payload && trace.payload.message) {
-              messages.push({
-                type: 'text',
-                payload: {
-                  message: trace.payload.message
-                }
-              });
-            }
-            break;
-          
-          case 'choice':
-            if (trace.payload && trace.payload.choices) {
-              messages.push({
-                type: 'choice',
-                payload: {
-                  choices: trace.payload.choices
-                }
-              });
-            }
-            break;
-          
-          case 'end':
-            isEnding = true;
-            break;
-          
-          // Handle other types as needed
-          default:
-            console.log('🔍 Unhandled Voiceflow trace type:', trace.type, trace);
-            break;
-        }
+      const sessionId = this.userSessions.get(userId);
+      if (!sessionId) {
+        throw new Error('No active session found. Please start a session first.');
       }
-    }
 
-    // Fallback if no messages processed
-    if (messages.length === 0) {
-      console.warn('⚠️ No messages found in Voiceflow response, using fallback');
-      messages.push({
-        type: 'text',
-        payload: {
-          message: "I'm here to help you. Could you tell me more about what you're experiencing?"
-        }
+      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
+        method: 'POST',
+        headers: await this.getAuthHeaders(),
+        body: JSON.stringify({
+          action: choiceRequest,
+          config: {
+            tts: false,
+            stripSSML: true,
+            stopAll: true,
+            excludeTypes: ['block', 'debug', 'flow']
+          }
+        })
       });
-    }
 
-    return { messages, isEnding };
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Voiceflow API error: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Voiceflow choice response received:', { responseCount: data.length });
+
+      const voiceflowResponse: VoiceflowResponse = {
+        messages: data || [],
+        isEnding: false
+      };
+
+      analytics.track('voiceflow_choice_sent', {
+        userId,
+        sessionId,
+        responseCount: data.length
+      });
+
+      return voiceflowResponse;
+
+    } catch (error) {
+      console.error('❌ Error sending choice to Voiceflow:', error);
+      analytics.track('voiceflow_choice_error', {
+        userId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
   }
 
   /**
@@ -243,23 +242,27 @@ class VoiceflowAPIService {
    */
   async endSession(userId: string): Promise<void> {
     try {
+      console.log('🔚 Ending Voiceflow session for user:', userId);
+      
       const sessionId = this.userSessions.get(userId);
       if (sessionId) {
-        console.log('🔚 Ending Voiceflow session:', sessionId);
+        // Clean up session
         this.userSessions.delete(userId);
         
         analytics.track('voiceflow_session_ended', {
-          sessionId,
-          userId
+          userId,
+          sessionId
         });
+        
+        console.log('✅ Voiceflow session ended:', sessionId);
       }
     } catch (error) {
-      console.error('❌ Failed to end Voiceflow session:', error);
+      console.error('❌ Error ending Voiceflow session:', error);
     }
   }
 
   /**
-   * Get current session ID for a user
+   * Get active session ID for a user
    */
   getSessionId(userId: string): string | undefined {
     return this.userSessions.get(userId);
