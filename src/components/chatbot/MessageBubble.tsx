@@ -29,7 +29,11 @@ export function MessageBubble({ message, isCrisisMode = false }: MessageBubblePr
           isCrisisMessage && styles.crisisText,
           isCrisisMode && !isUser && styles.crisisModeText
         ]}>
-          {message.content}
+          {renderFormattedText(message.content, {
+            textStyle: isUser ? styles.userText : styles.assistantText,
+            isCrisis: isCrisisMessage,
+            isCrisisMode: isCrisisMode && !isUser
+          })}
         </Text>
         
         {/* Timestamp */}
@@ -51,6 +55,45 @@ export function MessageBubble({ message, isCrisisMode = false }: MessageBubblePr
       )}
     </View>
   );
+}
+
+function renderFormattedText(text: string, options: {
+  textStyle: any;
+  isCrisis: boolean;
+  isCrisisMode: boolean;
+}) {
+  // Split text by **bold** patterns
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    // Skip empty parts
+    if (!part) return null;
+    
+    // Check if this part is bold (wrapped in **)
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2); // Remove ** from both ends
+      return (
+        <Text 
+          key={`bold-${index}-${boldText.slice(0, 10)}`}
+          style={[
+            options.textStyle,
+            styles.boldText,
+            options.isCrisis && styles.crisisText,
+            options.isCrisisMode && styles.crisisModeText
+          ]}
+        >
+          {boldText}
+        </Text>
+      );
+    }
+    
+    // Regular text - create unique key using content snippet
+    return (
+      <Text key={`text-${index}-${part.slice(0, 10).replace(/\s/g, '')}`}>
+        {part}
+      </Text>
+    );
+  }).filter(Boolean); // Remove null values
 }
 
 function formatTime(date: Date): string {
@@ -110,6 +153,9 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     lineHeight: 22,
+  },
+  boldText: {
+    fontWeight: '700',
   },
   userText: {
     color: Theme.colors.text.primary,

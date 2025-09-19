@@ -48,8 +48,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     { id: '1', text: "I'm having an urge", action: 'urge_timer', category: 'crisis' },
     { id: '2', text: "I'm feeling anxious", action: 'breathing_exercise', category: 'crisis' },
     { id: '3', text: "I need motivation", category: 'support' },
-    { id: '4', text: "How am I doing?", category: 'general' },
-    { id: '5', text: "Crisis help", action: 'crisis_mode', category: 'crisis' },
+    { id: '4', text: "How can I handle triggers better?", category: 'general' },
+    { id: '5', text: "What should I expect in my first week?", category: 'general' },
+    { id: '6', text: "Help me stay focused on my goals", category: 'support' },
   ],
   
   // Actions

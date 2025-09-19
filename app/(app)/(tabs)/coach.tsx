@@ -318,22 +318,24 @@ export default function CoachScreen() {
   // Render native chatbot
   const renderNativeChatbot = () => (
     <View style={styles.chatContainer}>
-      <View style={styles.chatHeader}>
-        <TouchableOpacity 
-          onPress={() => {
-            setShowChat(false);
-            analytics.track('ai_coach_chat_closed');
-          }}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.chatTitle}>AI Quit Coach (Native)</Text>
-        <View style={styles.onlineIndicator}>
-          <View style={styles.onlineDot} />
-          <Text style={styles.onlineText}>Online</Text>
+      <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
+        <View style={styles.chatHeader}>
+          <TouchableOpacity 
+            onPress={() => {
+              setShowChat(false);
+              analytics.track('ai_coach_chat_closed');
+            }}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.chatTitle}>AI Quit Coach (Native)</Text>
+          <View style={styles.onlineIndicator}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>Online</Text>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
       
       <ChatInterface sessionType="coaching" />
     </View>
@@ -442,14 +444,18 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flex: 1,
-    paddingTop: 90, // Add top padding since we removed SafeAreaView
-    paddingBottom: 120, // Ensure content flows cleanly behind tabs
+    paddingTop: 0, // Remove all top padding for full screen usage
+    paddingBottom: 0, // Remove bottom padding for mobile edge-to-edge
+  },
+  headerSafeArea: {
+    backgroundColor: Theme.colors.dark.surface,
   },
   chatHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Theme.spacing.md,
+    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
     backgroundColor: Theme.colors.dark.surface,
     borderBottomWidth: 1,
     borderBottomColor: Theme.colors.dark.border,
