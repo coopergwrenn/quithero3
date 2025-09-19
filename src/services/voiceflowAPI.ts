@@ -65,15 +65,15 @@ class VoiceflowAPIService {
     try {
       console.log('🚀 Starting Voiceflow session for user:', userContext.userId);
       
-      const sessionId = `session_${userContext.userId}_${Date.now()}`;
-      this.userSessions.set(userContext.userId, sessionId);
+      // Mark user as having an active session
+      this.userSessions.set(userContext.userId, userContext.userId);
 
-      // Initialize session with user context
-      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
+      // Initialize session with launch request - Voiceflow uses userId directly in URL
+      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${userContext.userId}/interact`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
         body: JSON.stringify({
-          action: {
+          request: {
             type: 'launch',
             payload: {
               user_id: userContext.userId,
@@ -84,29 +84,23 @@ class VoiceflowAPIService {
               triggers: userContext.triggers,
               days_since_quit: userContext.daysSinceQuit || 0
             }
-          },
-          config: {
-            tts: false,
-            stripSSML: true,
-            stopAll: true,
-            excludeTypes: ['block', 'debug', 'flow']
           }
         })
       });
 
       if (!response.ok) {
-        throw new Error(`Voiceflow API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Voiceflow API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('✅ Voiceflow session started:', sessionId);
+      console.log('✅ Voiceflow session started for user:', userContext.userId);
       
       analytics.track('voiceflow_session_started', {
-        userId: userContext.userId,
-        sessionId
+        userId: userContext.userId
       });
 
-      return sessionId;
+      return userContext.userId;
 
     } catch (error) {
       console.error('❌ Error starting Voiceflow session:', error);
@@ -125,24 +119,19 @@ class VoiceflowAPIService {
     try {
       console.log('💬 Sending message to Voiceflow:', { userId, message });
 
-      const sessionId = this.userSessions.get(userId);
-      if (!sessionId) {
+      // Check if user has an active session
+      if (!this.userSessions.has(userId)) {
         throw new Error('No active session found. Please start a session first.');
       }
 
-      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
+      // Send message using userId directly in URL (Voiceflow manages sessions internally)
+      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${userId}/interact`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
         body: JSON.stringify({
-          action: {
+          request: {
             type: 'text',
             payload: message
-          },
-          config: {
-            tts: false,
-            stripSSML: true,
-            stopAll: true,
-            excludeTypes: ['block', 'debug', 'flow']
           }
         })
       });
@@ -163,7 +152,6 @@ class VoiceflowAPIService {
 
       analytics.track('voiceflow_message_sent', {
         userId,
-        sessionId,
         messageLength: message.length,
         responseCount: data.length
       });
@@ -187,22 +175,16 @@ class VoiceflowAPIService {
     try {
       console.log('🎯 Sending choice to Voiceflow:', { userId, choiceRequest });
 
-      const sessionId = this.userSessions.get(userId);
-      if (!sessionId) {
+      // Check if user has an active session
+      if (!this.userSessions.has(userId)) {
         throw new Error('No active session found. Please start a session first.');
       }
 
-      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${sessionId}/interact`, {
+      const response = await fetch(`${this.config.baseURL}/state/${this.config.versionID}/user/${userId}/interact`, {
         method: 'POST',
         headers: await this.getAuthHeaders(),
         body: JSON.stringify({
-          action: choiceRequest,
-          config: {
-            tts: false,
-            stripSSML: true,
-            stopAll: true,
-            excludeTypes: ['block', 'debug', 'flow']
-          }
+          request: choiceRequest
         })
       });
 
@@ -221,7 +203,6 @@ class VoiceflowAPIService {
 
       analytics.track('voiceflow_choice_sent', {
         userId,
-        sessionId,
         responseCount: data.length
       });
 
@@ -244,17 +225,15 @@ class VoiceflowAPIService {
     try {
       console.log('🔚 Ending Voiceflow session for user:', userId);
       
-      const sessionId = this.userSessions.get(userId);
-      if (sessionId) {
-        // Clean up session
+      if (this.userSessions.has(userId)) {
+        // Clean up session tracking
         this.userSessions.delete(userId);
         
         analytics.track('voiceflow_session_ended', {
-          userId,
-          sessionId
+          userId
         });
         
-        console.log('✅ Voiceflow session ended:', sessionId);
+        console.log('✅ Voiceflow session ended for user:', userId);
       }
     } catch (error) {
       console.error('❌ Error ending Voiceflow session:', error);
@@ -262,17 +241,17 @@ class VoiceflowAPIService {
   }
 
   /**
-   * Get active session ID for a user
-   */
-  getSessionId(userId: string): string | undefined {
-    return this.userSessions.get(userId);
-  }
-
-  /**
    * Check if user has an active session
    */
   hasActiveSession(userId: string): boolean {
     return this.userSessions.has(userId);
+  }
+
+  /**
+   * Get active session info for a user
+   */
+  getSessionInfo(userId: string): string | undefined {
+    return this.userSessions.has(userId) ? userId : undefined;
   }
 }
 
