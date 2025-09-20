@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions, Alert, Easing } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,19 @@ import { useQuitStore } from '@/src/stores/quitStore';
 import { useToolStore } from '@/src/stores/toolStore';
 import { profileService } from '@/src/services/profileService';
 import { analytics } from '@/src/services/analytics';
+
+// Premium Feature Toggle - Easy to switch on/off during development
+// 🔧 TOGGLE THIS: Set to true to test premium limits, false for unlimited access
+const PREMIUM_LIMITS_ENABLED = false; // Currently: FREE MODE (unlimited messages)
+
+// Mock Premium Check - Replace with real logic later
+const checkUserPremiumStatus = () => {
+  if (!PREMIUM_LIMITS_ENABLED) return true; // Always premium during development
+  
+  // Mock logic for testing premium flow
+  // Later replace with: return user.isPremium || user.subscription?.active
+  return false; // Simulate non-premium user when toggle is on
+};
 
 // Health milestones based on medical research
 const HEALTH_MILESTONES = [
@@ -185,8 +198,21 @@ export default function DashboardScreen() {
   const [celebrationAnimation] = useState(new Animated.Value(1));
   const badgeGlow = useRef(new Animated.Value(0)).current;
   const treeGrow = useRef(new Animated.Value(0)).current;
+  const typingAnimation = useRef(new Animated.Value(0)).current;
+  
+  // Cloud animation values - More clouds for fuller sky with immediate visibility (avoid sun area)
+  const cloud1Position = useRef(new Animated.Value(50)).current; // Start on screen - left side
+  const cloud2Position = useRef(new Animated.Value(150)).current; // Start on screen - left-center
+  const cloud3Position = useRef(new Animated.Value(-100)).current; // Start off screen
+  const cloud4Position = useRef(new Animated.Value(80)).current; // Start on screen - left side
+  const cloud5Position = useRef(new Animated.Value(-200)).current; // Start off screen
+  const cloud6Position = useRef(new Animated.Value(20)).current; // Start on screen - far left
   const [showSeedPrompt, setShowSeedPrompt] = useState(false);
   const [treePlanted, setTreePlanted] = useState(true); // Default to planted
+  const [showCoachPreview, setShowCoachPreview] = useState(false);
+  const [previewMessage, setPreviewMessage] = useState('');
+  const [messagesSentCount, setMessagesSentCount] = useState(0); // Track messages for premium limit
+  const [showTreeScene, setShowTreeScene] = useState(false); // Interactive tree scene modal
   
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -245,6 +271,72 @@ export default function DashboardScreen() {
     ).start();
   }, []);
 
+  // Typing animation for coach button
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(typingAnimation, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(typingAnimation, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  // Cloud floating animations - Ultra smooth
+  useEffect(() => {
+    const screenWidth = Dimensions.get('window').width;
+    
+    const animateCloud = (cloudPosition: Animated.Value, delay: number, duration: number, startOnScreen: boolean = false) => {
+      const animation = () => {
+        if (!startOnScreen) {
+          // Reset cloud to start position (off-screen left)
+          cloudPosition.setValue(-150);
+        }
+        
+        // Animate cloud across screen with smooth easing
+        Animated.timing(cloudPosition, {
+          toValue: screenWidth + 150, // Move to off-screen right
+          duration: startOnScreen ? duration * 0.7 : duration, // Shorter duration if starting on screen
+          useNativeDriver: true,
+          easing: Easing.linear, // Constant speed for smoothness
+        }).start(() => {
+          // When animation completes, start over from left
+          cloudPosition.setValue(-150);
+          // Continue with normal animation cycle
+          const continueAnimation = () => {
+            Animated.timing(cloudPosition, {
+              toValue: screenWidth + 150,
+              duration: duration,
+              useNativeDriver: true,
+              easing: Easing.linear,
+            }).start(() => {
+              continueAnimation();
+            });
+          };
+          continueAnimation();
+        });
+      };
+      
+      // Start animation with delay
+      setTimeout(animation, delay);
+    };
+    
+    // Start each cloud with different timing - some start on screen for immediate visibility
+    animateCloud(cloud1Position, 0, 40000, true); // Starts on screen - immediate visibility
+    animateCloud(cloud2Position, 5000, 50000, true); // Starts on screen - immediate visibility
+    animateCloud(cloud3Position, 10000, 35000, false); // Starts off screen
+    animateCloud(cloud4Position, 15000, 45000, true); // Starts on screen - immediate visibility
+    animateCloud(cloud5Position, 20000, 38000, false); // Starts off screen
+    animateCloud(cloud6Position, 25000, 42000, true); // Starts on screen - immediate visibility
+  }, []);
+
   // Load and check tree state with persistence
   useEffect(() => {
     const loadTreeState = async () => {
@@ -256,21 +348,24 @@ export default function DashboardScreen() {
         const daysSinceQuit = calculateDaysSinceQuit();
         
         if (treeData) {
-          // Use saved state
+          // Use saved state - respect explicit reset state
           setTreePlanted(treeData.planted);
-          setShowSeedPrompt(!treeData.planted && daysSinceQuit === 0);
+          setShowSeedPrompt(!treeData.planted);
+          console.log('Loaded tree state:', treeData);
         } else {
           // New user logic
-          if (daysSinceQuit === 0 && !quitData.quitDate) {
-            // Completely new user - show seed prompt
+          if (daysSinceQuit === 0) {
+            // Day 0 - show seed prompt (new user or reset)
             setShowSeedPrompt(true);
             setTreePlanted(false);
+            console.log('Day 0: showing seed prompt');
           } else {
             // User with existing quit data - tree is planted
             setTreePlanted(true);
             setShowSeedPrompt(false);
             // Save this state
             await AsyncStorage.setItem('treeState', JSON.stringify({ planted: true }));
+            console.log('Existing user: tree planted');
           }
         }
       } catch (error) {
@@ -428,30 +523,75 @@ export default function DashboardScreen() {
     return 'mighty_tree';
   };
 
-  // Get tree emoji and description for current stage
+  // Get tree emoji and description for current stage - Enhanced for interactive scene
   const getTreeDisplay = () => {
     const stage = getTreeStage();
     const daysSinceQuit = calculateDaysSinceQuit();
     
     switch (stage) {
       case 'seed_prompt':
-        return { emoji: '🌱', description: 'Tap to plant your recovery seed!', glow: '#4ADE80' };
+        return { 
+          emoji: '🌱', 
+          description: 'Tap to plant your recovery seed!', 
+          glow: '#4ADE80',
+          sceneStage: 'seed'
+        };
       case 'seed_planted':
-        return { emoji: '🌱', description: 'Your recovery seed is planted', glow: '#4ADE80' };
+        return { 
+          emoji: '🌱', 
+          description: 'Your recovery seed is planted', 
+          glow: '#4ADE80',
+          sceneStage: 'seed'
+        };
       case 'sprout':
-        return { emoji: '🌱', description: 'Your lungs are starting to heal!', glow: '#4ADE80' };
+        return { 
+          emoji: '🌱', 
+          description: 'Your lungs are starting to heal!', 
+          glow: '#4ADE80',
+          sceneStage: 'seedling'
+        };
       case 'small_sapling':
-        return { emoji: '🌿', description: 'Growing stronger each day', glow: '#22C55E' };
+        return { 
+          emoji: '🌿', 
+          description: 'Growing stronger each day', 
+          glow: '#22C55E',
+          sceneStage: 'sapling'
+        };
       case 'medium_tree':
-        return { emoji: '🌳', description: 'Your health tree is thriving', glow: '#16A34A' };
+        return { 
+          emoji: '🌳', 
+          description: 'Your health tree is thriving', 
+          glow: '#16A34A',
+          sceneStage: 'tree'
+        };
       case 'large_tree':
-        return { emoji: '🌳', description: 'Strong and healthy lungs', glow: '#15803D' };
+        return { 
+          emoji: '🌳', 
+          description: 'Strong and healthy lungs', 
+          glow: '#15803D',
+          sceneStage: daysSinceQuit >= 90 ? 'mature' : 'tree'
+        };
       case 'mighty_tree':
-        return { emoji: '🌳', description: 'Fully healed - you did it!', glow: '#166534' };
+        return { 
+          emoji: daysSinceQuit >= 120 ? '🌲🌲🌲' : '🌳', 
+          description: daysSinceQuit >= 120 ? 'A thriving forest ecosystem!' : 'Fully healed - you did it!', 
+          glow: daysSinceQuit >= 120 ? '#052E16' : '#166534',
+          sceneStage: daysSinceQuit >= 120 ? 'forest' : 'mature'
+        };
       case 'firewood':
-        return { emoji: '🪵', description: 'Tree cut down... plant again?', glow: '#DC2626' };
+        return { 
+          emoji: '🪵', 
+          description: 'Tree cut down... plant again?', 
+          glow: '#DC2626',
+          sceneStage: 'burned'
+        };
       default:
-        return { emoji: '🌱', description: 'Ready to grow again', glow: '#4ADE80' };
+        return { 
+          emoji: '🌱', 
+          description: 'Ready to grow again', 
+          glow: '#4ADE80',
+          sceneStage: 'seed'
+        };
     }
   };
 
@@ -462,6 +602,10 @@ export default function DashboardScreen() {
       setShowSeedPrompt(false);
       // Save tree state to storage
       await AsyncStorage.setItem('treeState', JSON.stringify({ planted: true }));
+      console.log('Seed planted successfully');
+      
+      // Optional: Show a success message
+      analytics.track('tree_seed_planted');
     } catch (error) {
       console.error('Error saving tree state:', error);
     }
@@ -474,7 +618,8 @@ export default function DashboardScreen() {
       setShowSeedPrompt(true);
       // Save reset state to storage
       await AsyncStorage.setItem('treeState', JSON.stringify({ planted: false }));
-      // Show firewood animation briefly, then reset to seed prompt
+      // Clear any cached tree state to force fresh state
+      console.log('Tree reset: showing seed prompt');
     } catch (error) {
       console.error('Error saving tree reset:', error);
     }
@@ -549,9 +694,9 @@ export default function DashboardScreen() {
   // Premium calendar cell colors with glass morphism
   const getPremiumCellColor = (score: number): string => {
     if (score === 0) return 'rgba(255, 255, 255, 0.05)'; // Very subtle for inactive days
-    if (score < 30) return 'rgba(139, 92, 246, 0.15)'; // Light purple for low activity
-    if (score < 70) return 'rgba(139, 92, 246, 0.25)'; // Medium purple
-    return 'rgba(139, 92, 246, 0.4)'; // Strong purple for high activity days
+    if (score < 30) return 'rgba(144, 213, 255, 0.15)'; // Light blue for low activity
+    if (score < 70) return 'rgba(144, 213, 255, 0.25)'; // Medium blue
+    return 'rgba(144, 213, 255, 0.4)'; // Strong blue for high activity days
   };
 
   const getDaysInMonth = (date: Date): Date[] => {
@@ -619,6 +764,156 @@ export default function DashboardScreen() {
   const { toolStats, totalUses, mostUsedTool } = getToolUsageStats();
   const substanceType = effectiveQuitData.substanceType || 'cigarettes';
 
+  // Render the tree based on current stage in the scene
+  const renderSceneTree = () => {
+    const stage = getTreeDisplay().sceneStage;
+    const days = calculateDaysSinceQuit();
+    
+    switch (stage) {
+      case 'seed':
+        return (
+          <View style={styles.seedContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌱</Text>
+            <View style={styles.seedGlow} />
+          </View>
+        );
+      case 'seedling':
+        return (
+          <View style={styles.seedlingContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌿</Text>
+            <Text style={styles.smallGrass}>🌱🌱</Text>
+          </View>
+        );
+      case 'sapling':
+        return (
+          <View style={styles.saplingContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌳</Text>
+            <Text style={styles.surroundingGrass}>🌿🌿🌿</Text>
+          </View>
+        );
+      case 'tree':
+        return (
+          <View style={styles.treeContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌲</Text>
+            <Text style={styles.treeBase}>🌿🌸🌿</Text>
+            <Text style={styles.wildlife}>🦋</Text>
+          </View>
+        );
+      case 'mature':
+        return (
+          <View style={styles.matureTreeContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌲</Text>
+            <Text style={styles.matureBase}>🌿🌸🌺🌿</Text>
+            <Text style={styles.wildlife}>🦋🐝</Text>
+            <Text style={styles.birds}>🐦</Text>
+          </View>
+        );
+      case 'forest':
+        return renderDynamicForest();
+      case 'burned':
+        return (
+          <View style={styles.burnedContainer}>
+            <Text style={styles.burnedTree}>🪵</Text>
+            <Text style={styles.ashes}>💨💨</Text>
+            <Text style={styles.newSeed}>🌱</Text>
+          </View>
+        );
+      default:
+        return (
+          <View style={styles.seedContainer}>
+            <Text style={styles.sceneTreeEmoji}>🌱</Text>
+          </View>
+        );
+    }
+  };
+
+  // Get motivational message based on stage
+  const getSceneMotivationalMessage = () => {
+    const stage = getTreeDisplay().sceneStage;
+    const days = calculateDaysSinceQuit();
+    
+    switch (stage) {
+      case 'seed':
+        return "Every journey begins with a single step. Your seed is planted! 🌱";
+      case 'seedling':
+        return "Look at you grow! Your body is already healing. Keep going! 💚";
+      case 'sapling':
+        return "Strong roots are forming. You're building resilience every day! 🌿";
+      case 'tree':
+        return "Your tree is thriving! You've overcome so much already. 🌳";
+      case 'mature':
+        return "Magnificent! You're an inspiration to others on their journey. 🌲";
+      case 'forest':
+        const treesCount = Math.max(3, days - 87); // Start with 3 trees at day 90, add 1 per day
+        return `Your forest has grown to ${treesCount} trees! Each day adds new life to your ecosystem! 🌲🌳🌲`;
+      case 'burned':
+        return "From ashes, new life grows. Your phoenix moment starts now. 🔥➡️🌱";
+      default:
+        return "Come back and watch your tree grow as your streak increases!";
+    }
+  };
+
+  // Render dynamic forest that grows with each day
+  const renderDynamicForest = () => {
+    const days = calculateDaysSinceQuit();
+    const forestStartDay = 90;
+    const daysInForest = Math.max(0, days - forestStartDay + 1);
+    
+    // Calculate trees for each layer based on days
+    const totalTrees = Math.min(30, Math.max(3, daysInForest)); // Cap at 30 trees max
+    const backRowTrees = Math.min(10, Math.ceil(totalTrees * 0.4));
+    const middleRowTrees = Math.min(8, Math.ceil(totalTrees * 0.35));
+    const frontRowTrees = Math.min(6, Math.ceil(totalTrees * 0.25));
+    
+    // Generate tree strings
+    const treeTypes = ['🌲', '🌳'];
+    const generateTreeRow = (count: number) => {
+      return Array(count).fill(0).map((_, i) => treeTypes[i % 2]).join('');
+    };
+    
+    // Wildlife grows with forest size
+    const wildlifeLevel = Math.min(5, Math.floor(daysInForest / 10));
+    const getWildlife = () => {
+      const wildlife = ['🦋', '🐝', '🦋', '🐛'];
+      const birds = ['🐦', '🦅', '🐦'];
+      const animals = ['🦌', '🐿️'];
+      const insects = ['🦗', '🐞'];
+      
+      return {
+        wildlife: wildlife.slice(0, Math.min(4, wildlifeLevel + 1)).join(''),
+        birds: birds.slice(0, Math.min(3, wildlifeLevel)).join(''),
+        animals: animals.slice(0, Math.min(2, Math.floor(wildlifeLevel / 2) + 1)).join(''),
+        insects: insects.slice(0, Math.min(2, wildlifeLevel)).join('')
+      };
+    };
+    
+    const wildlife = getWildlife();
+    
+    return (
+      <View style={styles.forestContainer}>
+        {/* Back Row - Grows with days */}
+        <Text style={styles.forestBackRow}>{generateTreeRow(backRowTrees)}</Text>
+        
+        {/* Middle Row - Grows with days */}
+        <Text style={styles.forestMiddleRow}>{generateTreeRow(middleRowTrees)}</Text>
+        
+        {/* Front Row - Grows with days */}
+        <Text style={styles.forestFrontRow}>{generateTreeRow(frontRowTrees)}</Text>
+        
+        {/* Ground Ecosystem - Expands with forest */}
+        <Text style={styles.forestBase}>
+          {Array(Math.min(9, Math.ceil(totalTrees / 3))).fill('🌿🌸🌺🌻🍄').join('').slice(0, Math.min(50, totalTrees * 2))}
+        </Text>
+        
+        {/* Wildlife grows with forest complexity */}
+        <Text style={styles.forestWildlife}>{wildlife.wildlife}</Text>
+        <Text style={styles.forestBirds}>{wildlife.birds}</Text>
+        <Text style={styles.forestAnimals}>{wildlife.animals}</Text>
+        <Text style={styles.forestInsects}>{wildlife.insects}</Text>
+      </View>
+    );
+  };
+
 
   if (!quitData.quitDate && Object.keys(quitData).length === 0) {
     return (
@@ -665,9 +960,21 @@ export default function DashboardScreen() {
           {/* App Logo/Icon */}
           <View style={styles.appIconContainer}>
             <Text style={styles.appIcon}>QUITHERO</Text>
-            <View style={styles.streakBadge}>
-              <Text style={styles.streakIcon}>🔥</Text>
-              <Text style={styles.streakNumber}>1</Text>
+            <View style={styles.headerIcons}>
+              {/* Tree Scene Button */}
+              <TouchableOpacity 
+                style={styles.treeIconButton}
+                onPress={() => setShowTreeScene(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.treeIconEmoji}>{getTreeDisplay().emoji}</Text>
+              </TouchableOpacity>
+              
+              {/* Streak Badge */}
+              <View style={styles.streakBadge}>
+                <Text style={styles.streakIcon}>🔥</Text>
+                <Text style={styles.streakNumber}>{daysSinceQuit}</Text>
+              </View>
             </View>
           </View>
           
@@ -703,15 +1010,15 @@ export default function DashboardScreen() {
 
           {/* Tree Growth System */}
           <View style={styles.treeContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.treeCircle,
                 {
                   shadowColor: getTreeDisplay().glow,
                 }
               ]}
-              onPress={showSeedPrompt ? plantSeed : undefined}
-              activeOpacity={showSeedPrompt ? 0.7 : 1}
+              onPress={showSeedPrompt ? plantSeed : () => setShowTreeScene(true)}
+              activeOpacity={0.7}
             >
               <Animated.View style={[
                 styles.treeInner,
@@ -774,6 +1081,26 @@ export default function DashboardScreen() {
               <Text style={styles.secondsText}>{Math.floor((currentTime.getTime() - new Date(effectiveQuitData.quitDate).getTime()) / 1000) % 60}s</Text>
             </View>
           </View>
+
+          {/* Coach Preview Button */}
+          <TouchableOpacity 
+            style={styles.coachPreviewButton}
+            onPress={() => setShowCoachPreview(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.coachPreviewText}>Talk to your coach</Text>
+            <Animated.View style={[
+              styles.typingIndicator,
+              {
+                opacity: typingAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 1],
+                }),
+              }
+            ]}>
+              <Text style={styles.typingDot}>|</Text>
+            </Animated.View>
+          </TouchableOpacity>
 
           {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
@@ -895,7 +1222,7 @@ export default function DashboardScreen() {
                         backgroundColor: isQuitDay ? getPremiumCellColor(score) : 'rgba(255, 255, 255, 0.03)',
                         opacity: isCurrentMonth ? 1 : 0.4,
                         borderWidth: isToday ? 2 : 1,
-                        borderColor: isToday ? '#8B5CF6' : 'rgba(255, 255, 255, 0.1)',
+                        borderColor: isToday ? Theme.colors.purple[500] : 'rgba(255, 255, 255, 0.1)',
                       }
                     ]}
                     onPress={() => openDayModal(day)}
@@ -1138,6 +1465,227 @@ export default function DashboardScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Coach Preview Modal */}
+      <Modal
+        visible={showCoachPreview}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCoachPreview(false)}
+      >
+        <SafeAreaView style={styles.coachPreviewModalContainer}>
+          <View style={styles.coachPreviewHeader}>
+            <TouchableOpacity onPress={() => setShowCoachPreview(false)}>
+              <Text style={styles.modalCloseButton}>✕</Text>
+            </TouchableOpacity>
+            <Text style={styles.coachPreviewTitle}>Quit Hero</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          
+          <View style={styles.coachPreviewContent}>
+            <Text style={styles.coachPreviewWelcome}>
+              👋 Hi {userName || 'there'}! I'm your AI Quit Coach. Try sending me a message!
+            </Text>
+            
+            <View style={styles.coachPreviewInputContainer}>
+              <TextInput
+                style={styles.coachPreviewInput}
+                placeholder="Type your message here..."
+                placeholderTextColor="rgba(255, 255, 255, 0.5)"
+                value={previewMessage}
+                onChangeText={setPreviewMessage}
+                onSubmitEditing={() => {
+                  if (previewMessage.trim()) {
+                    const isPremium = checkUserPremiumStatus();
+                    
+                    // Check if user has reached message limit
+                    if (!isPremium && messagesSentCount >= 1) {
+                      // Show premium upgrade prompt
+                      Alert.alert(
+                        '🚀 Upgrade to Premium',
+                        'You\'ve used your free AI coaching message! Upgrade to QuitHero Premium for unlimited AI coaching, advanced tools, and personalized support.',
+                        [
+                          { text: 'Maybe Later', style: 'cancel' },
+                          { 
+                            text: 'Upgrade Now', 
+                            style: 'default',
+                            onPress: () => {
+                              setShowCoachPreview(false);
+                              router.push('/(paywall)/paywall' as any);
+                            }
+                          }
+                        ]
+                      );
+                      return;
+                    }
+                    
+                    // Increment message count and proceed
+                    setMessagesSentCount(prev => prev + 1);
+                    setShowCoachPreview(false);
+                    router.push({
+                      pathname: '/(app)/(tabs)/coach' as any,
+                      params: { initialMessage: previewMessage.trim() }
+                    });
+                    setPreviewMessage('');
+                  }
+                }}
+              />
+              <TouchableOpacity 
+                style={styles.coachPreviewSendButton}
+                onPress={() => {
+                  if (previewMessage.trim()) {
+                    const isPremium = checkUserPremiumStatus();
+                    
+                    // Check if user has reached message limit
+                    if (!isPremium && messagesSentCount >= 1) {
+                      // Show premium upgrade prompt
+                      Alert.alert(
+                        '🚀 Upgrade to Premium',
+                        'You\'ve used your free AI coaching message! Upgrade to QuitHero Premium for unlimited AI coaching, advanced tools, and personalized support.',
+                        [
+                          { text: 'Maybe Later', style: 'cancel' },
+                          { 
+                            text: 'Upgrade Now', 
+                            style: 'default',
+                            onPress: () => {
+                              setShowCoachPreview(false);
+                              router.push('/(paywall)/paywall' as any);
+                            }
+                          }
+                        ]
+                      );
+                      return;
+                    }
+                    
+                    // Increment message count and proceed
+                    setMessagesSentCount(prev => prev + 1);
+                    setShowCoachPreview(false);
+                    router.push({
+                      pathname: '/(app)/(tabs)/coach' as any,
+                      params: { initialMessage: previewMessage.trim() }
+                    });
+                    setPreviewMessage('');
+                  }
+                }}
+              >
+                <Text style={styles.coachPreviewSendText}>→</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Interactive Tree Scene Modal */}
+      <Modal
+        visible={showTreeScene}
+        animationType="fade"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setShowTreeScene(false)}
+      >
+        <View style={styles.treeSceneContainer}>
+          {/* Animated Sky Background */}
+          <View style={styles.skyBackground}>
+            <View style={styles.skyGradient} />
+            
+            {/* Floating Clouds */}
+            <View style={styles.cloudsContainer}>
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud1,
+                {
+                  transform: [{ translateX: cloud1Position }]
+                }
+              ]} />
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud2,
+                {
+                  transform: [{ translateX: cloud2Position }]
+                }
+              ]} />
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud3,
+                {
+                  transform: [{ translateX: cloud3Position }]
+                }
+              ]} />
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud4,
+                {
+                  transform: [{ translateX: cloud4Position }]
+                }
+              ]} />
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud5,
+                {
+                  transform: [{ translateX: cloud5Position }]
+                }
+              ]} />
+              <Animated.View style={[
+                styles.cloud, 
+                styles.cloud6,
+                {
+                  transform: [{ translateX: cloud6Position }]
+                }
+              ]} />
+            </View>
+            
+            {/* Sun */}
+            <View style={styles.sun} />
+          </View>
+          
+          {/* Mountain Layers - Simple & Clean */}
+          <View style={styles.mountainsContainer}>
+            <View style={styles.mountainBack} />
+            <View style={styles.mountainMid} />
+            <View style={styles.mountainFront} />
+          </View>
+          
+          {/* Ground and Tree Area */}
+          <View style={styles.groundContainer}>
+            <View style={styles.grassLayer} />
+            
+            {/* Main Tree Display */}
+            <View style={styles.sceneTreeContainer}>
+              {renderSceneTree()}
+            </View>
+            
+            {/* Ground Vegetation */}
+            <View style={styles.vegetationContainer}>
+              <Text style={styles.grassEmoji}>🌿</Text>
+              <Text style={styles.flowerEmoji}>🌸</Text>
+              <Text style={styles.grassEmoji}>🌿</Text>
+              <Text style={styles.flowerEmoji}>🌺</Text>
+            </View>
+          </View>
+          
+          {/* Scene Info Overlay */}
+          <View style={styles.sceneOverlay}>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setShowTreeScene(false)}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.sceneInfo}>
+              <Text style={styles.sceneTitle}>Your Life Tree</Text>
+              <Text style={styles.sceneSubtitle}>
+                {getTreeDisplay().description}
+              </Text>
+              <Text style={styles.sceneDays}>
+                {calculateDaysSinceQuit()} days strong
+              </Text>
+              <Text style={styles.sceneMotivation}>
+                {getSceneMotivationalMessage()}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1189,6 +1737,29 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 2,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  treeIconButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#4ADE80',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  treeIconEmoji: {
+    fontSize: 20,
   },
   streakBadge: {
     flexDirection: 'row',
@@ -1372,7 +1943,7 @@ const styles = StyleSheet.create({
   // Quit Counter - Compact Spacing
   quitCounterContainer: {
     alignItems: 'center',
-    marginBottom: 32, // Multiple of 4 - reduced from 60
+    marginBottom: 20, // Just right spacing to coach button
   },
   quitCounterText: {
     color: '#FFFFFF',
@@ -1423,6 +1994,43 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     letterSpacing: 1,
+  },
+
+  // Coach Preview Button
+  coachPreviewButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 25,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    marginHorizontal: 20,
+    marginTop: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.purple[500] + '40',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coachPreviewText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginRight: 8,
+  },
+  typingIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typingDot: {
+    color: Theme.colors.purple[500],
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   
   // Action Buttons - Compact Spacing
@@ -2123,13 +2731,13 @@ const styles = StyleSheet.create({
   },
   premiumProgressFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Theme.colors.purple[500],
     borderRadius: 3,
   },
   premiumProgressText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
     minWidth: 32,
   },
   premiumNextMilestoneCard: {
@@ -2143,7 +2751,7 @@ const styles = StyleSheet.create({
   premiumNextMilestoneLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
@@ -2331,7 +2939,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Theme.colors.purple[500],
     borderRadius: 2,
   },
   progressText: {
@@ -2391,13 +2999,13 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 32,
     backgroundColor: '#2A1A4C',
-    borderColor: '#8B5CF6',
+    borderColor: Theme.colors.purple[500],
     borderWidth: 1,
   },
   supportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
     marginBottom: 8,
   },
   supportDescription: {
@@ -2788,7 +3396,7 @@ const styles = StyleSheet.create({
   activityPoints: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
   },
   notesCard: {
     padding: 24,
@@ -2811,7 +3419,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   saveButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: Theme.colors.purple[500],
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -2821,5 +3429,548 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Theme.colors.text.primary,
+  },
+
+  // Coach Preview Modal Styles
+  coachPreviewModalContainer: {
+    flex: 1,
+    backgroundColor: '#0B0B1A',
+  },
+  coachPreviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  coachPreviewTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  headerPlaceholder: {
+    width: 24,
+  },
+  coachPreviewContent: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  coachPreviewWelcome: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  coachPreviewInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 20,
+  },
+  coachPreviewInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#FFFFFF',
+    paddingVertical: 8,
+  },
+  coachPreviewSendButton: {
+    backgroundColor: Theme.colors.purple[500],
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  coachPreviewSendText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+
+  // Interactive Tree Scene Styles
+  treeSceneContainer: {
+    flex: 1,
+    backgroundColor: '#87CEEB', // Sky blue base
+  },
+  skyBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60%',
+    backgroundColor: 'transparent',
+  },
+  skyGradient: {
+    flex: 1,
+    backgroundColor: 'linear-gradient(to bottom, #87CEEB, #98D8E8, #B0E0E6)',
+  },
+  cloudsContainer: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    height: 200,
+  },
+  cloud: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    zIndex: 10, // Higher than sun so clouds pass in front
+  },
+  cloud1: {
+    width: 80,
+    height: 40,
+    top: 20,
+    left: 0,
+  },
+  cloud2: {
+    width: 100,
+    height: 50,
+    top: 60,
+    left: 0,
+  },
+  cloud3: {
+    width: 60,
+    height: 30,
+    top: 100,
+    left: 0,
+  },
+  cloud4: {
+    width: 90,
+    height: 45,
+    top: 30,
+    left: 0,
+  },
+  cloud5: {
+    width: 70,
+    height: 35,
+    top: 80,
+    left: 0,
+  },
+  cloud6: {
+    width: 110,
+    height: 55,
+    top: 40,
+    left: 0,
+  },
+  sun: {
+    position: 'absolute',
+    top: 80,
+    right: 60,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFD700',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    zIndex: 5, // Lower than clouds so clouds pass in front
+  },
+  mountainsContainer: {
+    position: 'absolute',
+    bottom: '40%',
+    left: 0,
+    right: 0,
+    height: 200,
+  },
+  mountainBack: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    backgroundColor: '#8B7D6B',
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 80,
+    opacity: 0.6,
+  },
+  mountainMid: {
+    position: 'absolute',
+    bottom: 0,
+    left: 100,
+    right: 50,
+    height: 150,
+    backgroundColor: '#A0916B',
+    borderTopLeftRadius: 120,
+    borderTopRightRadius: 100,
+    opacity: 0.8,
+  },
+  mountainFront: {
+    position: 'absolute',
+    bottom: 0,
+    left: 200,
+    right: 0,
+    height: 100,
+    backgroundColor: '#B8A082',
+    borderTopLeftRadius: 80,
+    borderTopRightRadius: 60,
+  },
+  
+  // Green Rolling Hills (Natural Transition)
+  greenHillsBack: {
+    position: 'absolute',
+    bottom: 0,
+    left: -40,
+    right: -40,
+    height: 120,
+    backgroundColor: '#22C55E',
+    opacity: 0.7,
+    borderTopLeftRadius: 150,
+    borderTopRightRadius: 140,
+    transform: [{ scaleX: 1.2 }],
+  },
+  
+  greenHillsMid: {
+    position: 'absolute',
+    bottom: 0,
+    left: -20,
+    right: 20,
+    height: 100,
+    backgroundColor: '#16A34A',
+    opacity: 0.8,
+    borderTopLeftRadius: 120,
+    borderTopRightRadius: 110,
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  
+  greenHillsFront: {
+    position: 'absolute',
+    bottom: 0,
+    left: 60,
+    right: -30,
+    height: 80,
+    backgroundColor: '#15803D',
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 90,
+    shadowColor: '#000',
+    shadowOffset: { width: -3, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  
+  // Additional Green Hill Details
+  hillDetail1: {
+    position: 'absolute',
+    bottom: 0,
+    left: -10,
+    width: 120,
+    height: 90,
+    backgroundColor: '#22C55E',
+    opacity: 0.9,
+    borderTopLeftRadius: 80,
+    borderTopRightRadius: 70,
+  },
+  
+  hillDetail2: {
+    position: 'absolute',
+    bottom: 0,
+    right: 40,
+    width: 100,
+    height: 70,
+    backgroundColor: '#16A34A',
+    borderTopLeftRadius: 70,
+    borderTopRightRadius: 60,
+    opacity: 0.85,
+  },
+  
+  // Gray Rolling Hills (Behind Green)
+  grayHillLayer1: {
+    position: 'absolute',
+    bottom: 0,
+    left: -20,
+    right: 60,
+    height: 60,
+    backgroundColor: '#CBD5E0',
+    borderTopLeftRadius: 100,
+    borderTopRightRadius: 80,
+    opacity: 0.6,
+  },
+  
+  grayHillLayer2: {
+    position: 'absolute',
+    bottom: 0,
+    right: -20,
+    width: 150,
+    height: 45,
+    backgroundColor: '#E2E8F0',
+    borderTopLeftRadius: 80,
+    borderTopRightRadius: 60,
+    opacity: 0.5,
+  },
+  groundContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: '#228B22',
+  },
+  grassLayer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 20,
+    backgroundColor: '#32CD32',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  sceneTreeContainer: {
+    position: 'absolute',
+    top: '15%',
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    alignItems: 'center',
+    zIndex: 10, // Ensure tree appears above the info card
+  },
+  vegetationContainer: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+  },
+  grassEmoji: {
+    fontSize: 20,
+    opacity: 0.8,
+  },
+  flowerEmoji: {
+    fontSize: 16,
+    opacity: 0.9,
+  },
+  sceneOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+  },
+  closeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  sceneInfo: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 60,
+    marginHorizontal: 20,
+    maxHeight: 180, // Limit height to prevent covering too much
+    zIndex: 15, // Higher than all forest elements to stay on top
+  },
+  sceneTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  sceneSubtitle: {
+    fontSize: 14,
+    color: '#E0E0E0',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  sceneDays: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4ADE80',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  sceneMotivation: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    lineHeight: 18,
+    opacity: 0.9,
+  },
+
+  // Tree Stage Specific Styles
+  sceneTreeEmoji: {
+    fontSize: 80,
+    textAlign: 'center',
+  },
+  seedContainer: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  seedGlow: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(74, 222, 128, 0.3)',
+    top: -10,
+  },
+  seedlingContainer: {
+    alignItems: 'center',
+  },
+  smallGrass: {
+    fontSize: 20,
+    marginTop: 10,
+  },
+  saplingContainer: {
+    alignItems: 'center',
+  },
+  surroundingGrass: {
+    fontSize: 24,
+    marginTop: 15,
+  },
+  treeContainer: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  treeBase: {
+    fontSize: 28,
+    marginTop: 20,
+  },
+  wildlife: {
+    position: 'absolute',
+    top: -20,
+    right: -30,
+    fontSize: 20,
+  },
+  matureTreeContainer: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  matureBase: {
+    fontSize: 32,
+    marginTop: 25,
+  },
+  birds: {
+    position: 'absolute',
+    top: -40,
+    left: -40,
+    fontSize: 18,
+  },
+  forestContainer: {
+    alignItems: 'center',
+    position: 'relative',
+    width: 350, // Wider to fill more space
+    height: 200,
+  },
+  
+  // Forest Depth Layers
+  forestBackRow: {
+    position: 'absolute',
+    top: -40,
+    fontSize: 35,
+    letterSpacing: -2,
+    opacity: 0.6,
+    zIndex: 1,
+  },
+  forestMiddleRow: {
+    position: 'absolute',
+    top: -20,
+    fontSize: 50,
+    letterSpacing: -3,
+    opacity: 0.8,
+    zIndex: 2,
+  },
+  forestFrontRow: {
+    position: 'absolute',
+    top: 0,
+    fontSize: 70,
+    letterSpacing: -5,
+    zIndex: 3,
+  },
+  
+  forestBase: {
+    position: 'absolute',
+    bottom: -20,
+    fontSize: 28,
+    letterSpacing: 1,
+    zIndex: 4,
+  },
+  
+  // Wildlife positioned throughout the forest
+  forestWildlife: {
+    position: 'absolute',
+    top: -10,
+    right: -40,
+    fontSize: 18,
+    zIndex: 5,
+  },
+  forestBirds: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    fontSize: 16,
+    zIndex: 6,
+  },
+  forestAnimals: {
+    position: 'absolute',
+    bottom: 10,
+    right: -60,
+    fontSize: 20,
+    zIndex: 5,
+  },
+  forestInsects: {
+    position: 'absolute',
+    bottom: 0,
+    left: -40,
+    fontSize: 14,
+    zIndex: 4,
+  },
+  burnedContainer: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  burnedTree: {
+    fontSize: 60,
+    opacity: 0.7,
+  },
+  ashes: {
+    position: 'absolute',
+    top: -20,
+    fontSize: 16,
+    opacity: 0.5,
+  },
+  newSeed: {
+    position: 'absolute',
+    bottom: -40,
+    fontSize: 30,
+    opacity: 0.8,
   },
 });

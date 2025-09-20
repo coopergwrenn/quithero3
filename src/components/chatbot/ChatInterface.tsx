@@ -11,6 +11,7 @@ import { Theme } from '@/src/design-system/theme';
 
 interface ChatInterfaceProps {
   sessionType?: 'coaching' | 'crisis' | 'checkin' | 'general';
+  initialMessage?: string;
 }
 
 // Styles defined first so they can be used by components
@@ -148,7 +149,7 @@ const StarField = () => {
   );
 };
 
-export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) {
+export function ChatInterface({ sessionType = 'coaching', initialMessage }: ChatInterfaceProps) {
   const { 
     messages, 
     isTyping, 
@@ -204,6 +205,14 @@ export function ChatInterface({ sessionType = 'coaching' }: ChatInterfaceProps) 
       }, 100);
     }
   }, [messages, isTyping]);
+
+  // Handle initial message from dashboard preview
+  useEffect(() => {
+    if (initialMessage && currentSession && messages.length === 0) {
+      // Send the initial message automatically
+      sendMessage(initialMessage);
+    }
+  }, [initialMessage, currentSession, messages.length, sendMessage]);
   
   const handleSendMessage = (message: string) => {
     sendMessage(message.trim());

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
@@ -76,10 +77,18 @@ export default function CoachScreen() {
   const [showChat, setShowChat] = useState(false);
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
+  const { initialMessage } = useLocalSearchParams();
 
   useEffect(() => {
     analytics.track('ai_coach_opened');
   }, []);
+
+  // Auto-show chat if initialMessage is provided
+  useEffect(() => {
+    if (initialMessage) {
+      setShowChat(true);
+    }
+  }, [initialMessage]);
 
   // Premium Coach intro with starfield background
   const renderCoachIntro = () => (
@@ -441,7 +450,7 @@ export default function CoachScreen() {
         </View>
       </SafeAreaView>
       
-      <ChatInterface sessionType="coaching" />
+      <ChatInterface sessionType="coaching" initialMessage={initialMessage as string} />
     </View>
   );
 

@@ -63,7 +63,7 @@ function renderFormattedText(text: string, options: {
   isCrisisMode: boolean;
 }) {
   // Split text by both **bold** and ## header patterns - capture groups to preserve the matches
-  const parts = text.split(/(##\s[^\n\r]+|\*\*[^*]+\*\*)/g);
+  const parts = text.split(/(##\s[^\n\r]+|\*\*.*?\*\*)/gs);
   
   return parts.map((part, index) => {
     // Skip empty parts
@@ -88,11 +88,11 @@ function renderFormattedText(text: string, options: {
     }
     
     // Check if this part is bold (wrapped in **)
-    if (part.startsWith('**') && part.endsWith('**')) {
-      const boldText = part.slice(2, -2).trim(); // Remove ** from both ends, trim whitespace
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      const boldText = part.slice(2, -2); // Remove ** from both ends
       return (
         <Text 
-          key={`bold-${index}-${boldText.slice(0, 10)}`}
+          key={`bold-${index}-${boldText.slice(0, 10).replace(/\s/g, '')}`}
           style={[
             options.textStyle,
             styles.boldText,
