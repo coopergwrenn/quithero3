@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { 
   LayoutDashboard, 
   Wrench, 
-  BookOpen, 
+  BarChart3, 
   Users, 
   MessageCircle 
 } from 'lucide-react-native';
@@ -51,9 +51,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="learn"
         options={{
-          title: 'Learn',
+          title: 'Analytics',
           tabBarIcon: ({ color, size }) => (
-            <BookOpen color={color} size={size} strokeWidth={2} />
+            <BarChart3 color={color} size={size} strokeWidth={2} />
           ),
         }}
       />

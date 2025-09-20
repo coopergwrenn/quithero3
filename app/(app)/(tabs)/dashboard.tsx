@@ -214,6 +214,11 @@ export default function DashboardScreen() {
   const [messagesSentCount, setMessagesSentCount] = useState(0); // Track messages for premium limit
   const [showTreeScene, setShowTreeScene] = useState(false); // Interactive tree scene modal
   
+  // Quit Reasons state
+  const [quitReasons, setQuitReasons] = useState('');
+  const [showQuitReasonsModal, setShowQuitReasonsModal] = useState(false);
+  const [tempQuitReasons, setTempQuitReasons] = useState('');
+  
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -377,6 +382,7 @@ export default function DashboardScreen() {
     };
     
     loadTreeState();
+    loadQuitReasons();
   }, [quitData.quitDate]);
 
   // Calculate days since quit
@@ -744,6 +750,33 @@ export default function DashboardScreen() {
       }));
     }
     setShowDayModal(false);
+  };
+
+  // Quit Reasons functions
+  const openQuitReasonsModal = () => {
+    setTempQuitReasons(quitReasons);
+    setShowQuitReasonsModal(true);
+  };
+
+  const saveQuitReasons = async () => {
+    try {
+      setQuitReasons(tempQuitReasons);
+      await AsyncStorage.setItem('quitReasons', tempQuitReasons);
+      setShowQuitReasonsModal(false);
+    } catch (error) {
+      console.error('Error saving quit reasons:', error);
+    }
+  };
+
+  const loadQuitReasons = async () => {
+    try {
+      const savedReasons = await AsyncStorage.getItem('quitReasons');
+      if (savedReasons) {
+        setQuitReasons(savedReasons);
+      }
+    } catch (error) {
+      console.error('Error loading quit reasons:', error);
+    }
   };
 
   const getDayActivities = (day: Date) => {
@@ -1252,6 +1285,53 @@ export default function DashboardScreen() {
             <Text style={styles.premiumMotivationText}>{getMotivationalMessage()}</Text>
           </View>
 
+          {/* Motivational Dashboard Section */}
+          <View style={styles.motivationalSection}>
+            {/* Top Row - Quit Goal & Temptation Status */}
+            <View style={styles.motivationalTopRow}>
+              {/* Quit Goal Card */}
+              <View style={styles.quitGoalCard}>
+                <View style={styles.quitGoalGlow} />
+                <View style={styles.quitGoalIcon}>
+                  <Text style={styles.quitGoalIconText}>✓</Text>
+                </View>
+                <Text style={styles.quitGoalLabel}>You're on track to quit by:</Text>
+                <Text style={styles.quitGoalDate}>Dec 19, 2025</Text>
+              </View>
+
+              {/* Temptation Status Card */}
+              <View style={styles.temptationCard}>
+                <View style={styles.temptationGlow} />
+                <View style={styles.temptationIcon}>
+                  <Text style={styles.temptationIconText}>😤</Text>
+                </View>
+                <Text style={styles.temptationLabel}>Tempted to Relapse:</Text>
+                <Text style={styles.temptationStatus}>No</Text>
+              </View>
+            </View>
+
+            {/* Bottom Section - Quit Reasons */}
+            <TouchableOpacity style={styles.quitReasonsCard} onPress={openQuitReasonsModal}>
+              <View style={styles.quitReasonsGlow} />
+              <View style={styles.quitReasonsHeader}>
+                <View style={styles.quitReasonsIconContainer}>
+                  <Text style={styles.quitReasonsIcon}>?</Text>
+                </View>
+                <Text style={styles.quitReasonsTitle}>I'm quitting because:</Text>
+                <View style={styles.editIcon}>
+                  <Text style={styles.editIconText}>✏️</Text>
+                </View>
+              </View>
+              <Text style={styles.quitReasonsPlaceholder}>
+                {quitReasons || "Click here to add a reason why you're quitting"}
+              </Text>
+              <View style={styles.bestStreakContainer}>
+                <Text style={styles.bestStreakIcon}>⭐</Text>
+                <Text style={styles.bestStreakText}>Best 22hr 20m</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Premium Health Recovery Timeline */}
           <View style={styles.premiumHealthCard}>
             {/* Header Section */}
@@ -1348,40 +1428,62 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* AI Coach Support */}
-          <Card style={styles.supportCard}>
-            <Text style={styles.supportTitle}>🤖 Need Support?</Text>
-            <Text style={styles.supportDescription}>
+          {/* Premium Support Section */}
+          <View style={styles.premiumSupportCard}>
+            <View style={styles.premiumSupportGlow} />
+            <View style={styles.premiumSupportHeader}>
+              <View style={styles.premiumSupportIconContainer}>
+                <Text style={styles.premiumSupportIcon}>🤖</Text>
+              </View>
+              <Text style={styles.premiumSupportTitle}>Need Support?</Text>
+            </View>
+            <Text style={styles.premiumSupportDescription}>
               Talk to your AI quit coach for personalized guidance and 24/7 support
             </Text>
-            <View style={styles.supportButtons}>
+            
+            <View style={styles.premiumSupportButtons}>
               <TouchableOpacity 
-                style={styles.coachButton}
+                style={styles.premiumCoachButton}
                 onPress={() => {
                   analytics.track('dashboard_coach_clicked');
                   router.push('/(app)/(tabs)/coach');
                 }}
               >
-                <Text style={styles.coachButtonText}>💬 Chat with AI Coach</Text>
+                <View style={styles.premiumCoachButtonGlow} />
+                <View style={styles.premiumButtonIconContainer}>
+                  <Text style={styles.premiumButtonIcon}>💬</Text>
+                </View>
+                <Text style={styles.premiumCoachButtonText}>Chat with AI Coach</Text>
               </TouchableOpacity>
+              
               <TouchableOpacity 
-                style={styles.crisisButton}
+                style={styles.premiumCrisisButton}
                 onPress={() => {
                   analytics.track('dashboard_crisis_clicked');
                   router.push('/(app)/tools/panic' as any);
                 }}
               >
-                <Text style={styles.crisisButtonText}>🚨 Crisis Support</Text>
+                <View style={styles.premiumCrisisButtonGlow} />
+                <View style={styles.premiumButtonIconContainer}>
+                  <Text style={styles.premiumButtonIcon}>🚨</Text>
+                </View>
+                <Text style={styles.premiumCrisisButtonText}>Crisis Support</Text>
               </TouchableOpacity>
             </View>
-          </Card>
+          </View>
 
-          {/* Health Facts */}
-          <Card style={styles.healthFactCard}>
-            <Text style={styles.healthFactTitle}>💡 Did You Know?</Text>
-            <Text style={styles.healthFactText}>
+          {/* Premium Health Facts */}
+          <View style={styles.premiumHealthFactCard}>
+            <View style={styles.premiumHealthFactGlow} />
+            <View style={styles.premiumHealthFactHeader}>
+              <View style={styles.premiumHealthFactIconContainer}>
+                <Text style={styles.premiumHealthFactIcon}>💡</Text>
+              </View>
+              <Text style={styles.premiumHealthFactTitle}>Did You Know?</Text>
+            </View>
+            <Text style={styles.premiumHealthFactText}>
               {daysSinceQuit < 1 ? 
-                "Within 20 minutes of quitting, your heart rate and blood pressure drop." :
+                "At 1 month, coughing and shortness of breath decrease significantly." :
                 daysSinceQuit < 7 ?
                 "After just 2 weeks, your circulation improves and lung function increases." :
                 daysSinceQuit < 30 ?
@@ -1389,81 +1491,108 @@ export default function DashboardScreen() {
                 "After 1 year smoke-free, your risk of heart disease is cut in half!"
               }
             </Text>
-          </Card>
+          </View>
         </View>
       </ScrollView>
 
-      {/* Day Detail Modal */}
+      {/* Day Detail Modal - Premium Design */}
       <Modal
         visible={showDayModal}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setShowDayModal(false)}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setShowDayModal(false)}>
-              <Text style={styles.modalCloseButton}>✕</Text>
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>
-              {selectedDay?.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </Text>
-            <View style={styles.modalSpacer} />
-          </View>
+        <View style={styles.premiumModalContainer}>
+          {/* Starfield Background */}
+          <StarField />
+          
+          <SafeAreaView style={styles.premiumModalSafeArea}>
+            {/* Premium Header */}
+            <View style={styles.premiumModalHeader}>
+              <TouchableOpacity 
+                style={styles.premiumCloseButton}
+                onPress={() => setShowDayModal(false)}
+              >
+                <Text style={styles.premiumCloseButtonText}>✕</Text>
+              </TouchableOpacity>
+              <Text style={styles.premiumModalTitle}>
+                {selectedDay?.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </Text>
+              <View style={styles.premiumModalSpacer} />
+            </View>
 
-          <ScrollView style={styles.modalContent}>
-            {selectedDay && (
-              <>
-                <Card style={styles.dayScoreCard}>
-                  <Text style={styles.dayScoreTitle}>Activity Score</Text>
-                  <Text style={styles.dayScoreValue}>
-                    {calculateDayScore(selectedDay)}/100
-                  </Text>
-                  <Text style={styles.dayScoreDesc}>
-                    {calculateDayScore(selectedDay) > 70 ? 'Excellent day! 🌟' :
-                     calculateDayScore(selectedDay) > 40 ? 'Good progress! 👍' :
-                     calculateDayScore(selectedDay) > 0 ? 'Keep going! 💪' :
-                     'No quit activities'}
-                  </Text>
-                </Card>
+            <ScrollView 
+              style={styles.premiumModalContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {selectedDay && (
+                <>
+                  {/* Premium Activity Score Card */}
+                  <View style={styles.premiumScoreCard}>
+                    <View style={styles.premiumScoreGlow} />
+                    <Text style={styles.premiumScoreLabel}>Activity Score</Text>
+                    <Text style={styles.premiumScoreValue}>
+                      {calculateDayScore(selectedDay)}/100
+                    </Text>
+                    <Text style={styles.premiumScoreDescription}>
+                      {calculateDayScore(selectedDay) > 70 ? 'Excellent day! 🌟' :
+                       calculateDayScore(selectedDay) > 40 ? 'Good progress! 👍' :
+                       calculateDayScore(selectedDay) > 0 ? 'Keep going! 💪' :
+                       'No quit activities'}
+                    </Text>
+                  </View>
 
-                <Card style={styles.activitiesCard}>
-                  <Text style={styles.activitiesTitle}>Today's Activities</Text>
-                  {getDayActivities(selectedDay).map((activity, index) => (
-                    <View key={index} style={styles.activityItem}>
-                      <Text style={styles.activityIcon}>{activity.icon}</Text>
-                      <View style={styles.activityInfo}>
-                        <Text style={styles.activityType}>{activity.type}</Text>
-                        <Text style={styles.activityTime}>{activity.time}</Text>
-                      </View>
-                      <Text style={styles.activityPoints}>+{activity.points} pts</Text>
+                  {/* Premium Activities Card */}
+                  <View style={styles.premiumActivitiesCard}>
+                    <View style={styles.premiumCardGlow} />
+                    <Text style={styles.premiumActivitiesTitle}>Today's Activities</Text>
+                    <View style={styles.premiumActivitiesList}>
+                      {getDayActivities(selectedDay).map((activity, index) => (
+                        <View key={index} style={styles.premiumActivityItem}>
+                          <View style={styles.premiumActivityIconContainer}>
+                            <Text style={styles.premiumActivityIcon}>{activity.icon}</Text>
+                          </View>
+                          <View style={styles.premiumActivityInfo}>
+                            <Text style={styles.premiumActivityType}>{activity.type}</Text>
+                            <Text style={styles.premiumActivityTime}>{activity.time}</Text>
+                          </View>
+                          <View style={styles.premiumPointsBadge}>
+                            <Text style={styles.premiumActivityPoints}>+{activity.points} pts</Text>
+                          </View>
+                        </View>
+                      ))}
                     </View>
-                  ))}
-                </Card>
+                  </View>
 
-                <Card style={styles.notesCard}>
-                  <Text style={styles.notesTitle}>Daily Reflection</Text>
-                  <TextInput
-                    style={styles.notesInput}
-                    multiline
-                    numberOfLines={4}
-                    placeholder="How are you feeling today? Any reflections on your quit journey..."
-                    placeholderTextColor={Theme.colors.text.tertiary}
-                    value={tempNote}
-                    onChangeText={setTempNote}
-                  />
-                  <TouchableOpacity style={styles.saveButton} onPress={saveDayNote}>
-                    <Text style={styles.saveButtonText}>Save Note</Text>
-                  </TouchableOpacity>
-                </Card>
-              </>
-            )}
-          </ScrollView>
-        </SafeAreaView>
+                  {/* Premium Reflection Card */}
+                  <View style={styles.premiumReflectionCard}>
+                    <View style={styles.premiumCardGlow} />
+                    <Text style={styles.premiumReflectionTitle}>Daily Reflection</Text>
+                    <View style={styles.premiumInputContainer}>
+                      <TextInput
+                        style={styles.premiumReflectionInput}
+                        multiline
+                        numberOfLines={4}
+                        placeholder="How are you feeling today? Any reflections on your quit journey..."
+                        placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                        value={tempNote}
+                        onChangeText={setTempNote}
+                      />
+                    </View>
+                    <TouchableOpacity style={styles.premiumSaveButton} onPress={saveDayNote}>
+                      <View style={styles.premiumSaveButtonGlow} />
+                      <Text style={styles.premiumSaveButtonText}>Save Note</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </View>
       </Modal>
 
       {/* Coach Preview Modal */}
@@ -1686,6 +1815,58 @@ export default function DashboardScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Quit Reasons Modal */}
+      <Modal
+        visible={showQuitReasonsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowQuitReasonsModal(false)}
+      >
+        <View style={styles.premiumModalContainer}>
+          <StarField />
+          
+          <SafeAreaView style={styles.premiumModalSafeArea}>
+            <View style={styles.premiumModalHeader}>
+              <TouchableOpacity 
+                style={styles.premiumCloseButton}
+                onPress={() => setShowQuitReasonsModal(false)}
+              >
+                <Text style={styles.premiumCloseButtonText}>✕</Text>
+              </TouchableOpacity>
+              <Text style={styles.premiumModalTitle}>Why I'm Quitting</Text>
+              <View style={styles.premiumModalSpacer} />
+            </View>
+
+            <View style={styles.premiumModalContent}>
+              <View style={styles.premiumReflectionCard}>
+                <View style={styles.premiumCardGlow} />
+                <Text style={styles.premiumReflectionTitle}>My Quit Reasons</Text>
+                <Text style={styles.quitReasonsDescription}>
+                  Write down your personal reasons for quitting. This will help motivate you during challenging moments.
+                </Text>
+                
+                <View style={styles.premiumInputContainer}>
+                  <TextInput
+                    style={styles.premiumReflectionInput}
+                    multiline
+                    numberOfLines={6}
+                    placeholder="I'm quitting because I want to improve my health, save money, be a better role model for my family..."
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    value={tempQuitReasons}
+                    onChangeText={setTempQuitReasons}
+                  />
+                </View>
+                
+                <TouchableOpacity style={styles.premiumSaveButton} onPress={saveQuitReasons}>
+                  <View style={styles.premiumSaveButtonGlow} />
+                  <Text style={styles.premiumSaveButtonText}>Save My Reasons</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1784,9 +1965,13 @@ const styles = StyleSheet.create({
   // Premium Weekly Progress Tracker - Glass Morphism
   premiumWeeklyContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 28,
-    paddingHorizontal: 20,
+    paddingHorizontal: Math.max(16, (Dimensions.get('window').width - (7 * 48 + 6 * 8)) / 2), // Dynamic padding based on screen width
+    gap: Math.min(10, Math.max(6, (Dimensions.get('window').width - 7 * 48 - 32) / 6)), // Responsive gap
+    flexWrap: 'nowrap',
+    minWidth: 0,
   },
   
   premiumWeeklyItem: {
@@ -1873,7 +2058,7 @@ const styles = StyleSheet.create({
   // Tree Growth System - Compact
   treeContainer: {
     alignItems: 'center',
-    marginBottom: 20, // Reduced from 24
+    marginBottom: 32, // Restored proper spacing
   },
   treeCircle: {
     width: 120, // Much smaller - was 160
@@ -1918,7 +2103,7 @@ const styles = StyleSheet.create({
     fontSize: 12, // Smaller text
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: 8, // Reduced spacing
+    marginTop: 16, // Restored proper spacing
     opacity: 0.9,
     letterSpacing: 0.3,
   },
@@ -1927,7 +2112,8 @@ const styles = StyleSheet.create({
     height: 3, // Thinner
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 2,
-    marginTop: 8, // Less spacing
+    marginTop: 16, // Restored proper spacing
+    marginBottom: 24, // Increased bottom margin for proper separation
     overflow: 'hidden',
   },
   treeProgressFill: {
@@ -2000,21 +2186,22 @@ const styles = StyleSheet.create({
   coachPreviewButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 25,
-    paddingHorizontal: 24,
+    paddingHorizontal: Math.max(20, Math.min(32, Dimensions.get('window').width * 0.06)), // Responsive horizontal padding
     paddingVertical: 16,
-    marginHorizontal: 20,
+    marginHorizontal: Math.max(16, Math.min(24, Dimensions.get('window').width * 0.05)), // Responsive margins
     marginTop: 4,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: Theme.colors.purple[500] + '40',
+    borderWidth: 2,
+    borderColor: Theme.colors.purple[500] + '80',
     shadowColor: Theme.colors.purple[500],
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 0, // Prevents overflow
   },
   coachPreviewText: {
     color: '#FFFFFF',
@@ -2037,8 +2224,8 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32, // Multiple of 4 - reduced from 50
-    paddingHorizontal: 20,
+    marginBottom: 32,
+    paddingHorizontal: Math.max(16, Math.min(24, Dimensions.get('window').width * 0.05)), // Responsive padding: 5% of screen width, min 16px, max 24px
   },
   actionButton: {
     alignItems: 'center',
@@ -3159,11 +3346,11 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   premiumDayCell: {
-    width: '13.5%', // Adjusted for smaller gap
+    width: `${Math.max(12, Math.min(15, (100 - 6) / 7))}%`, // Responsive width for 7 days
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8, // Smaller radius - was 12
+    borderRadius: Math.max(6, Math.min(10, Dimensions.get('window').width * 0.02)), // Responsive border radius
     position: 'relative',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 }, // Minimal shadow
@@ -3305,130 +3492,666 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.secondary,
   },
   
-  // Modal styles
-  modalContainer: {
+  // Premium Modal Styles
+  premiumModalContainer: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: '#0A0A0F',
   },
-  modalHeader: {
+  premiumModalSafeArea: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  premiumModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2A',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
   },
-  modalCloseButton: {
-    fontSize: 24,
-    color: Theme.colors.text.primary,
-    width: 32,
+  premiumCloseButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalTitle: {
+  premiumCloseButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  premiumModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
     flex: 1,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  modalSpacer: {
-    width: 32,
+  premiumModalSpacer: {
+    width: 40,
   },
-  modalContent: {
+  premiumModalContent: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
-  dayScoreCard: {
-    padding: 24,
-    marginBottom: 16,
+  
+  // Premium Score Card
+  premiumScoreCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    borderRadius: 24,
+    padding: 32,
+    marginBottom: 24,
     alignItems: 'center',
-    backgroundColor: '#4C1D95',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  dayScoreTitle: {
+  premiumScoreGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderRadius: 24,
+    opacity: 0.8,
+  },
+  premiumScoreLabel: {
     fontSize: 16,
-    color: '#B8A3FF',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 12,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  premiumScoreValue: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 8,
+    textShadowColor: 'rgba(139, 92, 246, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  dayScoreValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
+  premiumScoreDescription: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  dayScoreDesc: {
-    fontSize: 14,
-    color: Theme.colors.text.secondary,
-  },
-  activitiesCard: {
+  
+  // Premium Activities Card
+  premiumActivitiesCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
     padding: 24,
-    marginBottom: 16,
-    backgroundColor: '#1A1A1A',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  activitiesTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
-    marginBottom: 16,
+  premiumCardGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 20,
   },
-  activityItem: {
+  premiumActivitiesTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 20,
+    letterSpacing: 0.5,
+  },
+  premiumActivitiesList: {
+    gap: 16,
+  },
+  premiumActivityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A2A2A',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
-  activityIcon: {
-    fontSize: 24,
+  premiumActivityIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 16,
   },
-  activityInfo: {
+  premiumActivityIcon: {
+    fontSize: 24,
+  },
+  premiumActivityInfo: {
     flex: 1,
   },
-  activityType: {
+  premiumActivityType: {
     fontSize: 16,
     fontWeight: '600',
-    color: Theme.colors.text.primary,
-    marginBottom: 2,
+    color: '#FFFFFF',
+    marginBottom: 4,
+    letterSpacing: 0.3,
   },
-  activityTime: {
+  premiumActivityTime: {
     fontSize: 14,
-    color: Theme.colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '500',
   },
-  activityPoints: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: Theme.colors.purple[500],
-  },
-  notesCard: {
-    padding: 24,
-    backgroundColor: '#1A1A1A',
-  },
-  notesTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
-    marginBottom: 16,
-  },
-  notesInput: {
-    backgroundColor: '#2A2A2A',
+  premiumPointsBadge: {
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+  },
+  premiumActivityPoints: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#90D5FF',
+    letterSpacing: 0.3,
+  },
+  
+  // Premium Reflection Card
+  premiumReflectionCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumReflectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 20,
+    letterSpacing: 0.5,
+  },
+  premiumInputContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 20,
+  },
+  premiumReflectionInput: {
+    padding: 20,
     fontSize: 16,
-    color: Theme.colors.text.primary,
-    minHeight: 100,
+    color: '#FFFFFF',
+    minHeight: 120,
     textAlignVertical: 'top',
+    fontWeight: '500',
+    lineHeight: 24,
+  },
+  premiumSaveButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    width: '100%',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumSaveButtonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 16,
+  },
+  premiumSaveButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+
+  // Motivational Dashboard Section Styles
+  motivationalSection: {
+    width: '100%', // Match other dashboard containers
+    marginBottom: 24,
+    gap: 16,
+  },
+  motivationalTopRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  
+  // Quit Goal Card
+  quitGoalCard: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    shadowColor: '#22C55E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  quitGoalGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(34, 197, 94, 0.05)',
+    borderRadius: 20,
+  },
+  quitGoalIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.4)',
+  },
+  quitGoalIconText: {
+    fontSize: 20,
+    color: '#22C55E',
+    fontWeight: '700',
+  },
+  quitGoalLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  quitGoalDate: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  
+  // Temptation Status Card
+  temptationCard: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    shadowColor: '#FBB024',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  temptationGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    borderRadius: 20,
+  },
+  temptationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(251, 191, 36, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+  },
+  temptationIconText: {
+    fontSize: 20,
+  },
+  temptationLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  temptationStatus: {
+    fontSize: 18,
+    color: '#22C55E',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  
+  // Quit Reasons Card
+  quitReasonsCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  quitReasonsGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 20,
+  },
+  quitReasonsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  saveButton: {
-    backgroundColor: Theme.colors.purple[500],
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignSelf: 'flex-end',
+  quitReasonsIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  saveButtonText: {
+  quitReasonsIcon: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '600',
+  },
+  quitReasonsTitle: {
+    flex: 1,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '600',
+  },
+  editIcon: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editIconText: {
+    fontSize: 16,
+  },
+  quitReasonsPlaceholder: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  bestStreakContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.2)',
+  },
+  bestStreakIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  bestStreakText: {
+    fontSize: 14,
+    color: '#90D5FF',
+    fontWeight: '600',
+  },
+  
+  // Quit Reasons Modal Description
+  quitReasonsDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  // Premium Support Section Styles
+  premiumSupportCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.2)',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumSupportGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+    borderRadius: 20,
+  },
+  premiumSupportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  premiumSupportIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  premiumSupportIcon: {
+    fontSize: 20,
+  },
+  premiumSupportTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  premiumSupportDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  premiumSupportButtons: {
+    gap: 12,
+  },
+  
+  // Premium Coach Button
+  premiumCoachButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumCoachButtonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 16,
+  },
+  premiumButtonIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  premiumButtonIcon: {
+    fontSize: 16,
+  },
+  premiumCoachButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Theme.colors.text.primary,
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  
+  // Premium Crisis Button
+  premiumCrisisButton: {
+    position: 'relative',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumCrisisButtonGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 16,
+  },
+  premiumCrisisButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+
+  // Premium Health Fact Card
+  premiumHealthFactCard: {
+    position: 'relative',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+    shadowColor: '#22C55E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumHealthFactGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(34, 197, 94, 0.05)',
+    borderRadius: 20,
+  },
+  premiumHealthFactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumHealthFactIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  premiumHealthFactIcon: {
+    fontSize: 20,
+  },
+  premiumHealthFactTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  premiumHealthFactText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 22,
+    fontWeight: '500',
   },
 
   // Coach Preview Modal Styles

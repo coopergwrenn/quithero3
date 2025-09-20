@@ -14,7 +14,13 @@ export default function ToolsScreen() {
   const handleToolPress = (tool: any) => {
     analytics.trackToolOpened(tool.id, 'tools_tab');
     notifications.markToolUsed();
-    router.push(tool.route as any);
+    
+    // Handle special routing for learn library
+    if (tool.id === 'learn') {
+      router.push('/learn-library' as any);
+    } else {
+      router.push(tool.route as any);
+    }
   };
 
   const handleEmergencyPress = () => {
@@ -59,6 +65,15 @@ export default function ToolsScreen() {
       color: Theme.colors.success.text,
       route: '/(app)/tools/pledge',
       category: 'Commitment',
+    },
+    {
+      id: 'learn',
+      title: 'Learn Library',
+      description: 'Educational articles, guides, and science-backed strategies',
+      icon: '📚',
+      color: Theme.colors.purple[500],
+      route: '/learn-library', // We'll create this route
+      category: 'Education',
     },
   ];
 
