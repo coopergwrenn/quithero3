@@ -84,25 +84,68 @@ export default function AnalyticsScreen() {
           {/* Recovery Ring */}
           {viewMode === 'ring' && (
             <View style={styles.ringContainer}>
-              <View style={styles.ring}>
-                <View style={styles.ringBackground} />
-                <Animated.View
-                  style={[
-                    styles.ringProgress,
-                    {
-                      transform: [{
-                        rotate: animatedValue.interpolate({
-                          inputRange: [0, 100],
-                          outputRange: ['-90deg', '270deg'],
-                        })
-                      }]
-                    }
-                  ]}
-                />
-                <View style={styles.ringCenter}>
-                  <Text style={styles.recoveryTitle}>RECOVERY</Text>
-                  <Text style={styles.recoveryPercentage}>{percentage}%</Text>
-                  <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
+              {/* Outer glow container */}
+              <View style={styles.ringGlowContainer}>
+                <View style={styles.ring}>
+                  {/* Background circle */}
+                  <View style={styles.ringBackground} />
+                  
+                  {/* Progress circle with glow */}
+                  <Animated.View
+                    style={[
+                      styles.ringProgress,
+                      {
+                        transform: [{
+                          rotate: animatedValue.interpolate({
+                            inputRange: [0, 100],
+                            outputRange: ['-90deg', '270deg'],
+                          })
+                        }]
+                      }
+                    ]}
+                  />
+                  
+                  {/* Progress glow effect */}
+                  <Animated.View
+                    style={[
+                      styles.ringProgressGlow,
+                      {
+                        transform: [{
+                          rotate: animatedValue.interpolate({
+                            inputRange: [0, 100],
+                            outputRange: ['-90deg', '270deg'],
+                          })
+                        }]
+                      }
+                    ]}
+                  />
+                  
+                  {/* Green progress indicator dot */}
+                  {percentage > 0 && (
+                    <Animated.View
+                      style={[
+                        styles.progressDot,
+                        {
+                          transform: [
+                            {
+                              rotate: animatedValue.interpolate({
+                                inputRange: [0, 100],
+                                outputRange: ['0deg', '360deg'],
+                              })
+                            },
+                            { translateY: -88 } // Position on ring edge
+                          ]
+                        }
+                      ]}
+                    />
+                  )}
+                  
+                  {/* Center content */}
+                  <View style={styles.ringCenter}>
+                    <Text style={styles.recoveryTitle}>RECOVERY</Text>
+                    <Text style={styles.recoveryPercentage}>{percentage}%</Text>
+                    <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -120,40 +163,55 @@ export default function AnalyticsScreen() {
           )}
 
           {/* Quit Goal Card */}
-          <Card style={styles.goalCard}>
-            <Text style={styles.goalText}>You're on track to quit by:</Text>
-            <Text style={styles.goalDate}>Dec 19, 2025</Text>
-          </Card>
+          <View style={styles.premiumCard}>
+            <View style={styles.premiumCardGlow} />
+            <View style={styles.premiumCardContent}>
+              <Text style={styles.goalText}>You're on track to quit by:</Text>
+              <Text style={styles.goalDate}>Dec 19, 2025</Text>
+            </View>
+          </View>
 
           {/* Level Progress */}
-          <Card style={styles.levelCard}>
-            <View style={styles.levelHeader}>
-              <View style={styles.levelBadge}>
-                <Text style={styles.levelIcon}>🥉</Text>
+          <View style={styles.premiumCard}>
+            <View style={styles.premiumCardGlow} />
+            <View style={styles.premiumCardContent}>
+              <View style={styles.levelHeader}>
+                <View style={styles.levelBadge}>
+                  <View style={styles.levelBadgeGlow} />
+                  <Text style={styles.levelIcon}>🥉</Text>
+                </View>
+                <View style={styles.levelInfo}>
+                  <Text style={styles.levelTitle}>Level {level}</Text>
+                  <Text style={styles.levelProgress}>{Math.round(((daysSinceQuit % 30) / 30) * 100)}%</Text>
+                </View>
               </View>
-              <View style={styles.levelInfo}>
-                <Text style={styles.levelTitle}>Level {level}</Text>
-                <Text style={styles.levelProgress}>{Math.round(((daysSinceQuit % 30) / 30) * 100)}%</Text>
+              
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBarBackground} />
+                <View style={[styles.progressBar, { width: `${((daysSinceQuit % 30) / 30) * 100}%` }]} />
+                <View style={[styles.progressBarGlow, { width: `${((daysSinceQuit % 30) / 30) * 100}%` }]} />
               </View>
+              
+              <Text style={styles.levelDescription}>
+                You don't have urges anymore, mind is clear and physical form is almost at it's peak.
+              </Text>
             </View>
-            
-            <View style={styles.progressBarContainer}>
-              <View style={[styles.progressBar, { width: `${((daysSinceQuit % 30) / 30) * 100}%` }]} />
-            </View>
-            
-            <Text style={styles.levelDescription}>
-              You don't have urges anymore, mind is clear and physical form is almost at it's peak.
-            </Text>
-          </Card>
+          </View>
 
           {/* Bottom Stats Cards */}
           <View style={styles.bottomCards}>
-            <Card style={styles.statCard}>
-              <Text style={styles.statValue}>0d</Text>
-            </Card>
-            <Card style={styles.statCard}>
-              <Text style={styles.statValue}>0d</Text>
-            </Card>
+            <View style={styles.premiumStatCard}>
+              <View style={styles.premiumCardGlow} />
+              <View style={styles.premiumCardContent}>
+                <Text style={styles.statValue}>0d</Text>
+              </View>
+            </View>
+            <View style={styles.premiumStatCard}>
+              <View style={styles.premiumCardGlow} />
+              <View style={styles.premiumCardContent}>
+                <Text style={styles.statValue}>0d</Text>
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -187,63 +245,113 @@ const styles = StyleSheet.create({
   // Toggle Styles
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: Theme.colors.dark.surface,
-    borderRadius: 25,
-    padding: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 28,
+    padding: 6,
     marginBottom: Theme.spacing.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   toggleButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 21,
-    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 22,
+    gap: 10,
+    position: 'relative',
   },
   toggleButtonActive: {
-    backgroundColor: Theme.colors.purple[500],
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
   },
   toggleText: {
     ...Theme.typography.footnote,
     color: Theme.colors.text.secondary,
     fontWeight: '600',
+    fontSize: 15,
   },
   toggleTextActive: {
-    color: '#FFFFFF',
+    color: Theme.colors.purple[500],
+    fontWeight: '700',
   },
   
   // Ring Styles
   ringContainer: {
     alignItems: 'center',
     marginBottom: Theme.spacing.xl,
+    paddingVertical: Theme.spacing.lg,
+  },
+  ringGlowContainer: {
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
   },
   ring: {
-    width: 200,
-    height: 200,
+    width: 240,
+    height: 240,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
   ringBackground: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 12,
-    borderColor: Theme.colors.dark.surface,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    borderWidth: 16,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   ringProgress: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 12,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    borderWidth: 16,
     borderColor: Theme.colors.purple[500],
     borderTopColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: 'transparent',
+  },
+  ringProgressGlow: {
+    position: 'absolute',
+    width: 248,
+    height: 248,
+    borderRadius: 124,
+    borderWidth: 20,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    borderTopColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: 'transparent',
+  },
+  progressDot: {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#4ADE80', // Green dot like QUITTR
+    shadowColor: '#4ADE80',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   ringCenter: {
     alignItems: 'center',
@@ -252,63 +360,111 @@ const styles = StyleSheet.create({
   recoveryTitle: {
     ...Theme.typography.caption1,
     color: Theme.colors.text.secondary,
-    fontWeight: '600',
-    letterSpacing: 2,
-    marginBottom: 4,
+    fontWeight: '700',
+    letterSpacing: 3,
+    marginBottom: 8,
+    fontSize: 12,
   },
   recoveryPercentage: {
     ...Theme.typography.largeTitle,
     color: Theme.colors.text.primary,
-    fontWeight: '700',
-    fontSize: 48,
-    lineHeight: 52,
+    fontWeight: '800',
+    fontSize: 56,
+    lineHeight: 60,
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   recoveryStreak: {
     ...Theme.typography.caption1,
     color: Theme.colors.text.tertiary,
     fontWeight: '600',
-    letterSpacing: 1,
-    marginTop: 4,
+    letterSpacing: 2,
+    marginTop: 8,
+    fontSize: 11,
   },
   
-  // Goal Card Styles
-  goalCard: {
-    padding: Theme.spacing.lg,
+  // Premium Card Styles
+  premiumCard: {
+    position: 'relative',
     marginBottom: Theme.spacing.lg,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  premiumCardGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  premiumCardContent: {
+    padding: Theme.spacing.xl,
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 2,
   },
   goalText: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
-    marginBottom: Theme.spacing.xs,
+    marginBottom: Theme.spacing.sm,
+    fontSize: 16,
   },
   goalDate: {
     ...Theme.typography.title2,
     color: Theme.colors.text.primary,
-    fontWeight: '700',
+    fontWeight: '800',
+    fontSize: 24,
+    textShadowColor: 'rgba(144, 213, 255, 0.2)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   
   // Level Card Styles
-  levelCard: {
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.lg,
-  },
   levelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Theme.spacing.md,
+    marginBottom: Theme.spacing.lg,
+    width: '100%',
   },
   levelBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#CD7F32', // Bronze color
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#CD7F32',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Theme.spacing.md,
+    marginRight: Theme.spacing.lg,
+    position: 'relative',
+    shadowColor: '#CD7F32',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  levelBadgeGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 30,
+    backgroundColor: 'rgba(205, 127, 50, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(205, 127, 50, 0.3)',
   },
   levelIcon: {
-    fontSize: 24,
+    fontSize: 28,
+    zIndex: 2,
   },
   levelInfo: {
     flex: 1,
@@ -319,29 +475,54 @@ const styles = StyleSheet.create({
   levelTitle: {
     ...Theme.typography.headline,
     color: Theme.colors.text.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 20,
   },
   levelProgress: {
     ...Theme.typography.headline,
     color: Theme.colors.text.secondary,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 20,
   },
   progressBarContainer: {
-    height: 8,
-    backgroundColor: Theme.colors.dark.surface,
-    borderRadius: 4,
-    marginBottom: Theme.spacing.md,
+    height: 12,
+    borderRadius: 6,
+    marginBottom: Theme.spacing.lg,
     overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+  },
+  progressBarBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 6,
   },
   progressBar: {
     height: '100%',
     backgroundColor: Theme.colors.purple[500],
-    borderRadius: 4,
+    borderRadius: 6,
+    position: 'relative',
+    zIndex: 2,
+  },
+  progressBarGlow: {
+    position: 'absolute',
+    top: -1,
+    left: 0,
+    height: 14,
+    backgroundColor: 'rgba(144, 213, 255, 0.3)',
+    borderRadius: 7,
+    zIndex: 1,
   },
   levelDescription: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
-    lineHeight: 22,
+    lineHeight: 24,
+    textAlign: 'center',
+    fontSize: 15,
   },
   
   // Radar View Styles
@@ -375,15 +556,21 @@ const styles = StyleSheet.create({
   bottomCards: {
     flexDirection: 'row',
     gap: Theme.spacing.md,
+    marginTop: Theme.spacing.md,
   },
-  statCard: {
+  premiumStatCard: {
     flex: 1,
-    padding: Theme.spacing.lg,
-    alignItems: 'center',
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   statValue: {
     ...Theme.typography.title2,
     color: Theme.colors.text.primary,
-    fontWeight: '700',
+    fontWeight: '800',
+    fontSize: 22,
+    textShadowColor: 'rgba(144, 213, 255, 0.2)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
 });
