@@ -88,54 +88,56 @@ export default function AnalyticsScreen() {
                 {/* Background circle */}
                 <View style={styles.ringBackground} />
                 
-                {/* Progress circle with glow */}
-                <Animated.View
-                  style={[
-                    styles.ringProgress,
-                    {
-                      transform: [{
-                        rotate: animatedValue.interpolate({
-                          inputRange: [0, 100],
-                          outputRange: ['-90deg', '270deg'], // Full circle progress (360deg - 90deg start)
-                        })
-                      }]
-                    }
-                  ]}
-                />
-                
-                {/* Progress glow effect */}
-                <Animated.View
-                  style={[
-                    styles.ringProgressGlow,
-                    {
-                      transform: [{
-                        rotate: animatedValue.interpolate({
-                          inputRange: [0, 100],
-                          outputRange: ['-90deg', '270deg'], // Match the progress circle
-                        })
-                      }]
-                    }
-                  ]}
-                />
-                
-                {/* Green progress indicator dot */}
+                {/* Progress circle with glow - only show if there's progress */}
                 {percentage > 0 && (
-                  <Animated.View
-                    style={[
-                      styles.progressDot,
-                      {
-                        transform: [
-                          {
+                  <>
+                    <Animated.View
+                      style={[
+                        styles.ringProgress,
+                        {
+                          transform: [{
                             rotate: animatedValue.interpolate({
                               inputRange: [0, 100],
-                              outputRange: ['-90deg', '270deg'], // Match progress exactly
+                              outputRange: ['-90deg', '270deg'], // Full circle progress (360deg - 90deg start)
                             })
-                          },
-                          { translateY: -112 } // Position on ring edge (120px radius - 8px dot radius)
-                        ]
-                      }
-                    ]}
-                  />
+                          }]
+                        }
+                      ]}
+                    />
+                    
+                    {/* Progress glow effect */}
+                    <Animated.View
+                      style={[
+                        styles.ringProgressGlow,
+                        {
+                          transform: [{
+                            rotate: animatedValue.interpolate({
+                              inputRange: [0, 100],
+                              outputRange: ['-90deg', '270deg'], // Match the progress circle
+                            })
+                          }]
+                        }
+                      ]}
+                    />
+                    
+                    {/* Green progress indicator dot */}
+                    <Animated.View
+                      style={[
+                        styles.progressDot,
+                        {
+                          transform: [
+                            {
+                              rotate: animatedValue.interpolate({
+                                inputRange: [0, 100],
+                                outputRange: ['-90deg', '270deg'], // Match progress exactly
+                              })
+                            },
+                            { translateY: -112 } // Position on ring edge (120px radius - 8px dot radius)
+                          ]
+                        }
+                      ]}
+                    />
+                  </>
                 )}
                 
                 {/* Center content */}
