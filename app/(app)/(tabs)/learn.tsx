@@ -6,6 +6,7 @@ import { Card } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { analytics } from '@/src/services/analytics';
 import { BarChart3, PieChart } from 'lucide-react-native';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 export default function AnalyticsScreen() {
   const [viewMode, setViewMode] = useState<'ring' | 'radar'>('ring');
@@ -24,14 +25,17 @@ export default function AnalyticsScreen() {
     const quitTime = new Date(quitDate).getTime();
     const daysSinceQuit = Math.floor((now.getTime() - quitTime) / (1000 * 60 * 60 * 24));
     
-    // Recovery percentage calculation
+    // Recovery percentage calculation - Based on realistic addiction recovery science
     let percentage = 0;
-    if (daysSinceQuit >= 1) percentage = Math.min(10, percentage + 10);
-    if (daysSinceQuit >= 3) percentage = Math.min(25, percentage + 15);
-    if (daysSinceQuit >= 7) percentage = Math.min(40, percentage + 15);
-    if (daysSinceQuit >= 30) percentage = Math.min(60, percentage + 20);
-    if (daysSinceQuit >= 90) percentage = Math.min(80, percentage + 20);
-    if (daysSinceQuit >= 365) percentage = 100;
+    if (daysSinceQuit >= 1) percentage = 2;   // Day 1: Nicotine withdrawal begins
+    if (daysSinceQuit >= 3) percentage = 5;   // Day 3: Nicotine fully out of system
+    if (daysSinceQuit >= 7) percentage = 8;   // Week 1: Initial brain healing
+    if (daysSinceQuit >= 14) percentage = 12; // Week 2: Circulation improves
+    if (daysSinceQuit >= 30) percentage = 18; // Month 1: Lung function improving
+    if (daysSinceQuit >= 60) percentage = 25; // Month 2: Cravings reducing
+    if (daysSinceQuit >= 90) percentage = 35; // Month 3: Major brain healing
+    if (daysSinceQuit >= 180) percentage = 60; // Month 6: Significant lifestyle changes
+    if (daysSinceQuit >= 365) percentage = 100; // Year 1: Full recovery milestone
     
     const level = Math.floor(daysSinceQuit / 30);
     
@@ -40,16 +44,112 @@ export default function AnalyticsScreen() {
 
   const { percentage, daysSinceQuit, level } = calculateRecoveryMetrics();
 
-  // Animated ring progress
-  const animatedValue = new Animated.Value(0);
-  
-  useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: percentage,
-      duration: 1500,
-      useNativeDriver: false,
-    }).start();
-  }, [percentage]);
+  // Recovery benefits data - vape-specific and original to QuitHero
+  const recoveryBenefits = [
+    {
+      id: 'lung_capacity',
+      icon: '🫁',
+      title: 'Lung Capacity Restored',
+      description: 'Breathing becomes easier, lung function improves',
+      unlockDay: 3,
+      category: 'Physical'
+    },
+    {
+      id: 'throat_recovery',
+      icon: '🗣️',
+      title: 'Throat & Voice Recovery',
+      description: 'No more sore throat, voice clarity returns',
+      unlockDay: 7,
+      category: 'Physical'
+    },
+    {
+      id: 'taste_smell',
+      icon: '👃',
+      title: 'Taste & Smell Return',
+      description: 'Food tastes better, scents become vivid again',
+      unlockDay: 14,
+      category: 'Physical'
+    },
+    {
+      id: 'mental_clarity',
+      icon: '🧠',
+      title: 'Mental Clarity',
+      description: 'Brain fog lifts, focus and memory improve',
+      unlockDay: 21,
+      category: 'Mental'
+    },
+    {
+      id: 'reduced_anxiety',
+      icon: '😌',
+      title: 'Reduced Anxiety',
+      description: 'Less nicotine-induced anxiety and mood swings',
+      unlockDay: 30,
+      category: 'Mental'
+    },
+    {
+      id: 'financial_freedom',
+      icon: '💰',
+      title: 'Financial Freedom',
+      description: 'Money saved from not buying vapes and pods',
+      unlockDay: 45,
+      category: 'Lifestyle'
+    },
+    {
+      id: 'social_confidence',
+      icon: '👥',
+      title: 'Social Confidence',
+      description: 'No more hiding vaping, fresh breath confidence',
+      unlockDay: 60,
+      category: 'Social'
+    },
+    {
+      id: 'better_sleep',
+      icon: '😴',
+      title: 'Better Sleep Quality',
+      description: 'Deeper, more restful sleep without nicotine',
+      unlockDay: 90,
+      category: 'Physical'
+    }
+  ];
+
+  const renderRecoveryBenefits = () => {
+    return recoveryBenefits.map((benefit) => {
+      const isUnlocked = daysSinceQuit >= benefit.unlockDay;
+      const progress = isUnlocked ? 100 : Math.min(95, (daysSinceQuit / benefit.unlockDay) * 100);
+      
+      return (
+        <View key={benefit.id} style={styles.benefitCard}>
+          <View style={styles.benefitHeader}>
+            <View style={[styles.benefitIcon, isUnlocked && styles.benefitIconUnlocked]}>
+              <Text style={styles.benefitEmoji}>{benefit.icon}</Text>
+            </View>
+            <View style={styles.benefitInfo}>
+              <Text style={[styles.benefitTitle, isUnlocked && styles.benefitTitleUnlocked]}>
+                {benefit.title}
+              </Text>
+              <Text style={styles.benefitDescription}>{benefit.description}</Text>
+            </View>
+            <View style={styles.benefitStatus}>
+              <Text style={[styles.benefitProgress, isUnlocked && styles.benefitProgressUnlocked]}>
+                {Math.round(progress)}%
+              </Text>
+            </View>
+          </View>
+          <View style={styles.benefitProgressContainer}>
+            <View style={styles.progressBarBackground} />
+            <View 
+              style={[
+                styles.progressBarFill, 
+                { width: `${progress}%` },
+                isUnlocked && styles.progressBarFillUnlocked
+              ]} 
+            />
+          </View>
+        </View>
+      );
+    });
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -84,69 +184,24 @@ export default function AnalyticsScreen() {
           {/* Recovery Ring */}
           {viewMode === 'ring' && (
             <View style={styles.ringContainer}>
-              <View style={styles.ring}>
-                {/* Background circle */}
-                <View style={styles.ringBackground} />
-                
-                {/* Progress circle with glow - only show if there's progress */}
-                {percentage > 0 && (
-                  <>
-                    <Animated.View
-                      style={[
-                        styles.ringProgress,
-                        {
-                          transform: [{
-                            rotate: animatedValue.interpolate({
-                              inputRange: [0, 100],
-                              outputRange: ['-90deg', '270deg'], // Full circle progress (360deg - 90deg start)
-                            })
-                          }]
-                        }
-                      ]}
-                    />
-                    
-                    {/* Progress glow effect */}
-                    <Animated.View
-                      style={[
-                        styles.ringProgressGlow,
-                        {
-                          transform: [{
-                            rotate: animatedValue.interpolate({
-                              inputRange: [0, 100],
-                              outputRange: ['-90deg', '270deg'], // Match the progress circle
-                            })
-                          }]
-                        }
-                      ]}
-                    />
-                    
-                    {/* Green progress indicator dot */}
-                    <Animated.View
-                      style={[
-                        styles.progressDot,
-                        {
-                          transform: [
-                            {
-                              rotate: animatedValue.interpolate({
-                                inputRange: [0, 100],
-                                outputRange: ['-90deg', '270deg'], // Match progress exactly
-                              })
-                            },
-                            { translateY: -112 } // Position on ring edge (120px radius - 8px dot radius)
-                          ]
-                        }
-                      ]}
-                    />
-                  </>
+              <AnimatedCircularProgress
+                size={240}
+                width={16}
+                fill={percentage}
+                tintColor={Theme.colors.purple[500]}
+                backgroundColor="rgba(255, 255, 255, 0.08)"
+                rotation={0}
+                lineCap="round"
+                duration={1000}
+              >
+                {() => (
+                  <View style={styles.ringCenter}>
+                    <Text style={styles.recoveryTitle}>RECOVERY</Text>
+                    <Text style={styles.recoveryPercentage}>{percentage}%</Text>
+                    <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
+                  </View>
                 )}
-                
-                {/* Center content */}
-                <View style={styles.ringCenter}>
-                  <Text style={styles.recoveryTitle}>RECOVERY</Text>
-                  <Text style={styles.recoveryPercentage}>{percentage}%</Text>
-                  <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
-                </View>
-              </View>
+              </AnimatedCircularProgress>
             </View>
           )}
 
@@ -197,20 +252,30 @@ export default function AnalyticsScreen() {
             </View>
           </View>
 
-          {/* Bottom Stats Cards */}
-          <View style={styles.bottomCards}>
-            <View style={styles.premiumStatCard}>
-              <View style={styles.premiumCardGlow} />
-              <View style={styles.premiumCardContent}>
-                <Text style={styles.statValue}>0d</Text>
-              </View>
+          {/* Stats Cards */}
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{daysSinceQuit}d</Text>
+              <Text style={styles.statLabel}>Current Streak</Text>
             </View>
-            <View style={styles.premiumStatCard}>
-              <View style={styles.premiumCardGlow} />
-              <View style={styles.premiumCardContent}>
-                <Text style={styles.statValue}>0d</Text>
-              </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{daysSinceQuit}d</Text>
+              <Text style={styles.statLabel}>Highest Streak</Text>
             </View>
+          </View>
+
+          {/* Daily Activities */}
+          <View style={styles.activitiesCard}>
+            <Text style={styles.activitiesCount}>0/6</Text>
+            <Text style={styles.activitiesLabel}>Daily activities completed</Text>
+          </View>
+
+          {/* Recovery Benefits Section */}
+          <View style={styles.benefitsSection}>
+            <Text style={styles.benefitsTitle}>Your Recovery Journey</Text>
+            <Text style={styles.benefitsSubtitle}>Track your vape-free transformation</Text>
+            
+            {renderRecoveryBenefits()}
           </View>
         </View>
       </ScrollView>
@@ -294,53 +359,6 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.xl,
     paddingVertical: Theme.spacing.lg,
   },
-  ring: {
-    width: 240,
-    height: 240,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ringBackground: {
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    borderWidth: 16,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  ringProgress: {
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    borderWidth: 16,
-    borderColor: 'transparent',
-    borderLeftColor: Theme.colors.purple[500],
-  },
-  ringProgressGlow: {
-    position: 'absolute',
-    width: 248,
-    height: 248,
-    borderRadius: 124,
-    borderWidth: 20,
-    borderColor: 'transparent',
-    borderLeftColor: 'rgba(144, 213, 255, 0.3)',
-  },
-  progressDot: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#4ADE80', // Green dot like QUITTR
-    shadowColor: '#4ADE80',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 6,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-  },
   ringCenter: {
     alignItems: 'center',
     zIndex: 10,
@@ -417,42 +435,24 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   
-  // Level Card Styles
+  // Level Card Styles - Compact
   levelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Theme.spacing.lg,
+    marginBottom: 8,
     width: '100%',
   },
   levelBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#CD7F32',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Theme.spacing.lg,
-    position: 'relative',
-    shadowColor: '#CD7F32',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  levelBadgeGlow: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: 30,
-    backgroundColor: 'rgba(205, 127, 50, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(205, 127, 50, 0.3)',
+    marginRight: 12,
   },
   levelIcon: {
-    fontSize: 28,
-    zIndex: 2,
+    fontSize: 20,
   },
   levelInfo: {
     flex: 1,
@@ -464,18 +464,18 @@ const styles = StyleSheet.create({
     ...Theme.typography.headline,
     color: Theme.colors.text.primary,
     fontWeight: '700',
-    fontSize: 20,
+    fontSize: 16,
   },
   levelProgress: {
     ...Theme.typography.headline,
     color: Theme.colors.text.secondary,
-    fontWeight: '700',
-    fontSize: 20,
+    fontWeight: '600',
+    fontSize: 14,
   },
   progressBarContainer: {
-    height: 12,
-    borderRadius: 6,
-    marginBottom: Theme.spacing.lg,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 8,
     overflow: 'hidden',
     position: 'relative',
     width: '100%',
@@ -508,9 +508,9 @@ const styles = StyleSheet.create({
   levelDescription: {
     ...Theme.typography.body,
     color: Theme.colors.text.secondary,
-    lineHeight: 24,
-    textAlign: 'center',
-    fontSize: 15,
+    lineHeight: 16,
+    fontSize: 12,
+    marginTop: 4,
   },
   
   // Radar View Styles
@@ -560,5 +560,135 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(144, 213, 255, 0.2)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 6,
+  },
+  
+  // New Analytics Styles - Compact Design
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statLabel: {
+    ...Theme.typography.caption1,
+    color: Theme.colors.text.secondary,
+    marginTop: 2,
+    textAlign: 'center',
+    fontSize: 12,
+  },
+  activitiesCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 24,
+  },
+  activitiesCount: {
+    ...Theme.typography.largeTitle,
+    color: Theme.colors.text.primary,
+    fontWeight: '800',
+    fontSize: 28,
+    textAlign: 'center',
+  },
+  activitiesLabel: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    textAlign: 'center',
+    marginTop: 2,
+    fontSize: 14,
+  },
+  benefitsSection: {
+    marginBottom: 20,
+  },
+  benefitsTitle: {
+    ...Theme.typography.title1,
+    color: Theme.colors.text.primary,
+    fontWeight: '700',
+    marginBottom: 2,
+    fontSize: 20,
+  },
+  benefitsSubtitle: {
+    ...Theme.typography.body,
+    color: Theme.colors.text.secondary,
+    marginBottom: 16,
+    fontSize: 14,
+  },
+  benefitCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 8,
+  },
+  benefitHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  benefitIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  benefitIconUnlocked: {
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+  },
+  benefitEmoji: {
+    fontSize: 20,
+  },
+  benefitInfo: {
+    flex: 1,
+  },
+  benefitTitle: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+    fontWeight: '600',
+    marginBottom: 1,
+    fontSize: 16,
+  },
+  benefitTitleUnlocked: {
+    color: Theme.colors.text.primary,
+  },
+  benefitDescription: {
+    ...Theme.typography.caption1,
+    color: Theme.colors.text.secondary,
+    lineHeight: 16,
+    fontSize: 12,
+  },
+  benefitStatus: {
+    alignItems: 'flex-end',
+  },
+  benefitProgress: {
+    ...Theme.typography.headline,
+    color: Theme.colors.text.secondary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  benefitProgressUnlocked: {
+    color: Theme.colors.purple[500],
+  },
+  benefitProgressContainer: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginTop: 8,
   },
 });
