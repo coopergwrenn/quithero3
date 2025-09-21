@@ -84,68 +84,65 @@ export default function AnalyticsScreen() {
           {/* Recovery Ring */}
           {viewMode === 'ring' && (
             <View style={styles.ringContainer}>
-              {/* Outer glow container */}
-              <View style={styles.ringGlowContainer}>
-                <View style={styles.ring}>
-                  {/* Background circle */}
-                  <View style={styles.ringBackground} />
-                  
-                  {/* Progress circle with glow */}
+              <View style={styles.ring}>
+                {/* Background circle */}
+                <View style={styles.ringBackground} />
+                
+                {/* Progress circle with glow */}
+                <Animated.View
+                  style={[
+                    styles.ringProgress,
+                    {
+                      transform: [{
+                        rotate: animatedValue.interpolate({
+                          inputRange: [0, 100],
+                          outputRange: ['-90deg', '270deg'],
+                        })
+                      }]
+                    }
+                  ]}
+                />
+                
+                {/* Progress glow effect */}
+                <Animated.View
+                  style={[
+                    styles.ringProgressGlow,
+                    {
+                      transform: [{
+                        rotate: animatedValue.interpolate({
+                          inputRange: [0, 100],
+                          outputRange: ['-90deg', '270deg'],
+                        })
+                      }]
+                    }
+                  ]}
+                />
+                
+                {/* Green progress indicator dot */}
+                {percentage > 0 && (
                   <Animated.View
                     style={[
-                      styles.ringProgress,
+                      styles.progressDot,
                       {
-                        transform: [{
-                          rotate: animatedValue.interpolate({
-                            inputRange: [0, 100],
-                            outputRange: ['-90deg', '270deg'],
-                          })
-                        }]
+                        transform: [
+                          {
+                            rotate: animatedValue.interpolate({
+                              inputRange: [0, 100],
+                              outputRange: ['0deg', '360deg'],
+                            })
+                          },
+                          { translateY: -88 } // Position on ring edge
+                        ]
                       }
                     ]}
                   />
-                  
-                  {/* Progress glow effect */}
-                  <Animated.View
-                    style={[
-                      styles.ringProgressGlow,
-                      {
-                        transform: [{
-                          rotate: animatedValue.interpolate({
-                            inputRange: [0, 100],
-                            outputRange: ['-90deg', '270deg'],
-                          })
-                        }]
-                      }
-                    ]}
-                  />
-                  
-                  {/* Green progress indicator dot */}
-                  {percentage > 0 && (
-                    <Animated.View
-                      style={[
-                        styles.progressDot,
-                        {
-                          transform: [
-                            {
-                              rotate: animatedValue.interpolate({
-                                inputRange: [0, 100],
-                                outputRange: ['0deg', '360deg'],
-                              })
-                            },
-                            { translateY: -88 } // Position on ring edge
-                          ]
-                        }
-                      ]}
-                    />
-                  )}
-                  
-                  {/* Center content */}
-                  <View style={styles.ringCenter}>
-                    <Text style={styles.recoveryTitle}>RECOVERY</Text>
-                    <Text style={styles.recoveryPercentage}>{percentage}%</Text>
-                    <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
-                  </View>
+                )}
+                
+                {/* Center content */}
+                <View style={styles.ringCenter}>
+                  <Text style={styles.recoveryTitle}>RECOVERY</Text>
+                  <Text style={styles.recoveryPercentage}>{percentage}%</Text>
+                  <Text style={styles.recoveryStreak}>{daysSinceQuit} D STREAK</Text>
                 </View>
               </View>
             </View>
@@ -294,13 +291,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Theme.spacing.xl,
     paddingVertical: Theme.spacing.lg,
-  },
-  ringGlowContainer: {
-    shadowColor: Theme.colors.purple[500],
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
   },
   ring: {
     width: 240,
