@@ -6,6 +6,7 @@ import { Button, Card, PillChoice } from '@/src/design-system/components';
 import { useToolStore } from '@/src/stores/toolStore';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { analytics } from '@/src/services/analytics';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const BREATHING_PATTERNS = {
   'box': {
@@ -55,6 +56,9 @@ export default function BreathworkScreen() {
   const breathingScale = new Animated.Value(0.8);
   const breathingOpacity = new Animated.Value(1);
   const glowScale = new Animated.Value(1);
+  
+  // Circular progress for breathing phases
+  const [circularProgress, setCircularProgress] = useState(0);
 
   const pattern = BREATHING_PATTERNS[selectedPattern];
   const breathworkStats = getToolStats('breathwork');
@@ -72,10 +76,28 @@ export default function BreathworkScreen() {
       interval = setInterval(() => {
         setTimeInPhase(prev => {
           const currentPhaseDuration = pattern.pattern[currentPhase];
-          const newTimeInPhase = prev + 0.1;
+          const newTimeInPhase = prev + 1; // Changed from 0.1 to 1 for actual second intervals
           
           // Update total time
-          setTotalTime(prevTotal => prevTotal + 0.1);
+          setTotalTime(prevTotal => prevTotal + 1);
+          
+          // Update circular progress based on phase
+          const phaseProgress = newTimeInPhase / currentPhaseDuration;
+          const currentPhaseName = BREATHING_PHASES[currentPhase];
+          
+          if (currentPhaseName === 'Breathe In') {
+            // Progress fills during inhale (0 to 100%)
+            setCircularProgress(phaseProgress * 100);
+          } else if (currentPhaseName === 'Hold') {
+            // Progress stays at 100% during hold
+            setCircularProgress(100);
+          } else if (currentPhaseName === 'Breathe Out') {
+            // Progress empties during exhale (100% to 0%)
+            setCircularProgress(100 - (phaseProgress * 100));
+          } else {
+            // Second hold phase, stay at 0%
+            setCircularProgress(0);
+          }
           
           if (newTimeInPhase >= currentPhaseDuration) {
             // Move to next phase
@@ -113,7 +135,7 @@ export default function BreathworkScreen() {
           
           return newTimeInPhase;
         });
-      }, 100);
+      }, 1000); // Changed from 100ms to 1000ms for actual 1-second intervals
     }
 
     return () => clearInterval(interval);
@@ -188,7 +210,8 @@ export default function BreathworkScreen() {
     setTotalTime(0);
     setIsComplete(false);
     
-    // Reset animations
+    // Reset animations and progress
+    setCircularProgress(0);
     breathingScale.setValue(0.8);
     breathingOpacity.setValue(1);
     glowScale.setValue(1);
@@ -231,6 +254,7 @@ export default function BreathworkScreen() {
     setTimeInPhase(0);
     setTotalTime(0);
     setIsComplete(false);
+    setCircularProgress(0);
     breathingScale.setValue(0.8);
     breathingOpacity.setValue(0.3);
     glowScale.setValue(1);
@@ -351,7 +375,35 @@ export default function BreathworkScreen() {
             </Text>
             
             <View style={styles.breathingVisual}>
-              {/* Outer glow ring */}
+              {/* Animated Circular Progress with Pulsing */}
+              <Animated.View
+                style={[
+                  { transform: [{ scale: breathingScale }] },
+                  styles.circularProgressContainer
+                ]}
+              >
+                <AnimatedCircularProgress
+                  size={240}
+                  width={16}
+                  fill={circularProgress}
+                  tintColor={Theme.colors.purple[500]}
+                  backgroundColor="rgba(255, 255, 255, 0.08)"
+                  rotation={0}
+                  lineCap="round"
+                  duration={1000} // 1-second updates to match breathing timing
+                >
+                  {() => (
+                    <View style={styles.breathingCenter}>
+                      <Text style={styles.phaseText}>{currentPhaseName}</Text>
+                      <Text style={styles.countText}>
+                        {Math.ceil(pattern.pattern[currentPhase] - timeInPhase)}
+                      </Text>
+                    </View>
+                  )}
+                </AnimatedCircularProgress>
+              </Animated.View>
+              
+              {/* Outer glow ring for additional pulsing effect */}
               <Animated.View 
                 style={[
                   styles.glowRing,
@@ -361,22 +413,6 @@ export default function BreathworkScreen() {
                   }
                 ]} 
               />
-              
-              {/* Main breathing circle */}
-              <Animated.View
-                style={[
-                  styles.breathingCircle,
-                  { 
-                    transform: [{ scale: breathingScale }],
-                    opacity: breathingOpacity,
-                  }
-                ]}
-              >
-                <Text style={styles.phaseText}>{currentPhaseName}</Text>
-                <Text style={styles.countText}>
-                  {Math.ceil(pattern.pattern[currentPhase] - timeInPhase)}
-                </Text>
-              </Animated.View>
             </View>
             
             <Text style={styles.breathingInstruction}>
@@ -684,30 +720,29 @@ const styles = StyleSheet.create({
   },
   breathingVisual: {
     position: 'relative',
-    width: 200,
-    height: 200,
+    width: 240,
+    height: 240,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Theme.spacing.xl,
   },
-  glowRing: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 3,
-    borderColor: Theme.colors.purple[500] + '50',
-    opacity: 0.5,
+  circularProgressContainer: {
+    position: 'relative',
+    zIndex: 2,
   },
-  breathingCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Theme.colors.purple[500] + '20',
-    borderWidth: 3,
-    borderColor: Theme.colors.purple[500],
+  breathingCenter: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  glowRing: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    borderWidth: 2,
+    borderColor: Theme.colors.purple[500] + '30',
+    opacity: 0.6,
+    zIndex: 1,
   },
   phaseText: {
     ...Theme.typography.headline,

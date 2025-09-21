@@ -6,6 +6,7 @@ import { Button, Card, ProgressBar } from '@/src/design-system/components';
 import { useToolStore } from '@/src/stores/toolStore';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { analytics } from '@/src/services/analytics';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const URGE_DURATION = 300; // 5 minutes in seconds
 const ENCOURAGEMENT_MESSAGES = [
@@ -266,30 +267,26 @@ export default function UrgeTimerScreen() {
             <Text style={styles.activeTitle}>Riding the Wave</Text>
             <Text style={styles.phaseMessage}>{getPhaseMessage()}</Text>
             
-                         {/* Circular Progress Timer */}
-             <View style={styles.circularTimer}>
-               <View style={styles.progressContainer}>
-                 {/* Background gray ring */}
-                 <View style={styles.grayRing} />
-                 
-                 {/* Purple progress ring that empties */}
-                 <View style={[
-                   styles.purpleRing,
-                   {
-                     borderColor: progress > 0.75 ? 'transparent' : 
-                                  progress > 0.5 ? Theme.colors.purple[300] :
-                                  progress > 0.25 ? Theme.colors.purple[400] :
-                                  Theme.colors.purple[500]
-                   }
-                 ]} />
-                 
-                 {/* Timer content */}
-                 <View style={styles.timerInner}>
-                   <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
-                   <Text style={styles.timerSubtext}>until urge fades</Text>
-                 </View>
-               </View>
-             </View>
+            {/* Animated Circular Progress Timer */}
+            <View style={styles.circularTimer}>
+              <AnimatedCircularProgress
+                size={240}
+                width={16}
+                fill={100 - (progress * 100)} // Start at 100%, decrease as time passes
+                tintColor={Theme.colors.purple[500]}
+                backgroundColor="rgba(255, 255, 255, 0.08)"
+                rotation={0}
+                lineCap="round"
+                duration={1000}
+              >
+                {() => (
+                  <View style={styles.timerInner}>
+                    <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
+                    <Text style={styles.timerSubtext}>until urge fades</Text>
+                  </View>
+                )}
+              </AnimatedCircularProgress>
+            </View>
             
             <Text style={styles.encouragementText}>
               {ENCOURAGEMENT_MESSAGES[currentMessage]}
@@ -566,39 +563,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Theme.spacing.xl,
   },
-     progressContainer: {
-     width: 200,
-     height: 200,
-     justifyContent: 'center',
-     alignItems: 'center',
-     position: 'relative',
-   },
-   grayRing: {
-     position: 'absolute',
-     width: 200,
-     height: 200,
-     borderRadius: 100,
-     borderWidth: 12,
-     borderColor: Theme.colors.dark.border,
-     backgroundColor: 'transparent',
-   },
-   purpleRing: {
-     position: 'absolute',
-     width: 200,
-     height: 200,
-     borderRadius: 100,
-     borderWidth: 12,
-     backgroundColor: 'transparent',
-   },
-     timerInner: {
-     position: 'absolute',
-     top: 0,
-     left: 0,
-     right: 0,
-     bottom: 0,
-     justifyContent: 'center',
-     alignItems: 'center',
-   },
+  timerInner: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   timerText: {
     ...Theme.typography.largeTitle,
     fontSize: 36,

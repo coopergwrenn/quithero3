@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -7,6 +7,37 @@ import { Card, Button } from '@/src/design-system/components';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useToolStore } from '@/src/stores/toolStore';
 import { analytics } from '@/src/services/analytics';
+
+// StarField background component for premium feel
+const StarField = () => {
+  const stars = Array.from({ length: 60 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 2 + 1,
+    opacity: Math.random() * 0.8 + 0.2,
+  }));
+
+  return (
+    <View style={styles.starField}>
+      {stars.map((star) => (
+        <View
+          key={star.id}
+          style={[
+            styles.star,
+            {
+              left: `${star.left}%`,
+              top: `${star.top}%`,
+              width: star.size,
+              height: star.size,
+              opacity: star.opacity,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
 
 // Immediate crisis strategies
 const CRISIS_STRATEGIES = [
@@ -96,6 +127,10 @@ export default function PanicModeScreen() {
       case 'countdown':
         router.push('/(app)/tools/urge-timer');
         break;
+      case 'why':
+        // Navigate to dashboard to review quit reasons and goals
+        router.push('/(app)/(tabs)/dashboard');
+        break;
       default:
         // Stay in panic mode for other strategies
         break;
@@ -142,75 +177,123 @@ export default function PanicModeScreen() {
   };
 
   const renderEmergencyHeader = () => (
-    <View style={styles.emergencyHeader}>
-      <Text style={styles.emergencyTitle}>🚨 Crisis Mode</Text>
-      <Text style={styles.emergencySubtitle}>
+    <View style={styles.premiumEmergencyHeader}>
+      <View style={styles.premiumTitleContainer}>
+        <View style={styles.premiumCrisisIconContainer}>
+          <Text style={styles.premiumCrisisIcon}>🚨</Text>
+        </View>
+        <Text style={styles.premiumEmergencyTitle}>Crisis Mode</Text>
+      </View>
+      <Text style={styles.premiumEmergencySubtitle}>
         You're having a tough moment. Let's get through this together.
       </Text>
       
-      <Card style={styles.mantraCard}>
-        <Text style={styles.mantraText}>
-          {EMERGENCY_MANTRAS[currentMantra]}
-        </Text>
-      </Card>
+      <View style={styles.premiumMantraContainer}>
+        <View style={styles.premiumMantraGlow} />
+        <View style={styles.premiumMantraCard}>
+          <Text style={styles.premiumMantraText}>
+            {EMERGENCY_MANTRAS[currentMantra]}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
   const renderQuickActions = () => (
-    <Card style={styles.quickActionsCard}>
-      <Text style={styles.quickActionsTitle}>🆘 Immediate Help</Text>
-      <View style={styles.quickActionButtons}>
-        <TouchableOpacity 
-          style={styles.coachButton}
-          onPress={handleEmergencyCoach}
-        >
-          <Text style={styles.coachButtonIcon}>🤖</Text>
-          <Text style={styles.coachButtonText}>Talk to AI Coach</Text>
-          <Text style={styles.coachButtonSubtext}>Instant crisis support</Text>
-        </TouchableOpacity>
+    <View style={styles.premiumQuickActionsContainer}>
+      <View style={styles.premiumQuickActionsGlow} />
+      <View style={styles.premiumQuickActionsCard}>
+        <View style={styles.premiumQuickActionsHeader}>
+          <View style={styles.premiumHelpIconContainer}>
+            <Text style={styles.premiumHelpIcon}>🆘</Text>
+          </View>
+          <Text style={styles.premiumQuickActionsTitle}>Immediate Help</Text>
+        </View>
         
-        <TouchableOpacity 
-          style={styles.communityButton}
-          onPress={handleCommunityHelp}
-        >
-          <Text style={styles.communityButtonIcon}>💬</Text>
-          <Text style={styles.communityButtonText}>Ask Community</Text>
-          <Text style={styles.communityButtonSubtext}>Post for peer support</Text>
-        </TouchableOpacity>
+        <View style={styles.premiumQuickActionButtons}>
+          <TouchableOpacity 
+            style={styles.premiumCoachButton}
+            onPress={handleEmergencyCoach}
+            activeOpacity={0.8}
+          >
+            <View style={styles.premiumCoachButtonGlow} />
+            <View style={styles.premiumCoachButtonContent}>
+              <View style={styles.premiumCoachIconContainer}>
+                <Text style={styles.premiumCoachIcon}>🤖</Text>
+              </View>
+              <Text style={styles.premiumCoachButtonText}>Talk to AI Coach</Text>
+              <Text style={styles.premiumCoachButtonSubtext}>Instant crisis support</Text>
+            </View>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.premiumCommunityButton}
+            onPress={handleCommunityHelp}
+            activeOpacity={0.8}
+          >
+            <View style={styles.premiumCommunityButtonGlow} />
+            <View style={styles.premiumCommunityButtonContent}>
+              <View style={styles.premiumCommunityIconContainer}>
+                <Text style={styles.premiumCommunityIcon}>💬</Text>
+              </View>
+              <Text style={styles.premiumCommunityButtonText}>Ask Community</Text>
+              <Text style={styles.premiumCommunityButtonSubtext}>Post for peer support</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
-    </Card>
+    </View>
   );
 
   const renderStrategies = () => (
-    <Card style={styles.strategiesCard}>
-      <Text style={styles.strategiesTitle}>💪 Crisis Strategies</Text>
-      <Text style={styles.strategiesSubtitle}>
-        Choose what feels right for you right now
-      </Text>
-      
-      <View style={styles.strategiesList}>
-        {CRISIS_STRATEGIES.map((strategy) => (
-          <TouchableOpacity
-            key={strategy.id}
-            style={[
-              styles.strategyCard,
-              selectedStrategy === strategy.id && styles.selectedStrategyCard
-            ]}
-            onPress={() => handleStrategySelect(strategy.id)}
-          >
-            <Text style={styles.strategyIcon}>{strategy.icon}</Text>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyTitle}>{strategy.title}</Text>
-              <Text style={styles.strategyDescription}>{strategy.description}</Text>
-              <Text style={styles.strategyDuration}>⏱️ {strategy.duration}</Text>
-            </View>
-            <View style={styles.strategyAction}>
-              <Text style={styles.strategyActionText}>{strategy.action}</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+    <View style={styles.premiumStrategiesContainer}>
+      <View style={styles.premiumStrategiesGlow} />
+      <View style={styles.premiumStrategiesCard}>
+        <View style={styles.premiumStrategiesHeader}>
+          <View style={styles.premiumStrategiesIconContainer}>
+            <Text style={styles.premiumStrategiesIcon}>💪</Text>
+          </View>
+          <Text style={styles.premiumStrategiesTitle}>Crisis Strategies</Text>
+        </View>
+        <Text style={styles.premiumStrategiesSubtitle}>
+          Choose what feels right for you right now
+        </Text>
+        
+        <View style={styles.premiumStrategiesList}>
+          {CRISIS_STRATEGIES.map((strategy) => (
+            <TouchableOpacity
+              key={strategy.id}
+              style={[
+                styles.premiumStrategyCard,
+                selectedStrategy === strategy.id && styles.premiumSelectedStrategyCard
+              ]}
+              onPress={() => handleStrategySelect(strategy.id)}
+              activeOpacity={0.8}
+            >
+              <View style={[
+                styles.premiumStrategyGlow,
+                selectedStrategy === strategy.id && styles.premiumSelectedStrategyGlow
+              ]} />
+              <View style={styles.premiumStrategyContent}>
+                <View style={styles.premiumStrategyIconContainer}>
+                  <Text style={styles.premiumStrategyIcon}>{strategy.icon}</Text>
+                </View>
+                <View style={styles.premiumStrategyInfo}>
+                  <Text style={styles.premiumStrategyTitle}>{strategy.title}</Text>
+                  <Text style={styles.premiumStrategyDescription}>{strategy.description}</Text>
+                  <View style={styles.premiumStrategyMeta}>
+                    <Text style={styles.premiumStrategyDuration}>⏱️ {strategy.duration}</Text>
+                    <View style={styles.premiumStrategyActionContainer}>
+                      <Text style={styles.premiumStrategyActionText}>{strategy.action}</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </Card>
+    </View>
   );
 
   const renderSessionProgress = () => {
@@ -244,55 +327,98 @@ export default function PanicModeScreen() {
     };
 
     return (
-      <Card style={styles.statsCard}>
-        <Text style={styles.statsTitle}>🏆 Your Crisis Stats</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.crisesHandled}</Text>
-            <Text style={styles.statLabel}>Crises Handled</Text>
+      <View style={styles.premiumStatsContainer}>
+        <View style={styles.premiumStatsGlow} />
+        <View style={styles.premiumStatsCard}>
+          <View style={styles.premiumStatsHeader}>
+            <View style={styles.premiumStatsIconContainer}>
+              <Text style={styles.premiumStatsIcon}>🏆</Text>
+            </View>
+            <Text style={styles.premiumStatsTitle}>Your Crisis Stats</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.successRate}%</Text>
-            <Text style={styles.statLabel}>Success Rate</Text>
+          
+          <View style={styles.premiumStatsGrid}>
+            <View style={styles.premiumStatItem}>
+              <View style={styles.premiumStatItemGlow} />
+              <View style={styles.premiumStatItemContent}>
+                <Text style={styles.premiumStatNumber}>{stats.crisesHandled}</Text>
+                <Text style={styles.premiumStatLabel}>Crises Handled</Text>
+              </View>
+            </View>
+            
+            <View style={styles.premiumStatItem}>
+              <View style={styles.premiumStatItemGlow} />
+              <View style={styles.premiumStatItemContent}>
+                <Text style={styles.premiumStatNumber}>{stats.successRate}%</Text>
+                <Text style={styles.premiumStatLabel}>Success Rate</Text>
+              </View>
+            </View>
+            
+            <View style={styles.premiumStatItem}>
+              <View style={styles.premiumStatItemGlow} />
+              <View style={styles.premiumStatItemContent}>
+                <Text style={styles.premiumStatNumber}>{stats.avgRecoveryTime}m</Text>
+                <Text style={styles.premiumStatLabel}>Avg Recovery</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.avgRecoveryTime}m</Text>
-            <Text style={styles.statLabel}>Avg Recovery</Text>
-          </View>
+          
+          <Text style={styles.premiumStatsEncouragement}>
+            You're getting stronger with every crisis you overcome! 💪
+          </Text>
         </View>
-        <Text style={styles.statsEncouragement}>
-          You're getting stronger with every crisis you overcome! 💪
-        </Text>
-      </Card>
+      </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <StarField />
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            <TouchableOpacity 
+              style={styles.premiumBackButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.premiumBackButtonText}>← Back</Text>
+            </TouchableOpacity>
 
-          {renderEmergencyHeader()}
-          {renderQuickActions()}
-          {renderSessionProgress()}
-          {renderStrategies()}
-          {renderSuccessStats()}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            {renderEmergencyHeader()}
+            {renderQuickActions()}
+            {renderSessionProgress()}
+            {renderStrategies()}
+            {renderSuccessStats()}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Base Layout
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: '#0B0B1A',
+  },
+  starField: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: 'rgba(144, 213, 255, 0.4)',
+    borderRadius: 1,
+  },
+  safeArea: {
+    flex: 1,
+    zIndex: 1,
   },
   scrollView: {
     flex: 1,
@@ -300,180 +426,416 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  backButton: {
+  premiumBackButton: {
     alignSelf: 'flex-start',
-    padding: 8,
-    marginBottom: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 24,
   },
-  backButtonText: {
+  premiumBackButtonText: {
     fontSize: 16,
     color: Theme.colors.purple[500],
     fontWeight: '600',
   },
-  
-  // Emergency Header
-  emergencyHeader: {
+
+  // Premium Emergency Header
+  premiumEmergencyHeader: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
-  emergencyTitle: {
+  premiumTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumCrisisIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumCrisisIcon: {
+    fontSize: 28,
+  },
+  premiumEmergencyTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#EF4444',
-    textAlign: 'center',
-    marginBottom: 8,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
-  emergencySubtitle: {
+  premiumEmergencySubtitle: {
     fontSize: 16,
-    color: Theme.colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  mantraCard: {
+  premiumMantraContainer: {
+    position: 'relative',
     width: '100%',
-    padding: 20,
-    backgroundColor: '#4C1D95',
-    borderColor: '#8B5CF6',
-    borderWidth: 1,
-    alignItems: 'center',
   },
-  mantraText: {
+  premiumMantraGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderRadius: 22,
+    zIndex: 0,
+  },
+  premiumMantraCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1,
+  },
+  premiumMantraText: {
     fontSize: 18,
-    color: Theme.colors.text.primary,
+    color: '#FFFFFF',
     textAlign: 'center',
     fontStyle: 'italic',
     lineHeight: 26,
+    fontWeight: '500',
   },
 
-  // Quick Actions
-  quickActionsCard: {
-    padding: 20,
-    marginBottom: 24,
-    backgroundColor: '#7F1D1D',
-    borderColor: '#EF4444',
+  // Premium Quick Actions
+  premiumQuickActionsContainer: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  premiumQuickActionsGlow: {
+    position: 'absolute',
+    top: -3,
+    left: -3,
+    right: -3,
+    bottom: -3,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 27,
+    zIndex: 0,
+  },
+  premiumQuickActionsCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 24,
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+    zIndex: 1,
   },
-  quickActionsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FEF2F2',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  quickActionButtons: {
+  premiumQuickActionsHeader: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  coachButton: {
-    flex: 1,
-    backgroundColor: '#8B5CF6',
-    padding: 16,
-    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  coachButtonIcon: {
-    fontSize: 24,
-    marginBottom: 8,
+  premiumHelpIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  coachButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Theme.colors.text.primary,
+  premiumHelpIcon: {
+    fontSize: 20,
+  },
+  premiumQuickActionsTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  premiumQuickActionButtons: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  premiumCoachButton: {
+    flex: 1,
+    position: 'relative',
+  },
+  premiumCoachButtonGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 18,
+    zIndex: 0,
+  },
+  premiumCoachButtonContent: {
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1,
+  },
+  premiumCoachIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  premiumCoachIcon: {
+    fontSize: 20,
+  },
+  premiumCoachButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 4,
-  },
-  coachButtonSubtext: {
-    fontSize: 12,
-    color: '#D1D5DB',
     textAlign: 'center',
   },
-  communityButton: {
-    flex: 1,
-    backgroundColor: '#059669',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  communityButtonIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  communityButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  communityButtonSubtext: {
+  premiumCoachButtonSubtext: {
     fontSize: 12,
-    color: '#D1D5DB',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+  premiumCommunityButton: {
+    flex: 1,
+    position: 'relative',
+  },
+  premiumCommunityButtonGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 18,
+    zIndex: 0,
+  },
+  premiumCommunityButtonContent: {
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 1,
+  },
+  premiumCommunityIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  premiumCommunityIcon: {
+    fontSize: 20,
+  },
+  premiumCommunityButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  premiumCommunityButtonSubtext: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
   },
 
-  // Strategies
-  strategiesCard: {
-    padding: 20,
-    marginBottom: 24,
+  // Premium Strategies
+  premiumStrategiesContainer: {
+    position: 'relative',
+    marginBottom: 32,
   },
-  strategiesTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
-    marginBottom: 8,
+  premiumStrategiesGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 22,
+    zIndex: 0,
   },
-  strategiesSubtitle: {
-    fontSize: 14,
-    color: Theme.colors.text.secondary,
-    marginBottom: 16,
+  premiumStrategiesCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 1,
   },
-  strategiesList: {
-    gap: 12,
-  },
-  strategyCard: {
+  premiumStrategiesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    marginBottom: 12,
   },
-  selectedStrategyCard: {
-    backgroundColor: '#4C1D95',
-    borderColor: '#8B5CF6',
+  premiumStrategiesIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  strategyIcon: {
-    fontSize: 32,
+  premiumStrategiesIcon: {
+    fontSize: 20,
+  },
+  premiumStrategiesTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  premiumStrategiesSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 20,
+  },
+  premiumStrategiesList: {
+    gap: 16,
+  },
+  premiumStrategyCard: {
+    position: 'relative',
+  },
+  premiumStrategyGlow: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 17,
+    zIndex: 0,
+  },
+  premiumSelectedStrategyGlow: {
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+  },
+  premiumStrategyContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 20,
+    zIndex: 1,
+  },
+  premiumSelectedStrategyCard: {
+    // Selected state handled by glow
+  },
+  premiumStrategyIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
   },
-  strategyContent: {
+  premiumStrategyIcon: {
+    fontSize: 24,
+  },
+  premiumStrategyInfo: {
     flex: 1,
   },
-  strategyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
+  premiumStrategyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textShadowColor: 'rgba(144, 213, 255, 0.4)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
-  strategyDescription: {
+  premiumStrategyDescription: {
     fontSize: 14,
-    color: Theme.colors.text.secondary,
-    marginBottom: 4,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 8,
+    lineHeight: 20,
   },
-  strategyDuration: {
+  premiumStrategyMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  premiumStrategyDuration: {
     fontSize: 12,
-    color: Theme.colors.text.tertiary,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
-  strategyAction: {
-    marginLeft: 12,
+  premiumStrategyActionContainer: {
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  strategyActionText: {
+  premiumStrategyActionText: {
     fontSize: 12,
-    color: '#8B5CF6',
+    color: Theme.colors.purple[500],
     fontWeight: '600',
   },
 
-  // Session Progress
+  // Session Progress (keeping original for now)
   sessionCard: {
     padding: 20,
     marginBottom: 24,
@@ -506,41 +868,110 @@ const styles = StyleSheet.create({
     minWidth: 200,
   },
 
-  // Stats
-  statsCard: {
-    padding: 20,
-    marginBottom: 24,
+  // Premium Stats Section
+  premiumStatsContainer: {
+    position: 'relative',
+    marginBottom: 32,
   },
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Theme.colors.text.primary,
-    marginBottom: 16,
-    textAlign: 'center',
+  premiumStatsGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 22,
+    zIndex: 0,
   },
-  statsGrid: {
+  premiumStatsCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+    zIndex: 1,
+  },
+  premiumStatsHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-  },
-  statItem: {
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#22C55E',
-    marginBottom: 4,
+  premiumStatsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  statLabel: {
+  premiumStatsIcon: {
+    fontSize: 20,
+  },
+  premiumStatsTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  premiumStatsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  premiumStatItem: {
+    flex: 1,
+    position: 'relative',
+  },
+  premiumStatItemGlow: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+    backgroundColor: 'rgba(144, 213, 255, 0.05)',
+    borderRadius: 17,
+    zIndex: 0,
+  },
+  premiumStatItemContent: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 16,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  premiumStatNumber: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: Theme.colors.purple[500],
+    marginBottom: 6,
+    textShadowColor: 'rgba(144, 213, 255, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+  },
+  premiumStatLabel: {
     fontSize: 12,
-    color: Theme.colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '600',
     textAlign: 'center',
   },
-  statsEncouragement: {
-    fontSize: 14,
-    color: Theme.colors.text.secondary,
+  premiumStatsEncouragement: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     fontStyle: 'italic',
+    lineHeight: 22,
   },
 });
