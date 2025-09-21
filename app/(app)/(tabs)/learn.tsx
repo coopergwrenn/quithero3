@@ -96,7 +96,7 @@ export default function AnalyticsScreen() {
                       transform: [{
                         rotate: animatedValue.interpolate({
                           inputRange: [0, 100],
-                          outputRange: ['-90deg', '270deg'],
+                          outputRange: ['-90deg', '270deg'], // Full circle progress (360deg - 90deg start)
                         })
                       }]
                     }
@@ -111,7 +111,7 @@ export default function AnalyticsScreen() {
                       transform: [{
                         rotate: animatedValue.interpolate({
                           inputRange: [0, 100],
-                          outputRange: ['-90deg', '270deg'],
+                          outputRange: ['-90deg', '270deg'], // Match the progress circle
                         })
                       }]
                     }
@@ -128,10 +128,10 @@ export default function AnalyticsScreen() {
                           {
                             rotate: animatedValue.interpolate({
                               inputRange: [0, 100],
-                              outputRange: ['0deg', '360deg'],
+                              outputRange: ['-90deg', '270deg'], // Match progress exactly
                             })
                           },
-                          { translateY: -88 } // Position on ring edge
+                          { translateY: -112 } // Position on ring edge (120px radius - 8px dot radius)
                         ]
                       }
                     ]}
@@ -313,10 +313,8 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 120,
     borderWidth: 16,
-    borderColor: Theme.colors.purple[500],
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
+    borderColor: 'transparent',
+    borderLeftColor: Theme.colors.purple[500],
   },
   ringProgressGlow: {
     position: 'absolute',
@@ -324,10 +322,8 @@ const styles = StyleSheet.create({
     height: 248,
     borderRadius: 124,
     borderWidth: 20,
-    borderColor: 'rgba(144, 213, 255, 0.3)',
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
+    borderColor: 'transparent',
+    borderLeftColor: 'rgba(144, 213, 255, 0.3)',
   },
   progressDot: {
     position: 'absolute',
