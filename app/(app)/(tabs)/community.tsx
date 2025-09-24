@@ -461,6 +461,7 @@ export default function CommunityScreen() {
     <SafeAreaView style={styles.container}>
       {renderTabBar()}
       
+      <View style={styles.contentContainer}>
       {activeTab === 'feed' && (
         <FlatList
           data={posts}
@@ -479,6 +480,7 @@ export default function CommunityScreen() {
       
       {activeTab === 'leaderboards' && renderLeaderboards()}
       {activeTab === 'achievements' && renderAchievements()}
+      </View>
       
       {renderCreatePostModal()}
     </SafeAreaView>
@@ -512,7 +514,11 @@ const getPlaceholderText = (postType: string) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.surface, // Match tab bar color for cohesive look
+    backgroundColor: Theme.colors.dark.surface, // Match tab bar color for cohesive top area
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: Theme.colors.dark.background, // Dark background for content area
   },
   tabBar: {
     flexDirection: 'row',
