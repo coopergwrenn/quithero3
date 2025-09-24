@@ -512,7 +512,7 @@ const getPlaceholderText = (postType: string) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: Theme.colors.dark.surface, // Match tab bar color for cohesive look
   },
   tabBar: {
     flexDirection: 'row',
