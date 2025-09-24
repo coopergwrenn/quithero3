@@ -210,7 +210,14 @@ export default function DailyPledgeScreen() {
       <View style={[styles.safeArea, { paddingTop: insets.top }]}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
-          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => {
+            // Try to go back, but if there's no screen to go back to, navigate to tools
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.push('/(app)/(tabs)/tools');
+            }
+          }} activeOpacity={0.7}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
 
