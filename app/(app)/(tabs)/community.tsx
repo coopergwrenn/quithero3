@@ -458,7 +458,7 @@ export default function CommunityScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {renderTabBar()}
       
       <View style={styles.contentContainer}>
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   },
   feedContainer: {
     padding: 16,
-    paddingBottom: 120, // Ensure content flows cleanly behind tabs
+    paddingBottom: 100, // Proper spacing for bottom tab navigation
   },
   feedHeader: {
     marginBottom: 16,
