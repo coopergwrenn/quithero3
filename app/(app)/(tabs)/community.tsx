@@ -80,8 +80,9 @@ export default function CommunityScreen() {
 
   useEffect(() => {
     loadPosts();
+    loadUserLikes(user?.id || '');
     analytics.track('community_opened', { tab: activeTab });
-  }, []);
+  }, [user?.id]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -144,91 +145,139 @@ export default function CommunityScreen() {
   );
 
   const renderFeedHeader = () => (
-    <View style={styles.feedHeader}>
-      <View style={styles.communityStats}>
-        <Text style={styles.onlineCount}>🟢 {onlineUsers} online now</Text>
-        <Text style={styles.supportText}>24/7 peer support available</Text>
+    <View style={styles.modernFeedHeader}>
+      {/* Community Stats */}
+      <View style={styles.modernCommunityStats}>
+        <View style={styles.onlineStatusContainer}>
+          <View style={styles.onlineIndicatorDot} />
+          <Text style={styles.modernOnlineText}>{onlineUsers} online now</Text>
+        </View>
+        <Text style={styles.modernSupportText}>24/7 peer support available</Text>
       </View>
-      
-      <View style={styles.createPostSection}>
+
+      {/* Action Buttons */}
+      <View style={styles.modernActionButtons}>
         <TouchableOpacity
-          style={[styles.createButton, styles.crisisButton]}
+          style={styles.modernCrisisButton}
           onPress={() => {
             setSelectedPostType(POST_TYPES[0]); // Crisis type
             setShowCreatePost(true);
           }}
         >
-          <Text style={styles.crisisButtonText}>🆘 Need Support Now</Text>
+          <View style={styles.crisisButtonIconContainer}>
+            <Text style={styles.crisisButtonIcon}>🆘</Text>
+          </View>
+          <Text style={styles.modernCrisisButtonText}>Need Support Now</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
-          style={styles.createButton}
+          style={styles.modernShareButton}
           onPress={() => setShowCreatePost(true)}
         >
-          <Text style={styles.createButtonText}>💬 Share with Community</Text>
+          <View style={styles.buttonIconContainer}>
+            <Text style={styles.buttonIcon}>💬</Text>
+          </View>
+          <Text style={styles.modernShareButtonText}>Share with Community</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
+  // Generate user avatar based on anonymous name
+  const generateAvatar = (name: string) => {
+    const avatars = ['👤', '👨', '👩', '🧑', '👱‍♀️', '👱‍♂️', '🧔', '👩‍🦰', '👨‍🦰', '👩‍🦱', '👨‍🦱', '👩‍🦳', '👨‍🦳'];
+    const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % avatars.length;
+    return avatars[index];
+  };
+
   const renderPost = ({ item }: { item: any }) => {
     const postType = POST_TYPES.find(type => type.id === item.post_type) || POST_TYPES[0];
     const timeAgo = getTimeAgo(item.created_at);
+    const avatar = generateAvatar(item.anonymous_name);
+    const isLiked = userLikes.has(item.id);
     
     return (
-                           <Card style={StyleSheet.flatten([
-         styles.postCard,
-         item.post_type === 'crisis' && styles.crisisPost
-       ])}>
-         {item.post_type === 'crisis' && (
-           <View style={styles.urgentBanner}>
-             <Text style={styles.urgentText}>🆘 URGENT - NEEDS SUPPORT</Text>
-           </View>
-         )}
-         
-         <View style={styles.postHeader}>
-           <View style={styles.userInfo}>
-             <Text style={styles.anonymousName}>{item.anonymous_name}</Text>
-             <Text style={styles.streakInfo}>
-               {item.streak_days > 0 ? `🔥 ${item.streak_days} day streak` : 'Starting journey'}
-             </Text>
-           </View>
-           <Text style={styles.timeAgo}>{timeAgo}</Text>
-         </View>
-         
-         <View style={styles.postContent}>
-           <View style={styles.postTypeTag}>
-             <Text style={StyleSheet.flatten([styles.postTypeText, { color: postType.color }])}>
-               {postType.label}
-             </Text>
-           </View>
-           <Text style={styles.postText}>{item.content}</Text>
-         </View>
-         
-         <View style={styles.postActions}>
-           <TouchableOpacity
-             style={styles.likeButton}
-             onPress={() => likePost(item.id)}
-           >
-             <Text style={styles.likeIcon}>❤️</Text>
-             <Text style={styles.likeCount}>{item.likes_count || 0}</Text>
-           </TouchableOpacity>
-           
-           {item.post_type === 'crisis' && (
-             <View style={styles.crisisResponses}>
-               {CRISIS_RESPONSES.slice(0, 2).map((response, index) => (
-                 <TouchableOpacity
-                   key={index}
-                   style={styles.quickResponse}
-                   onPress={() => handleCrisisResponse(item.id, response)}
-                 >
-                   <Text style={styles.quickResponseText}>{response}</Text>
-                 </TouchableOpacity>
-               ))}
-             </View>
-           )}
-         </View>
-       </Card>
+      <View style={styles.modernPostContainer}>
+        {item.post_type === 'crisis' && (
+          <View style={styles.modernUrgentBanner}>
+            <View style={styles.urgentIndicator} />
+            <Text style={styles.modernUrgentText}>🆘 Crisis Support Needed</Text>
+          </View>
+        )}
+        
+        <View style={styles.modernPostCard}>
+          {/* Post Header with Avatar */}
+          <View style={styles.modernPostHeader}>
+            <View style={styles.userAvatarSection}>
+              <View style={styles.avatarContainer}>
+                <Text style={styles.avatarEmoji}>{avatar}</Text>
+              </View>
+              <View style={styles.userDetails}>
+                <Text style={styles.modernUserName}>{item.anonymous_name}</Text>
+                <View style={styles.userMetaRow}>
+                  <Text style={styles.modernStreakInfo}>
+                    {item.streak_days > 0 ? `🔥 ${item.streak_days} days` : '🌱 Starting'}
+                  </Text>
+                  <Text style={styles.timeSeparator}>•</Text>
+                  <Text style={styles.modernTimeAgo}>{timeAgo}</Text>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.postMenuButton}>
+              <Text style={styles.postMenuDots}>⋯</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Post Type Badge */}
+          <View style={styles.postTypeBadgeContainer}>
+            <View style={[styles.modernPostTypeBadge, { backgroundColor: postType.color + '20' }]}>
+              <Text style={[styles.modernPostTypeText, { color: postType.color }]}>
+                {postType.label}
+              </Text>
+            </View>
+          </View>
+          
+          {/* Post Content */}
+          <View style={styles.modernPostContent}>
+            <Text style={styles.modernPostText}>{item.content}</Text>
+          </View>
+          
+          {/* Engagement Actions */}
+          <View style={styles.modernPostActions}>
+            <TouchableOpacity
+              style={[styles.engagementButton, isLiked && styles.engagementButtonActive]}
+              onPress={() => isLiked ? unlikePost(item.id) : likePost(item.id)}
+            >
+              <Text style={[styles.engagementIcon, isLiked && styles.engagementIconActive]}>
+                {isLiked ? '❤️' : '🤍'}
+              </Text>
+              <Text style={[styles.engagementText, isLiked && styles.engagementTextActive]}>
+                {item.likes_count || 0}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.engagementButton}>
+              <Text style={styles.engagementIcon}>💬</Text>
+              <Text style={styles.engagementText}>{item.comments_count || 0}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.engagementButton}>
+              <Text style={styles.engagementIcon}>💪</Text>
+              <Text style={styles.engagementText}>Support</Text>
+            </TouchableOpacity>
+
+            {item.post_type === 'crisis' && (
+              <TouchableOpacity 
+                style={styles.crisisResponseButton}
+                onPress={() => handleCrisisResponse(item.id, CRISIS_RESPONSES[0])}
+              >
+                <Text style={styles.crisisResponseIcon}>🆘</Text>
+                <Text style={styles.crisisResponseText}>Help Now</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -551,6 +600,293 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 100, // Proper spacing for bottom tab navigation
   },
+
+  // Modern Post Styles (QUITTR-inspired)
+  modernPostContainer: {
+    marginBottom: 16,
+  },
+  modernUrgentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  urgentIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    marginRight: 8,
+  },
+  modernUrgentText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+  modernPostCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  modernPostHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  userAvatarSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatarContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarEmoji: {
+    fontSize: 20,
+  },
+  userDetails: {
+    flex: 1,
+  },
+  modernUserName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  userMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  modernStreakInfo: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Theme.colors.purple[500],
+  },
+  timeSeparator: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: 6,
+  },
+  modernTimeAgo: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.6)',
+  },
+  postMenuButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  postMenuDots: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontWeight: '600',
+  },
+  postTypeBadgeContainer: {
+    marginBottom: 12,
+  },
+  modernPostTypeBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  modernPostTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modernPostContent: {
+    marginBottom: 16,
+  },
+  modernPostText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#FFFFFF',
+  },
+  modernPostActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  engagementButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  engagementButtonActive: {
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+  },
+  engagementIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  engagementIconActive: {
+    // Active state handled by emoji change
+  },
+  engagementText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  engagementTextActive: {
+    color: Theme.colors.purple[500],
+  },
+  crisisResponseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  crisisResponseIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  crisisResponseText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#EF4444',
+  },
+
+  // Modern Feed Header Styles
+  modernFeedHeader: {
+    marginBottom: 20,
+  },
+  modernCommunityStats: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  onlineStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  onlineIndicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#22C55E',
+    marginRight: 8,
+  },
+  modernOnlineText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modernSupportText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    lineHeight: 20,
+  },
+  modernActionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modernCrisisButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  crisisButtonIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  crisisButtonIcon: {
+    fontSize: 16,
+  },
+  modernCrisisButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#EF4444',
+    flex: 1,
+  },
+  modernShareButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buttonIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  buttonIcon: {
+    fontSize: 16,
+  },
+  modernShareButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Theme.colors.purple[500],
+    flex: 1,
+  },
+
   feedHeader: {
     marginBottom: 16,
   },
