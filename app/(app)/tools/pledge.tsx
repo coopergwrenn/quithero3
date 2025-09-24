@@ -210,9 +210,9 @@ export default function DailyPledgeScreen() {
       <View style={[styles.safeArea, { paddingTop: insets.top }]}>
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
-          <Text style={styles.backButton} onPress={() => router.back()}>
-            ← Back
-          </Text>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
 
           <View style={styles.premiumHeader}>
             <View style={styles.premiumTitleContainer}>
