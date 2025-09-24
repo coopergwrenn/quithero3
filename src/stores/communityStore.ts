@@ -203,7 +203,6 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
   createComment: async (postId: string, content: string, parentCommentId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
       
       // Get user's current streak days (you may want to get this from quit store)
       const streakDays = 0; // TODO: Get from quit store
@@ -219,7 +218,7 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
       const { data, error } = await supabase
         .from('post_comments')
         .insert([{
-          user_id: user.id,
+          user_id: user?.id || null,
           post_id: postId,
           parent_comment_id: parentCommentId || null,
           content,
