@@ -8,6 +8,37 @@ import { useQuitStore } from '@/src/stores/quitStore';
 import { analytics } from '@/src/services/analytics';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
+// StarField background component for premium feel
+const StarField = () => {
+  const stars = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 2 + 1,
+    opacity: Math.random() * 0.8 + 0.2,
+  }));
+
+  return (
+    <View style={styles.starField}>
+      {stars.map((star) => (
+        <View
+          key={star.id}
+          style={[
+            styles.star,
+            {
+              left: `${star.left}%`,
+              top: `${star.top}%`,
+              width: star.size,
+              height: star.size,
+              opacity: star.opacity,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
 const BREATHING_PATTERNS = {
   'box': {
     name: 'Box Breathing',
@@ -70,7 +101,7 @@ export default function BreathworkScreen() {
   const totalCycles = Math.ceil((selectedDuration * 60) / cycleTime);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     
     if (isActive) {
       interval = setInterval(() => {
@@ -288,8 +319,10 @@ export default function BreathworkScreen() {
     const sessionMinutes = Math.round(totalTime / 60);
     
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.completionContent}>
+      <View style={styles.container}>
+        <StarField />
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.completionContent}>
           <Animated.View style={[styles.completionIconContainer, { transform: [{ scale: glowScale }] }]}>
             <Text style={styles.completionIcon}>🌟</Text>
           </Animated.View>
@@ -346,7 +379,8 @@ export default function BreathworkScreen() {
             </Button>
           </View>
         </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -358,8 +392,10 @@ export default function BreathworkScreen() {
     const remainingSeconds = Math.floor(remainingTime % 60);
 
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.activeContent}>
+      <View style={styles.container}>
+        <StarField />
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.activeContent}>
           <View style={styles.progressSection}>
             <Text style={styles.sessionInfo}>
               {pattern.name} • {remainingMinutes}:{remainingSeconds.toString().padStart(2, '0')} remaining
@@ -450,13 +486,16 @@ export default function BreathworkScreen() {
             </Button>
           </View>
         </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <StarField />
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.backButton} onPress={() => router.back()}>
@@ -554,14 +593,32 @@ export default function BreathworkScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.dark.background,
+    backgroundColor: '#0B0B1A',
+  },
+  starField: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: 'rgba(144, 213, 255, 0.6)',
+    borderRadius: 1,
+  },
+  safeArea: {
+    flex: 1,
+    zIndex: 2,
   },
   scrollView: {
     flex: 1,
@@ -825,12 +882,6 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.xl,
     width: '100%',
   },
-  benefitsTitle: {
-    ...Theme.typography.headline,
-    color: Theme.colors.text.primary,
-    marginBottom: Theme.spacing.md,
-    textAlign: 'center',
-  },
   completionActions: {
     width: '100%',
     gap: Theme.spacing.md,
@@ -996,21 +1047,5 @@ const styles = StyleSheet.create({
      progressLabel: {
      ...Theme.typography.footnote,
      color: Theme.colors.text.tertiary,
-   },
-   // Additional styles that may have been missed
-   benefitsCard: {
-     padding: Theme.spacing.lg,
-     marginBottom: Theme.spacing.xl,
-   },
-   benefitsTitle: {
-     ...Theme.typography.headline,
-     color: Theme.colors.text.primary,
-     marginBottom: Theme.spacing.md,
-     textAlign: 'center',
-   },
-   benefitsText: {
-     ...Theme.typography.body,
-     color: Theme.colors.text.secondary,
-     lineHeight: 24,
    },
 });
