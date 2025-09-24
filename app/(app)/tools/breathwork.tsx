@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Vibration, Platform, ScrollView, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Button, Card, PillChoice } from '@/src/design-system/components';
 import { useToolStore } from '@/src/stores/toolStore';
@@ -73,6 +74,7 @@ export default function BreathworkScreen() {
   const router = useRouter();
   const { recordToolUse, getToolStats } = useToolStore();
   const { quitData } = useQuitStore();
+  const insets = useSafeAreaInsets();
   const [selectedPattern, setSelectedPattern] = useState<keyof typeof BREATHING_PATTERNS>('box');
   const [selectedDuration, setSelectedDuration] = useState(3);
   const [isActive, setIsActive] = useState(false);
@@ -494,8 +496,8 @@ export default function BreathworkScreen() {
   return (
     <View style={styles.container}>
       <StarField />
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.backButton} onPress={() => router.back()}>
@@ -593,7 +595,7 @@ export default function BreathworkScreen() {
           </View>
         </View>
       </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -619,6 +621,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     zIndex: 2,
+    paddingBottom: 0, // Remove extra bottom padding
   },
   scrollView: {
     flex: 1,
