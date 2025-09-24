@@ -20,6 +20,7 @@ import { useCommunityStore } from '@/src/stores/communityStore';
 import { useQuitStore } from '@/src/stores/quitStore';
 import { useAuthStore } from '@/src/stores/authStore';
 import { analytics } from '@/src/services/analytics';
+import CommentsModal from '@/src/components/CommentsModal';
 
 const { width } = Dimensions.get('window');
 
@@ -69,8 +70,11 @@ export default function CommunityScreen() {
   const [onlineUsers] = useState(Math.floor(Math.random() * 50) + 10);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [leaderboardTab, setLeaderboardTab] = useState('streak');
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string>('');
+  const [selectedPostAuthor, setSelectedPostAuthor] = useState<string>('');
   
-  const { posts, loading, loadPosts, createPost, likePost, unlikePost, loadUserLikes, userLikes } = useCommunityStore();
+  const { posts, loading, loadPosts, createPost, likePost, unlikePost, loadUserLikes, userLikes, comments, loadComments, createComment } = useCommunityStore();
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
   
@@ -121,13 +125,10 @@ export default function CommunityScreen() {
     analytics.track('crisis_response_sent', { post_id: postId });
   };
 
-  const handleCommentPress = (postId: string) => {
-    // Show comments modal or navigate to post details
-    Alert.alert(
-      '💬 Comments',
-      'Comments feature coming soon! This will show all comments for this post and allow you to add your own.',
-      [{ text: 'OK', style: 'default' }]
-    );
+  const handleCommentPress = (postId: string, postAuthor: string) => {
+    setSelectedPostId(postId);
+    setSelectedPostAuthor(postAuthor);
+    setShowCommentsModal(true);
     analytics.track('comment_button_pressed', { post_id: postId });
   };
 
@@ -303,7 +304,7 @@ export default function CommunityScreen() {
 
             <TouchableOpacity 
               style={styles.engagementButton}
-              onPress={() => handleCommentPress(item.id)}
+              onPress={() => handleCommentPress(item.id, item.anonymous_name)}
             >
               <Text style={styles.engagementIcon}>💬</Text>
               <Text style={styles.engagementText}>{item.comments_count || 0}</Text>
@@ -583,6 +584,13 @@ export default function CommunityScreen() {
       </View>
       
       {renderCreatePostModal()}
+      
+      <CommentsModal
+        visible={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+        postId={selectedPostId}
+        postAuthor={selectedPostAuthor}
+      />
     </SafeAreaView>
   );
 }

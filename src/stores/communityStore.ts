@@ -5,9 +5,24 @@ import { Database } from '@/types/database';
 type CommunityPost = Database['public']['Tables']['community_posts']['Row'];
 type PostLike = Database['public']['Tables']['post_likes']['Row'];
 
+// Define PostComment type (since it's not in database types yet)
+interface PostComment {
+  id: string;
+  user_id: string;
+  post_id: string;
+  parent_comment_id: string | null;
+  content: string;
+  anonymous_name: string;
+  streak_days: number;
+  created_at: string;
+  updated_at: string;
+}
+
 interface CommunityStore {
   posts: CommunityPost[];
+  comments: { [postId: string]: PostComment[] };
   loading: boolean;
+  loadingComments: boolean;
   userLikes: Set<string>;
   
   // Actions
@@ -16,12 +31,16 @@ interface CommunityStore {
   likePost: (postId: string) => Promise<void>;
   unlikePost: (postId: string) => Promise<void>;
   loadUserLikes: (userId: string) => Promise<void>;
+  loadComments: (postId: string) => Promise<void>;
+  createComment: (postId: string, content: string, parentCommentId?: string) => Promise<void>;
   subscribeToUpdates: () => () => void;
 }
 
 export const useCommunityStore = create<CommunityStore>((set, get) => ({
   posts: [],
+  comments: {},
   loading: false,
+  loadingComments: false,
   userLikes: new Set(),
 
   loadPosts: async () => {
@@ -154,6 +173,79 @@ export const useCommunityStore = create<CommunityStore>((set, get) => ({
       set({ userLikes: likedPostIds });
     } catch (error) {
       console.error('Error loading user likes:', error);
+    }
+  },
+
+  loadComments: async (postId: string) => {
+    set({ loadingComments: true });
+    try {
+      const { data, error } = await supabase
+        .from('post_comments')
+        .select('*')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+      
+      if (error) throw error;
+      
+      set(state => ({
+        comments: {
+          ...state.comments,
+          [postId]: data || []
+        }
+      }));
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    } finally {
+      set({ loadingComments: false });
+    }
+  },
+
+  createComment: async (postId: string, content: string, parentCommentId?: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get user's current streak days (you may want to get this from quit store)
+      const streakDays = 0; // TODO: Get from quit store
+      
+      // Generate anonymous name (reuse the same logic as posts)
+      const anonymousNames = [
+        'Vape-Free Warrior', 'Quit Champion', 'Freedom Fighter', 'Clean Air Seeker',
+        'Health Hero', 'Nicotine Ninja', 'Breath of Fresh Air', 'Vape-Free Soul',
+        'Quit Quest', 'Liberation Leader', 'Vape-Free Sage', 'Quit Crusader'
+      ];
+      const anonymousName = anonymousNames[Math.floor(Math.random() * anonymousNames.length)];
+      
+      const { data, error } = await supabase
+        .from('post_comments')
+        .insert([{
+          user_id: user.id,
+          post_id: postId,
+          parent_comment_id: parentCommentId || null,
+          content,
+          anonymous_name: anonymousName,
+          streak_days: streakDays,
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update local state
+      set(state => ({
+        comments: {
+          ...state.comments,
+          [postId]: [...(state.comments[postId] || []), data]
+        },
+        posts: state.posts.map(post => 
+          post.id === postId 
+            ? { ...post, comments_count: (post.comments_count || 0) + 1 }
+            : post
+        )
+      }));
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      throw error;
     }
   },
 
