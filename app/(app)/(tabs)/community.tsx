@@ -23,14 +23,12 @@ import { analytics } from '@/src/services/analytics';
 
 const { width } = Dimensions.get('window');
 
-// Post types with enhanced crisis support
+// Post types matching database schema
 const POST_TYPES = [
-  { id: 'crisis', label: '🆘 Crisis/Temptation', urgent: true, color: '#EF4444' },
-  { id: 'success', label: '🎉 Success Story', urgent: false, color: '#22C55E' },
-  { id: 'checkin', label: '✅ Daily Check-in', urgent: false, color: '#3B82F6' },
+  { id: 'struggle', label: '🆘 Crisis/Struggle', urgent: true, color: '#EF4444' },
+  { id: 'celebration', label: '🎉 Success Story', urgent: false, color: '#22C55E' },
   { id: 'tip', label: '💡 Tips & Strategies', urgent: false, color: '#F59E0B' },
   { id: 'milestone', label: '🏆 Milestone Celebration', urgent: false, color: '#8B5CF6' },
-  { id: 'question', label: '❓ Questions', urgent: false, color: '#06B6D4' },
 ];
 
 // Quick response templates for crisis support
@@ -99,8 +97,8 @@ export default function CommunityScreen() {
       
       await createPost(postContent, selectedPostType.id as any, streakDays);
       
-      // If crisis post, trigger community alert
-      if (selectedPostType.id === 'crisis') {
+      // If struggle post, trigger community alert
+      if (selectedPostType.id === 'struggle') {
         analytics.track('crisis_post_created', { streak_days: streakDays });
         Alert.alert(
           'Crisis Alert Sent! 🚨',
@@ -198,7 +196,7 @@ export default function CommunityScreen() {
     
     return (
       <View style={styles.modernPostContainer}>
-        {item.post_type === 'crisis' && (
+        {item.post_type === 'struggle' && (
           <View style={styles.modernUrgentBanner}>
             <View style={styles.urgentIndicator} />
             <Text style={styles.modernUrgentText}>🆘 Crisis Support Needed</Text>
@@ -266,7 +264,7 @@ export default function CommunityScreen() {
               <Text style={styles.engagementText}>Support</Text>
             </TouchableOpacity>
 
-            {item.post_type === 'crisis' && (
+            {item.post_type === 'struggle' && (
               <TouchableOpacity 
                 style={styles.crisisResponseButton}
                 onPress={() => handleCrisisResponse(item.id, CRISIS_RESPONSES[0])}
@@ -492,7 +490,7 @@ export default function CommunityScreen() {
           />
           <Text style={styles.characterCount}>{postContent.length}/500</Text>
 
-          {selectedPostType.id === 'crisis' && (
+          {selectedPostType.id === 'struggle' && (
             <Card style={styles.crisisInfo}>
               <Text style={styles.crisisInfoTitle}>🚨 Crisis Support</Text>
               <Text style={styles.crisisInfoText}>
@@ -550,12 +548,10 @@ const getTimeAgo = (dateString: string) => {
 
 const getPlaceholderText = (postType: string) => {
   switch (postType) {
-    case 'crisis': return "I'm having a tough moment and need support...";
-    case 'success': return "Share your success story and what worked for you...";
-    case 'checkin': return "How are you feeling today? Share your daily check-in...";
+    case 'struggle': return "I'm having a tough moment and need support...";
+    case 'celebration': return "Share your success story and what worked for you...";
     case 'tip': return "Share a helpful tip or strategy that worked for you...";
     case 'milestone': return "Celebrate your milestone achievement...";
-    case 'question': return "Ask the community a question...";
     default: return "Share with the community...";
   }
 };
