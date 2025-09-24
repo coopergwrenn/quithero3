@@ -261,11 +261,11 @@ export default function AnalyticsScreen() {
                           { width: `${item.value}%` }
                         ]} 
                       />
-                    </View>
+        </View>
                   </View>
                 ))}
-              </View>
-            </View>
+      </View>
+        </View>
           )}
 
           {/* Quit Goal Card */}
@@ -274,8 +274,8 @@ export default function AnalyticsScreen() {
             <View style={styles.premiumCardContent}>
               <Text style={styles.goalText}>You're on track to quit by:</Text>
               <Text style={styles.goalDate}>Dec 19, 2025</Text>
-                  </View>
-                </View>
+            </View>
+          </View>
 
           {/* Level Progress */}
           <View style={styles.premiumCard}>
@@ -289,8 +289,8 @@ export default function AnalyticsScreen() {
                 <View style={styles.levelInfo}>
                   <Text style={styles.levelTitle}>Level {level}</Text>
                   <Text style={styles.levelProgress}>{Math.round(((daysSinceQuit % 30) / 30) * 100)}%</Text>
-            </View>
-          </View>
+        </View>
+        </View>
               
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBarBackground} />
@@ -300,7 +300,7 @@ export default function AnalyticsScreen() {
               
               <Text style={styles.levelDescription}>
                 You don't have urges anymore, mind is clear and physical form is almost at it's peak.
-          </Text>
+            </Text>
         </View>
         </View>
 
