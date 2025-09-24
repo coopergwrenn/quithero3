@@ -46,11 +46,11 @@ const CRISIS_RESPONSES = [
 // Achievement definitions
 const ACHIEVEMENTS = {
   milestones: [
-    { id: 'week_warrior', days: 7, title: 'Week Warrior', emoji: '🔥', description: '7 days smoke-free' },
-    { id: 'month_master', days: 30, title: 'Month Master', emoji: '⭐', description: '30 days smoke-free' },
-    { id: 'quarter_champion', days: 90, title: 'Quarter Champion', emoji: '💎', description: '90 days smoke-free' },
-    { id: 'year_legend', days: 365, title: 'Year Legend', emoji: '👑', description: '365 days smoke-free' },
-    { id: 'lifetime_hero', days: 1000, title: 'Lifetime Hero', emoji: '🏆', description: '1000+ days smoke-free' },
+    { id: 'week_warrior', days: 7, title: 'Week Warrior', emoji: '🔥', description: '7 days vape-free' },
+    { id: 'month_master', days: 30, title: 'Month Master', emoji: '⭐', description: '30 days vape-free' },
+    { id: 'quarter_champion', days: 90, title: 'Quarter Champion', emoji: '💎', description: '90 days vape-free' },
+    { id: 'year_legend', days: 365, title: 'Year Legend', emoji: '👑', description: '365 days vape-free' },
+    { id: 'lifetime_hero', days: 1000, title: 'Lifetime Hero', emoji: '🏆', description: '1000+ days vape-free' },
   ],
   community: [
     { id: 'wise_advisor', posts: 50, title: 'Wise Advisor', emoji: '💬', description: '50+ helpful tips posted' },
@@ -235,7 +235,7 @@ export default function CommunityScreen() {
   const renderLeaderboards = () => {
     const mockLeaderboards = {
       streak: [
-        { rank: 1, name: 'SmokeFreeLegend', value: '847 days', badge: '🥇' },
+        { rank: 1, name: 'VapeFreeHero', value: '847 days', badge: '🥇' },
         { rank: 2, name: 'QuitChampion92', value: '623 days', badge: '🥈' },
         { rank: 3, name: 'FreshAirFighter', value: '445 days', badge: '🥉' },
         { rank: 4, name: 'NicotineNinja', value: '387 days', badge: '4' },

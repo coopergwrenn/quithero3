@@ -91,7 +91,7 @@ export default function ToolsScreen() {
     {
       id: 'pledge',
       title: 'Daily Pledge',
-      description: 'Commit to staying smoke-free today',
+      description: 'Commit to staying vape-free today',
       icon: '🤝',
       color: Theme.colors.success.text,
       route: '/(app)/tools/pledge',

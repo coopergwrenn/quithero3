@@ -101,7 +101,7 @@ const HEALTH_MILESTONES = [
     time: 1825, // 5 years
     unit: 'days',
     title: 'Stroke Risk Normalized',
-    description: 'Stroke risk reduced to that of a non-smoker',
+    description: 'Stroke risk reduced to that of a non-vaper',
     icon: '🧠',
     category: 'long'
   }
@@ -233,7 +233,7 @@ export default function DashboardScreen() {
   const effectiveQuitData = {
     quitDate: quitData.quitDate || mockQuitDate,
     usageAmount: quitData.usageAmount || 20,
-    substanceType: quitData.substanceType || 'cigarettes',
+    substanceType: quitData.substanceType || 'vape',
     ...quitData
   };
   
@@ -398,8 +398,8 @@ export default function DashboardScreen() {
     const daysSinceQuit = calculateDaysSinceQuit();
     if (daysSinceQuit <= 0) return 0;
 
-    const usageAmount = effectiveQuitData.usageAmount || 20; // Default to 20 cigarettes
-    const substanceType = effectiveQuitData.substanceType || 'cigarettes';
+    const usageAmount = effectiveQuitData.usageAmount || 20; // Default to 20 puffs/hits per day
+    const substanceType = effectiveQuitData.substanceType || 'vape';
     
     let dailyCost = 0;
     if (substanceType === 'cigarettes') {
@@ -495,9 +495,9 @@ export default function DashboardScreen() {
     const recentAchievements = milestones.filter(m => m.isAchieved).slice(-2);
 
     if (daysSinceQuit === 0) {
-      return "Welcome to your quit journey! Every moment smoke-free is a victory. 🌟";
+      return "Welcome to your quit journey! Every moment vape-free is a victory. 🌟";
     } else if (daysSinceQuit === 1) {
-      return "One full day smoke-free! Your body is already starting to heal. 💪";
+      return "One full day vape-free! Your body is already starting to heal. 💪";
     } else if (daysSinceQuit < 7) {
       return `${daysSinceQuit} days strong! You're building incredible momentum. 🔥`;
     } else if (daysSinceQuit < 30) {
@@ -505,7 +505,7 @@ export default function DashboardScreen() {
     } else if (daysSinceQuit < 90) {
       return `Over ${daysSinceQuit} days! You've broken the habit and built a new lifestyle. 🏆`;
     } else {
-      return `${daysSinceQuit} days of transformation! You're not just smoke-free, you're free. 👑`;
+      return `${daysSinceQuit} days of transformation! You're not just vape-free, you're free. 👑`;
     }
   };
 
@@ -795,7 +795,7 @@ export default function DashboardScreen() {
   const achievedMilestones = milestoneStatus.filter(m => m.isAchieved);
   const nextMilestone = getNextMilestone();
   const { toolStats, totalUses, mostUsedTool } = getToolUsageStats();
-  const substanceType = effectiveQuitData.substanceType || 'cigarettes';
+  const substanceType = effectiveQuitData.substanceType || 'vape';
 
   // Render the tree based on current stage in the scene
   const renderSceneTree = () => {
@@ -968,7 +968,7 @@ export default function DashboardScreen() {
                 mockQuitDate.setDate(mockQuitDate.getDate() - 7);
                 updateQuitData({
                   quitDate: mockQuitDate,
-                  substanceType: 'cigarettes',
+                  substanceType: 'vape',
                   usageAmount: 20,
                   primaryMotivation: 'health'
                 });
@@ -1488,7 +1488,7 @@ export default function DashboardScreen() {
                 "After just 2 weeks, your circulation improves and lung function increases." :
                 daysSinceQuit < 30 ?
                 "At 1 month, coughing and shortness of breath decrease significantly." :
-                "After 1 year smoke-free, your risk of heart disease is cut in half!"
+                "After 1 year vape-free, your risk of heart disease is cut in half!"
               }
             </Text>
           </View>

@@ -18,7 +18,7 @@ export interface Database {
           quit_date: string | null
           risk_level: 'high' | 'medium' | 'low' | null
           motivation: string | null
-          substance_type: 'cigarettes' | 'vape' | 'both' | null
+          substance_type: 'vape' | 'cigarettes' | 'both' | null
           usage_amount: number | null
           triggers: string[] | null
           streak_days: number
@@ -33,7 +33,7 @@ export interface Database {
           quit_date?: string | null
           risk_level?: 'high' | 'medium' | 'low' | null
           motivation?: string | null
-          substance_type?: 'cigarettes' | 'vape' | 'both' | null
+          substance_type?: 'vape' | 'cigarettes' | 'both' | null
           usage_amount?: number | null
           triggers?: string[] | null
           streak_days?: number
@@ -48,7 +48,7 @@ export interface Database {
           quit_date?: string | null
           risk_level?: 'high' | 'medium' | 'low' | null
           motivation?: string | null
-          substance_type?: 'cigarettes' | 'vape' | 'both' | null
+          substance_type?: 'vape' | 'cigarettes' | 'both' | null
           usage_amount?: number | null
           triggers?: string[] | null
           streak_days?: number

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, Vibration, Platform, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
 import { Button, Card, ProgressBar } from '@/src/design-system/components';
 import { useToolStore } from '@/src/stores/toolStore';
@@ -37,6 +38,7 @@ export default function UrgeTimerScreen() {
   const router = useRouter();
   const { recordToolUse, getToolStats } = useToolStore();
   const { quitData } = useQuitStore();
+  const insets = useSafeAreaInsets();
   const [isActive, setIsActive] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(URGE_DURATION);
   const [isComplete, setIsComplete] = useState(false);
@@ -323,8 +325,9 @@ export default function UrgeTimerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.backButton} onPress={() => router.back()}>
@@ -403,7 +406,8 @@ export default function UrgeTimerScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
@@ -411,6 +415,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
+  },
+  safeArea: {
+    flex: 1,
+    paddingBottom: 0,
   },
   scrollView: {
     flex: 1,

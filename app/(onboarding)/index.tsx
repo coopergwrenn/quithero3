@@ -37,7 +37,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     description: 'Understanding your motivation helps us personalize your support',
     options: [
       { value: 'health', label: 'Health concerns', description: 'Breathing, fitness, long-term health', icon: '🫁' },
-      { value: 'money', label: 'Save money', description: 'Stop spending on cigarettes/vapes', icon: '💰' },
+      { value: 'money', label: 'Save money', description: 'Stop spending on vapes/cigarettes', icon: '💰' },
       { value: 'family', label: 'Family & relationships', description: 'Set a good example, protect loved ones', icon: '👨‍👩‍👧‍👦' },
       { value: 'control', label: 'Take back control', description: 'Break free from addiction', icon: '💪' },
     ],
@@ -88,7 +88,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'triggers',
-    question: 'What triggers your urge to smoke/vape?',
+    question: 'What triggers your urge to vape?',
     description: 'Select all that apply',
     multiSelect: true,
     options: [
@@ -103,12 +103,12 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'socialContext',
-    question: 'How often are you around other smokers?',
+    question: 'How often are you around other vapers?',
     options: [
-      { value: 'daily', label: 'Daily', description: 'Family, friends, or coworkers smoke' },
+      { value: 'daily', label: 'Daily', description: 'Family, friends, or coworkers vape' },
       { value: 'sometimes', label: 'Sometimes', description: 'Occasional social situations' },
-      { value: 'rarely', label: 'Rarely', description: 'Very few people in my circle smoke' },
-      { value: 'never', label: 'Never', description: 'No one around me smokes' },
+      { value: 'rarely', label: 'Rarely', description: 'Very few people in my circle vape' },
+      { value: 'never', label: 'Never', description: 'No one around me vapes' },
     ],
   },
   {

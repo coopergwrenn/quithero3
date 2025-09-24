@@ -1,6 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// StarField background component for premium feel
+const StarField = () => {
+  const stars = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 2 + 1,
+    opacity: Math.random() * 0.8 + 0.2,
+  }));
+
+  return (
+    <View style={styles.starField}>
+      {stars.map((star) => (
+        <View
+          key={star.id}
+          style={[
+            styles.star,
+            {
+              left: `${star.left}%`,
+              top: `${star.top}%`,
+              width: star.size,
+              height: star.size,
+              opacity: star.opacity,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Button } from '@/src/design-system/components';
@@ -12,13 +43,13 @@ import { analytics } from '@/src/services/analytics';
 const DEFAULT_PLEDGES = [
   {
     id: 'health',
-    text: 'Today I choose my health over cigarettes',
+    text: 'Today I choose my health over vaping',
     icon: '❤️',
     description: 'Prioritize your physical wellbeing'
   },
   {
     id: 'future',
-    text: "Today I'm building a smoke-free future",
+    text: "Today I'm building a vape-free future",
     icon: '🌅',
     description: 'Focus on long-term goals'
   },
@@ -46,6 +77,7 @@ export default function DailyPledgeScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
   const { recordToolUse } = useToolStore();
+  const insets = useSafeAreaInsets();
   
   const [selectedPledge, setSelectedPledge] = useState<string>('');
   const [customPledge, setCustomPledge] = useState<string>('');
@@ -173,22 +205,44 @@ export default function DailyPledgeScreen() {
 
   // Main pledge selection screen
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <StarField />
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Your Commitment Today</Text>
-            <Text style={styles.subtitle}>Start your day with intention. What's your pledge?</Text>
+          <Text style={styles.backButton} onPress={() => router.back()}>
+            ← Back
+          </Text>
+
+          <View style={styles.premiumHeader}>
+            <View style={styles.premiumTitleContainer}>
+              <View style={styles.premiumPledgeIconContainer}>
+                <Text style={styles.premiumPledgeIcon}>🤝</Text>
+              </View>
+              <Text style={styles.premiumTitle}>Daily Pledge</Text>
+            </View>
+            <Text style={styles.premiumSubtitle}>Start your day with intention. What's your commitment?</Text>
           </View>
 
           {streakCount > 0 && (
-            <View style={styles.streakBanner}>
-              <Text style={styles.streakBannerText}>🔥 {streakCount} day streak</Text>
+            <View style={styles.premiumStreakContainer}>
+              <View style={styles.premiumStreakGlow} />
+              <View style={styles.premiumStreakCard}>
+                <Text style={styles.premiumStreakIcon}>🔥</Text>
+                <Text style={styles.premiumStreakText}>{streakCount} day streak</Text>
+              </View>
             </View>
           )}
 
-          <View style={styles.pledgeOptions}>
-            <Text style={styles.sectionTitle}>Choose Your Pledge</Text>
+          <View style={styles.premiumPledgeContainer}>
+            <View style={styles.premiumPledgeGlow} />
+            <View style={styles.premiumPledgeCard}>
+              <View style={styles.premiumPledgeHeader}>
+                <View style={styles.premiumChooseIconContainer}>
+                  <Text style={styles.premiumChooseIcon}>🎯</Text>
+                </View>
+                <Text style={styles.premiumSectionTitle}>Choose Your Pledge</Text>
+              </View>
             
             {!isCustomMode ? (
               <>
@@ -196,73 +250,112 @@ export default function DailyPledgeScreen() {
                   <TouchableOpacity
                     key={pledge.id}
                     style={[
-                      styles.pledgeOption,
-                      selectedPledge === pledge.text && styles.pledgeOptionSelected
+                      styles.premiumPledgeOption,
+                      selectedPledge === pledge.text && styles.premiumPledgeOptionSelected
                     ]}
                     onPress={() => handleSelectDefaultPledge(pledge)}
+                    activeOpacity={0.8}
                   >
-                    <Text style={styles.pledgeIcon}>{pledge.icon}</Text>
-                    <View style={styles.pledgeTextContainer}>
-                      <Text style={[
-                        styles.pledgeText,
-                        selectedPledge === pledge.text && styles.pledgeTextSelected
-                      ]}>
-                        "{pledge.text}"
-                      </Text>
-                      <Text style={styles.pledgeDescription}>{pledge.description}</Text>
+                    <View style={[
+                      styles.premiumPledgeOptionGlow,
+                      selectedPledge === pledge.text && styles.premiumPledgeOptionSelectedGlow
+                    ]} />
+                    <View style={styles.premiumPledgeOptionContent}>
+                      <View style={styles.premiumPledgeEmojiContainer}>
+                        <Text style={styles.premiumPledgeEmoji}>{pledge.icon}</Text>
+                      </View>
+                      <View style={styles.premiumPledgeTextContainer}>
+                        <Text style={[
+                          styles.premiumPledgeText,
+                          selectedPledge === pledge.text && styles.premiumPledgeTextSelected
+                        ]}>
+                          "{pledge.text}"
+                        </Text>
+                        <Text style={styles.premiumPledgeDescription}>{pledge.description}</Text>
+                      </View>
                     </View>
                   </TouchableOpacity>
                 ))}
                 
                 <TouchableOpacity
-                  style={styles.customModeButton}
+                  style={styles.premiumCustomModeButton}
                   onPress={handleCustomModeToggle}
+                  activeOpacity={0.8}
                 >
-                  <Text style={styles.customModeText}>✏️ Write My Own Pledge</Text>
+                  <View style={styles.premiumCustomModeGlow} />
+                  <View style={styles.premiumCustomModeContent}>
+                    <View style={styles.premiumCustomIconContainer}>
+                      <Text style={styles.premiumCustomIcon}>✏️</Text>
+                    </View>
+                    <Text style={styles.premiumCustomModeText}>Write My Own Pledge</Text>
+                  </View>
                 </TouchableOpacity>
               </>
             ) : (
-              <View style={styles.customPledgeContainer}>
+              <View style={styles.premiumCustomInputContainer}>
                 <TouchableOpacity
-                  style={styles.backButton}
+                  style={styles.premiumBackToOptionsButton}
                   onPress={handleCustomModeToggle}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.backButtonText}>← Back to Options</Text>
+                  <Text style={styles.premiumBackToOptionsText}>← Back to Options</Text>
                 </TouchableOpacity>
                 
-                <Text style={styles.customPledgeLabel}>Your Personal Pledge</Text>
-                <TextInput
-                  style={styles.customPledgeInput}
-                  value={customPledge}
-                  onChangeText={setCustomPledge}
-                  placeholder="Today I commit to..."
-                  placeholderTextColor="#808080"
-                  multiline
-                  maxLength={150}
-                  textAlignVertical="top"
-                />
-                <Text style={styles.characterCount}>
+                <Text style={styles.premiumCustomInputLabel}>Your Personal Pledge</Text>
+                <View style={styles.premiumCustomInputField}>
+                  <TextInput
+                    style={styles.premiumCustomTextInput}
+                    value={customPledge}
+                    onChangeText={setCustomPledge}
+                    placeholder="Today I commit to..."
+                    placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                    multiline
+                    maxLength={150}
+                    textAlignVertical="top"
+                  />
+                </View>
+                <Text style={styles.premiumCharacterCount}>
                   {customPledge.length}/150 characters
                 </Text>
               </View>
             )}
+            </View>
           </View>
 
-          <Card style={styles.motivationCard}>
-            <Text style={styles.motivationTitle}>Remember</Text>
-            <Text style={styles.motivationText}>{getMotivationalMessage()}</Text>
-          </Card>
+          <View style={styles.premiumMotivationContainer}>
+            <View style={styles.premiumMotivationGlow} />
+            <View style={styles.premiumMotivationCard}>
+              <View style={styles.premiumMotivationHeader}>
+                <View style={styles.premiumMotivationIconContainer}>
+                  <Text style={styles.premiumMotivationIcon}>💪</Text>
+                </View>
+                <Text style={styles.premiumMotivationTitle}>Remember</Text>
+              </View>
+              <Text style={styles.premiumMotivationText}>{getMotivationalMessage()}</Text>
+            </View>
+          </View>
 
-          <Button
+          <TouchableOpacity
             onPress={handleMakePledge}
             disabled={!selectedPledge && !customPledge.trim()}
-            style={styles.pledgeButton}
+            style={[
+              styles.premiumPledgeButton,
+              (!selectedPledge && !customPledge.trim()) && styles.premiumPledgeButtonDisabled
+            ]}
+            activeOpacity={0.8}
           >
-            Make My Pledge
-          </Button>
+            <View style={styles.premiumPledgeButtonGlow} />
+            <View style={styles.premiumPledgeButtonContent}>
+              <View style={styles.premiumPledgeButtonIconContainer}>
+                <Text style={styles.premiumPledgeButtonIcon}>🤝</Text>
+              </View>
+              <Text style={styles.premiumPledgeButtonText}>Make My Pledge</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+      </View>
+    </View>
   );
 }
 
@@ -270,6 +363,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
+  },
+  safeArea: {
+    flex: 1,
+    paddingBottom: 0,
   },
   scrollView: {
     flex: 1,
@@ -499,5 +596,465 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     backgroundColor: '#22C55E',
+  },
+
+  // Premium StarField Styles
+  starField: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  star: {
+    position: 'absolute',
+    backgroundColor: 'rgba(144, 213, 255, 0.6)',
+    borderRadius: 50,
+  },
+
+  // Premium Back Button
+  backButton: {
+    ...Theme.typography.body,
+    color: Theme.colors.purple[500],
+    marginBottom: Theme.spacing.lg,
+  },
+
+  // Premium Header Styles
+  premiumHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  premiumTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  premiumPledgeIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(144, 213, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  premiumPledgeIcon: {
+    fontSize: 28,
+  },
+  premiumTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  premiumSubtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 20,
+  },
+
+  // Premium Streak Styles
+  premiumStreakContainer: {
+    position: 'relative',
+    marginBottom: 24,
+  },
+  premiumStreakGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.2)',
+  },
+  premiumStreakCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  premiumStreakIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  premiumStreakText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Theme.colors.purple[500],
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  // Premium Pledge Container Styles
+  premiumPledgeContainer: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  premiumPledgeGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.08)',
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.15)',
+  },
+  premiumPledgeCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumPledgeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  premiumChooseIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(144, 213, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  premiumChooseIcon: {
+    fontSize: 24,
+  },
+  premiumSectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  // Premium Pledge Option Styles
+  premiumPledgeOption: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  premiumPledgeOptionGlow: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  premiumPledgeOptionSelectedGlow: {
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+  },
+  premiumPledgeOptionContent: {
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  premiumPledgeOptionSelected: {
+    backgroundColor: 'rgba(144, 213, 255, 0.08)',
+    borderColor: 'rgba(144, 213, 255, 0.2)',
+  },
+  premiumPledgeEmojiContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  premiumPledgeEmoji: {
+    fontSize: 20,
+  },
+  premiumPledgeTextContainer: {
+    flex: 1,
+  },
+  premiumPledgeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  premiumPledgeTextSelected: {
+    color: Theme.colors.purple[500],
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  premiumPledgeDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.6)',
+    lineHeight: 20,
+  },
+
+  // Premium Custom Mode Button
+  premiumCustomModeButton: {
+    position: 'relative',
+    marginTop: 16,
+  },
+  premiumCustomModeGlow: {
+    position: 'absolute',
+    top: -1,
+    left: -1,
+    right: -1,
+    bottom: -1,
+    backgroundColor: 'rgba(144, 213, 255, 0.08)',
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.2)',
+  },
+  premiumCustomModeContent: {
+    backgroundColor: 'rgba(30, 42, 58, 0.6)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.15)',
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  premiumCustomIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(144, 213, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  premiumCustomIcon: {
+    fontSize: 16,
+  },
+  premiumCustomModeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.colors.purple[500],
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+
+  // Premium Custom Input Styles
+  premiumCustomInputContainer: {
+    marginTop: 16,
+  },
+  premiumBackToOptionsButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+  },
+  premiumBackToOptionsText: {
+    fontSize: 16,
+    color: Theme.colors.purple[500],
+    fontWeight: '600',
+  },
+  premiumCustomInputLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 16,
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  premiumCustomInputField: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  premiumCustomTextInput: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#FFFFFF',
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  premiumCharacterCount: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.5)',
+    textAlign: 'right',
+    marginTop: 8,
+  },
+
+  // Premium Motivation Styles
+  premiumMotivationContainer: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  premiumMotivationGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.08)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.15)',
+  },
+  premiumMotivationCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  premiumMotivationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  premiumMotivationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(144, 213, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  premiumMotivationIcon: {
+    fontSize: 20,
+  },
+  premiumMotivationTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  premiumMotivationText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+
+  // Premium Pledge Button
+  premiumPledgeButton: {
+    position: 'relative',
+    marginBottom: 32,
+  },
+  premiumPledgeButtonGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+  },
+  premiumPledgeButtonContent: {
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.4)',
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Theme.colors.purple[500],
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  premiumPledgeButtonDisabled: {
+    opacity: 0.5,
+  },
+  premiumPledgeButtonIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(144, 213, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  premiumPledgeButtonIcon: {
+    fontSize: 16,
+  },
+  premiumPledgeButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Theme.colors.purple[500],
+    textShadowColor: 'rgba(144, 213, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });

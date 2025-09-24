@@ -20,7 +20,7 @@ const storage = {
 
 interface QuitData {
   quitDate?: Date;
-  cigarettesPerDay?: number;
+  vapesPerDay?: number;
   costPerPack?: number;
   motivation?: string[];
   triggers?: string[];
@@ -29,7 +29,7 @@ interface QuitData {
   nrtType?: string;
   dailyGoal?: string;
   // New onboarding data
-  substanceType?: 'cigarettes' | 'vape' | 'both';
+  substanceType?: 'vape' | 'cigarettes' | 'both';
   usageAmount?: number;
   firstUseTime?: 'within-5min' | 'within-30min' | 'within-1hour' | 'later';
   primaryMotivation?: 'health' | 'money' | 'family' | 'control' | 'other';

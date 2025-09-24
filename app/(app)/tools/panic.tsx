@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Card, Button } from '@/src/design-system/components';
@@ -80,7 +80,7 @@ const EMERGENCY_MANTRAS = [
   "This craving will pass in just a few minutes",
   "I am stronger than this urge",
   "Every craving I resist makes me stronger",
-  "I choose my health over cigarettes",
+  "I choose my health over vaping",
   "This feeling is temporary, my quit is forever",
   "I've survived cravings before, I can do this again"
 ];
@@ -89,6 +89,7 @@ export default function PanicModeScreen() {
   const router = useRouter();
   const { quitData } = useQuitStore();
   const { recordToolUse } = useToolStore();
+  const insets = useSafeAreaInsets();
   
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
   const [currentMantra, setCurrentMantra] = useState(0);
@@ -374,16 +375,12 @@ export default function PanicModeScreen() {
   return (
     <View style={styles.container}>
       <StarField />
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <View style={[styles.safeArea, { paddingTop: insets.top }]}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
           <View style={styles.content}>
-            <TouchableOpacity 
-              style={styles.premiumBackButton}
-              onPress={() => router.back()}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.premiumBackButtonText}>← Back</Text>
-            </TouchableOpacity>
+            <Text style={styles.backButton} onPress={() => router.back()}>
+              ← Back
+            </Text>
 
             {renderEmergencyHeader()}
             {renderQuickActions()}
@@ -392,7 +389,7 @@ export default function PanicModeScreen() {
             {renderSuccessStats()}
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -419,6 +416,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     zIndex: 1,
+    paddingBottom: 0,
   },
   scrollView: {
     flex: 1,
@@ -426,20 +424,10 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
-  premiumBackButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(144, 213, 255, 0.3)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginBottom: 24,
-  },
-  premiumBackButtonText: {
-    fontSize: 16,
+  backButton: {
+    ...Theme.typography.body,
     color: Theme.colors.purple[500],
-    fontWeight: '600',
+    marginBottom: Theme.spacing.lg,
   },
 
   // Premium Emergency Header

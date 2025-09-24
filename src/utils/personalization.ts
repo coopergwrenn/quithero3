@@ -96,10 +96,10 @@ function calculateRiskLevel(responses: Record<string, any>): { level: 'high' | '
 
 function generateDay0Checklist(responses: Record<string, any>, riskLevel: string): string[] {
   const baseChecklist = [
-    'Remove all smoking/vaping products from your space',
+    'Remove all vaping/smoking products from your space',
     'Download the QuitHero app and set up your profile',
     'Tell someone supportive about your quit date',
-    'Plan your first smoke-free day hour by hour',
+    'Plan your first vape-free day hour by hour',
   ];
 
   const riskSpecificItems = {
@@ -131,7 +131,7 @@ function getPriorityTools(responses: Record<string, any>, riskLevel: string): st
     'panic-mode': 'Panic Mode - 60-second emergency protocol',
     'urge-timer': 'Urge Timer - Track and time your cravings',
     'breathwork': 'Breathwork - Guided breathing exercises',
-    'pledge': 'Daily Pledge - Commit to staying smoke-free',
+    'pledge': 'Daily Pledge - Commit to staying vape-free',
     'distraction': 'Distraction Toolkit - Quick activities to redirect focus',
     'social-support': 'Social Support - Connect with your support network',
   };
@@ -198,13 +198,13 @@ function getExpectedChallenges(responses: Record<string, any>, riskLevel: string
     challenges.push('Increased cravings during stressful situations');
   }
   if (triggers.includes('social')) {
-    challenges.push('Difficulty in social situations where others smoke/vape');
+    challenges.push('Difficulty in social situations where others vape/smoke');
   }
   if (triggers.includes('boredom')) {
     challenges.push('Strong urges during downtime or routine activities');
   }
   if (triggers.includes('routine')) {
-    challenges.push('Breaking automatic smoking/vaping habits');
+    challenges.push('Breaking automatic vaping/smoking habits');
   }
 
   // Risk-level specific challenges
@@ -216,7 +216,7 @@ function getExpectedChallenges(responses: Record<string, any>, riskLevel: string
 
   // Social environment challenges
   if (responses.socialContext === 'daily') {
-    challenges.push('Constant exposure to smoking/vaping triggers');
+    challenges.push('Constant exposure to vaping/smoking triggers');
   }
 
   // Previous attempt challenges
@@ -234,14 +234,14 @@ function getMotivationalMessage(responses: Record<string, any>): string {
 
   const messages = {
     health: {
-      today: "Your lungs start healing within 20 minutes of your last cigarette. Every breath from now on is a step toward better health.",
+      today: "Your lungs start healing within 20 minutes of your last vape. Every breath from now on is a step toward better health.",
       'this-week': "This week, you're giving your body the greatest gift possible - the chance to heal and thrive.",
       'next-week': "Next week marks the beginning of your health transformation. Your future self will thank you.",
       'this-month': "This month, you're choosing a longer, healthier life. Every day of preparation increases your success."
     },
     money: {
-      today: "Starting today, every dollar you don't spend on smoking is an investment in your future.",
-      'this-week': "This week, you'll start seeing real money back in your pocket instead of going up in smoke.",
+      today: "Starting today, every dollar you don't spend on vaping is an investment in your future.",
+      'this-week': "This week, you'll start seeing real money back in your pocket instead of going up in vapor.",
       'next-week': "Next week, you'll begin building wealth instead of burning it away.",
       'this-month': "This month, you're choosing financial freedom over addiction."
     },
@@ -277,12 +277,12 @@ function getCustomStrategies(responses: Record<string, any>): string[] {
     strategies.push('Keep your hands busy with puzzles or crafts');
   }
   if (triggers.includes('social')) {
-    strategies.push('Practice saying "I don\'t smoke anymore" with confidence');
+    strategies.push('Practice saying "I don\'t vape anymore" with confidence');
     strategies.push('Bring a supportive friend to social events');
   }
   if (triggers.includes('routine')) {
     strategies.push('Change your daily routine to break automatic habits');
-    strategies.push('Replace smoking breaks with short walks');
+    strategies.push('Replace vaping breaks with short walks');
   }
 
   // Sleep and stress strategies
@@ -297,8 +297,8 @@ function getCustomStrategies(responses: Record<string, any>): string[] {
 
   // Social environment strategies
   if (responses.socialContext === 'daily') {
-    strategies.push('Ask family/friends to avoid smoking around you');
-    strategies.push('Create smoke-free zones in your home and car');
+    strategies.push('Ask family/friends to avoid vaping around you');
+    strategies.push('Create vape-free zones in your home and car');
   }
 
   return strategies.slice(0, 6); // Limit to top 6 strategies

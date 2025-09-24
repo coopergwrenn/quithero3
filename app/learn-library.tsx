@@ -36,8 +36,8 @@ export default function LearnLibraryScreen() {
       id: 'first-24-hours',
       title: 'Your First 24 Hours',
       readTime: '5 min read',
-      preview: 'Essential survival guide for your first day smoke-free',
-      content: `Your First 24 Hours Smoke-Free
+      preview: 'Essential survival guide for your first day vape-free',
+      content: `Your First 24 Hours Vape-Free
 
 Congratulations on taking the first step! The first 24 hours are crucial for setting the foundation of your quit journey.
 
@@ -60,7 +60,7 @@ Hour-by-Hour Guide
 Hours 1-4: The Decision Phase
 • Cravings are manageable
 • Focus on your reasons for quitting
-• Remove all smoking materials from your environment
+• Remove all vaping materials from your environment
 
 Hours 4-8: Peak Initial Withdrawal
 • Cravings intensify
@@ -68,7 +68,7 @@ Hours 4-8: Peak Initial Withdrawal
 • Stay busy with hands-on activities
 
 Hours 8-16: Habit Disruption
-• Strongest urges during usual smoking times
+• Strongest urges during usual vaping times
 • Change your routine
 • Avoid triggers when possible
 
@@ -90,7 +90,7 @@ Tips for Success
 
 • Stay hydrated: Drink water every hour
 • Keep hands busy: Stress ball, pen, toothpick
-• Change environment: Avoid smoking areas
+• Change environment: Avoid vaping areas
 • Reward yourself: Plan something special for completing day 1
 
 Remember: Every craving you overcome makes you stronger. You can do this!`
@@ -153,7 +153,7 @@ Week 1 Milestones to Celebrate
 • Day 4: New habits are forming
 • Day 5: You're proving you can do this
 • Day 6: Almost at one week!
-• Day 7: You're officially a non-smoker for a full week!
+• Day 7: You're officially a non-vaper for a full week!
 
 You're building the foundation for lifelong freedom. Every hour matters!`
     }

@@ -5,7 +5,7 @@
 export interface QuitStats {
   daysSinceQuit: number;
   moneySaved: number;
-  cigarettesNotSmoked: number;
+  vapesNotUsed: number;
   healthMilestones: HealthMilestone[];
 }
 
@@ -20,24 +20,24 @@ export interface HealthMilestone {
 
 export function calculateQuitStats(
   quitDate: Date,
-  cigarettesPerDay: number,
-  costPerPack: number,
-  cigarettesPerPack: number = 20
+  vapesPerDay: number,
+  costPerPod: number,
+  vapesPerPod: number = 200
 ): QuitStats {
   const now = new Date();
   const timeDiff = now.getTime() - quitDate.getTime();
   const daysSinceQuit = Math.max(0, Math.floor(timeDiff / (1000 * 3600 * 24)));
   
-  const cigarettesNotSmoked = daysSinceQuit * cigarettesPerDay;
-  const packsNotSmoked = cigarettesNotSmoked / cigarettesPerPack;
-  const moneySaved = packsNotSmoked * costPerPack;
+  const vapesNotUsed = daysSinceQuit * vapesPerDay;
+  const podsNotUsed = vapesNotUsed / vapesPerPod;
+  const moneySaved = podsNotUsed * costPerPod;
 
   const healthMilestones = getHealthMilestones(daysSinceQuit);
 
   return {
     daysSinceQuit,
     moneySaved,
-    cigarettesNotSmoked,
+    vapesNotUsed,
     healthMilestones,
   };
 }

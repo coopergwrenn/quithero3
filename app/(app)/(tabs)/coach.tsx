@@ -109,7 +109,7 @@ export default function CoachScreen() {
           
           <Text style={styles.heroTitle}>Meet Your AI Quit Coach</Text>
           <Text style={styles.heroSubtitle}>
-            I'm your personal AI coach, trained specifically on smoking cessation science. 
+            I'm your personal AI coach, trained specifically on vaping cessation science. 
             I'm here 24/7 to provide support, answer questions, and guide you through challenges.
           </Text>
         </View>
@@ -204,7 +204,7 @@ export default function CoachScreen() {
           
           <TouchableOpacity 
             style={styles.infoButton}
-            onPress={() => Alert.alert('Coach Info', 'This AI coach uses advanced AI technology trained on evidence-based smoking cessation methods. Your conversations are private and secure, and the coach adapts to your personal quit journey.')}
+            onPress={() => Alert.alert('Coach Info', 'This AI coach uses advanced AI technology trained on evidence-based vaping cessation methods. Your conversations are private and secure, and the coach adapts to your personal quit journey.')}
           >
             <Text style={styles.infoButtonText}>How does this work?</Text>
           </TouchableOpacity>
