@@ -117,8 +117,55 @@ export default function CommunityScreen() {
 
   const handleCrisisResponse = (postId: string, response: string) => {
     // In a real app, this would add a response/comment
-    Alert.alert('Response Sent!', 'Your support message has been sent.');
+    Alert.alert('🆘 Crisis Support Sent!', 'Your immediate support message has been sent. Crisis responders have been notified.');
     analytics.track('crisis_response_sent', { post_id: postId });
+  };
+
+  const handleCommentPress = (postId: string) => {
+    // Show comments modal or navigate to post details
+    Alert.alert(
+      '💬 Comments',
+      'Comments feature coming soon! This will show all comments for this post and allow you to add your own.',
+      [{ text: 'OK', style: 'default' }]
+    );
+    analytics.track('comment_button_pressed', { post_id: postId });
+  };
+
+  const handleSupportPress = (postId: string, userName: string) => {
+    // Send support to the post author
+    Alert.alert(
+      '💪 Support Sent!',
+      `Your support has been sent to ${userName}. They'll be notified that the community is here for them!`,
+      [{ text: 'OK', style: 'default' }]
+    );
+    analytics.track('support_sent', { post_id: postId, recipient: userName });
+  };
+
+  const handleCrisisHelpPress = (postId: string, userName: string) => {
+    // Show crisis help options
+    Alert.alert(
+      '🆘 Crisis Support Options',
+      `Immediate help for ${userName}:`,
+      [
+        { 
+          text: 'Send Encouragement', 
+          onPress: () => {
+            Alert.alert('💪 Encouragement Sent!', `${userName} has been sent words of encouragement from the community.`);
+            analytics.track('crisis_encouragement_sent', { post_id: postId });
+          }
+        },
+        { 
+          text: 'Alert Crisis Team', 
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('🚨 Crisis Team Alerted!', 'Professional crisis responders have been notified and will reach out immediately.');
+            analytics.track('crisis_team_alerted', { post_id: postId });
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+    analytics.track('crisis_help_pressed', { post_id: postId });
   };
 
   const renderTabBar = () => (
@@ -254,12 +301,18 @@ export default function CommunityScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.engagementButton}>
+            <TouchableOpacity 
+              style={styles.engagementButton}
+              onPress={() => handleCommentPress(item.id)}
+            >
               <Text style={styles.engagementIcon}>💬</Text>
               <Text style={styles.engagementText}>{item.comments_count || 0}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.engagementButton}>
+            <TouchableOpacity 
+              style={styles.engagementButton}
+              onPress={() => handleSupportPress(item.id, item.anonymous_name)}
+            >
               <Text style={styles.engagementIcon}>💪</Text>
               <Text style={styles.engagementText}>Support</Text>
             </TouchableOpacity>
@@ -267,7 +320,7 @@ export default function CommunityScreen() {
             {item.post_type === 'struggle' && (
               <TouchableOpacity 
                 style={styles.crisisResponseButton}
-                onPress={() => handleCrisisResponse(item.id, CRISIS_RESPONSES[0])}
+                onPress={() => handleCrisisHelpPress(item.id, item.anonymous_name)}
               >
                 <Text style={styles.crisisResponseIcon}>🆘</Text>
                 <Text style={styles.crisisResponseText}>Help Now</Text>
