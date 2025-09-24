@@ -72,7 +72,7 @@ export default function CommunityScreen() {
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [leaderboardTab, setLeaderboardTab] = useState('streak');
   
-  const { posts, loading, loadPosts, createPost, likePost } = useCommunityStore();
+  const { posts, loading, loadPosts, createPost, likePost, unlikePost, loadUserLikes, userLikes } = useCommunityStore();
   const { quitData } = useQuitStore();
   const { user } = useAuthStore();
   
