@@ -458,7 +458,7 @@ export default function CommunityScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {renderTabBar()}
       
       {activeTab === 'feed' && (
@@ -481,7 +481,7 @@ export default function CommunityScreen() {
       {activeTab === 'achievements' && renderAchievements()}
       
       {renderCreatePostModal()}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -513,7 +513,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
-    paddingTop: 90, // Add top padding since we removed SafeAreaView
   },
   tabBar: {
     flexDirection: 'row',
