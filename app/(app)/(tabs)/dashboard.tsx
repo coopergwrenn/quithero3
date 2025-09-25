@@ -1163,7 +1163,7 @@ export default function DashboardScreen() {
           <View style={[
             styles.quitCounterContainer,
             // Add extra bottom margin when no secondary pill (early seconds stage)
-            !getSecondaryTimeDisplay() && { marginBottom: 24 }
+            !getSecondaryTimeDisplay() && { marginBottom: 16 }
           ]}>
             <Text style={styles.quitCounterText}>You've been vape-free for:</Text>
             
@@ -2212,7 +2212,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18, // Slightly smaller
     fontWeight: '400',
-    marginBottom: 16, // Multiple of 4
+    marginBottom: 28, // Further increased to pull counter down for perfect centering
     letterSpacing: 0.5,
     opacity: 0.9,
   },

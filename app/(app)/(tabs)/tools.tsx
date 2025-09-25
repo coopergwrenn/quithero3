@@ -276,9 +276,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#FFFFFF',
     marginBottom: 8,
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    // Removed all text shadow properties for clean, crisp text
   },
   premiumSubtitle: {
     fontSize: 16,
@@ -303,7 +301,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   crisisCard: {
-    backgroundColor: 'rgba(139, 69, 19, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)', // Changed from red-brown to dark blue-gray
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.4)',

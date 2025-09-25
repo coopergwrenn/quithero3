@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   capabilitiesContainer: {
-    marginBottom: 24,
+    marginBottom: 16, // Reduced from 24 to bring button closer
   },
   capabilitiesTitle: {
     fontSize: 18,
