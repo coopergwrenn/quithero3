@@ -435,6 +435,62 @@ export default function DashboardScreen() {
     
     return { days, hours, minutes };
   };
+
+  // QUITTR-style main display logic - shows the largest meaningful unit
+  const getMainTimeDisplay = () => {
+    if (!effectiveQuitData.quitDate) return { number: '0', unit: 's' };
+    
+    const quitDate = new Date(effectiveQuitData.quitDate);
+    const diffTime = currentTime.getTime() - quitDate.getTime();
+    
+    const totalSeconds = Math.floor(diffTime / 1000);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const totalHours = Math.floor(totalMinutes / 60);
+    const totalDays = Math.floor(totalHours / 24);
+    
+    // Show largest meaningful unit as main display
+    if (totalDays >= 1) {
+      return { number: totalDays.toString(), unit: totalDays === 1 ? 'day' : 'days' };
+    } else if (totalHours >= 1) {
+      return { number: totalHours.toString(), unit: totalHours === 1 ? 'hr' : 'hrs' };
+    } else if (totalMinutes >= 1) {
+      return { number: totalMinutes.toString(), unit: totalMinutes === 1 ? 'min' : 'mins' };
+    } else {
+      return { number: totalSeconds.toString(), unit: totalSeconds === 1 ? 'sec' : 'secs' };
+    }
+  };
+
+  // QUITTR-style secondary display - shows detailed breakdown in pill
+  const getSecondaryTimeDisplay = () => {
+    if (!effectiveQuitData.quitDate) return null;
+    
+    const quitDate = new Date(effectiveQuitData.quitDate);
+    const diffTime = currentTime.getTime() - quitDate.getTime();
+    
+    const totalSeconds = Math.floor(diffTime / 1000);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const totalHours = Math.floor(totalMinutes / 60);
+    const totalDays = Math.floor(totalHours / 24);
+    
+    const seconds = totalSeconds % 60;
+    const minutes = totalMinutes % 60;
+    const hours = totalHours % 24;
+    
+    // Show detailed breakdown based on main unit
+    if (totalDays >= 1) {
+      // Main shows days, pill shows hours:minutes:seconds
+      return `${hours}hr ${minutes}m ${seconds}s`;
+    } else if (totalHours >= 1) {
+      // Main shows hours, pill shows minutes:seconds
+      return `${minutes}m ${seconds}s`;
+    } else if (totalMinutes >= 1) {
+      // Main shows minutes, pill shows seconds
+      return `${seconds}s`;
+    } else {
+      // Main shows seconds, no pill needed for very early stage
+      return null;
+    }
+  };
       
   // Check which health milestones are achieved
   const calculateMilestoneStatus = () => {
@@ -958,8 +1014,8 @@ export default function DashboardScreen() {
           </Text>
           <View style={styles.buttonContainer}>
             <Button onPress={() => router.push('/(onboarding)')} style={styles.primaryButton}>
-              Get Started
-            </Button>
+            Get Started
+          </Button>
             <Button 
               variant="ghost" 
               onPress={() => {
@@ -1009,8 +1065,8 @@ export default function DashboardScreen() {
                 <Text style={styles.streakNumber}>{daysSinceQuit}</Text>
               </View>
             </View>
-          </View>
-          
+            </View>
+            
           {/* Premium Weekly Progress Tracker */}
           <View style={styles.premiumWeeklyContainer}>
             {['F', 'S', 'S', 'M', 'T', 'W', 'T'].map((day, index) => {
@@ -1032,7 +1088,7 @@ export default function DashboardScreen() {
                       ) : (
                         <Text style={styles.premiumWeeklyMinus}>−</Text>
                       )}
-                    </View>
+                </View>
                     {isCompleted && <View style={styles.premiumWeeklyGlow} />}
                   </View>
                   <Text style={styles.premiumWeeklyDay}>{day}</Text>
@@ -1100,19 +1156,29 @@ export default function DashboardScreen() {
                   backgroundColor: getTreeDisplay().glow,
                 }
               ]} />
-            </View>
+              </View>
           </View>
 
-          {/* Quit Counter */}
-          <View style={styles.quitCounterContainer}>
+          {/* Advanced Quit Counter - QUITTR Style */}
+          <View style={[
+            styles.quitCounterContainer,
+            // Add extra bottom margin when no secondary pill (early seconds stage)
+            !getSecondaryTimeDisplay() && { marginBottom: 24 }
+          ]}>
             <Text style={styles.quitCounterText}>You've been vape-free for:</Text>
-            <View style={styles.timeDisplayContainer}>
-              <Text style={styles.timeDisplayMain}>{calculateTimeSinceQuit().days > 0 ? `${calculateTimeSinceQuit().days}d` : `${calculateTimeSinceQuit().hours}h`}</Text>
-              <Text style={styles.timeDisplaySub}>{calculateTimeSinceQuit().minutes}m</Text>
+            
+            {/* Main Dynamic Display */}
+            <View style={styles.mainTimeDisplay}>
+              <Text style={styles.mainTimeNumber}>{getMainTimeDisplay().number}</Text>
+              <Text style={styles.mainTimeUnit}>{getMainTimeDisplay().unit}</Text>
             </View>
-            <View style={styles.secondsContainer}>
-              <Text style={styles.secondsText}>{Math.floor((currentTime.getTime() - new Date(effectiveQuitData.quitDate).getTime()) / 1000) % 60}s</Text>
-            </View>
+            
+            {/* Secondary Real-time Pill Counter */}
+            {getSecondaryTimeDisplay() && (
+              <View style={styles.secondaryTimePill}>
+                <Text style={styles.secondaryTimeText}>{getSecondaryTimeDisplay()}</Text>
+              </View>
+            )}
           </View>
 
           {/* Coach Preview Button */}
@@ -1153,7 +1219,7 @@ export default function DashboardScreen() {
             >
               <View style={styles.actionButtonIcon}>
                 <Text style={styles.actionButtonEmoji}>🧘</Text>
-              </View>
+            </View>
               <Text style={styles.actionButtonLabel}>Meditate</Text>
             </TouchableOpacity>
 
@@ -1168,19 +1234,19 @@ export default function DashboardScreen() {
             >
               <View style={styles.actionButtonIcon}>
                 <Text style={styles.actionButtonEmoji}>⏰</Text>
-              </View>
+          </View>
               <Text style={styles.actionButtonLabel}>Reset</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+                <TouchableOpacity 
               style={styles.actionButton} 
               onPress={() => router.push('/(app)/(tabs)/tools')}
-            >
+                >
               <View style={styles.actionButtonIcon}>
                 <Text style={styles.actionButtonEmoji}>✏️</Text>
               </View>
               <Text style={styles.actionButtonLabel}>More</Text>
-            </TouchableOpacity>
+                </TouchableOpacity>
           </View>
 
           {/* Brain Rewiring Progress */}
@@ -1200,11 +1266,11 @@ export default function DashboardScreen() {
               Today marks the beginning of a powerful journey.{'\n'}
               This decision is a commitment to a better you.{'\n'}
               Remember, small steps lead to great changes.
-            </Text>
+                </Text>
           </View>
 
           {/* Panic Button */}
-          <TouchableOpacity 
+                <TouchableOpacity 
             style={styles.panicButton}
             onPress={() => router.push('/(app)/tools/panic' as any)}
           >
@@ -1232,58 +1298,58 @@ export default function DashboardScreen() {
             
             {/* Premium Day Headers */}
             <View style={styles.premiumDayHeaders}>
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
                 <Text key={index} style={styles.premiumDayHeader}>{day}</Text>
-              ))}
-            </View>
-            
+                ))}
+              </View>
+              
             {/* Premium Calendar Grid */}
             <View style={styles.premiumCalendarGrid}>
-              {getDaysInMonth(currentMonth).map((day, index) => {
-                const score = calculateDayScore(day);
-                const isToday = day.toDateString() === new Date().toDateString();
-                const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
+                {getDaysInMonth(currentMonth).map((day, index) => {
+                  const score = calculateDayScore(day);
+                  const isToday = day.toDateString() === new Date().toDateString();
+                  const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
                 const quitDate = new Date(effectiveQuitData.quitDate);
                 const isQuitDay = day >= quitDate;
-                
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
                       styles.premiumDayCell,
                       {
                         backgroundColor: isQuitDay ? getPremiumCellColor(score) : 'rgba(255, 255, 255, 0.03)',
                         opacity: isCurrentMonth ? 1 : 0.4,
                         borderWidth: isToday ? 2 : 1,
                         borderColor: isToday ? Theme.colors.purple[500] : 'rgba(255, 255, 255, 0.1)',
-                      }
-                    ]}
-                    onPress={() => openDayModal(day)}
-                  >
-                    <Text style={[
+                        }
+                      ]}
+                      onPress={() => openDayModal(day)}
+                    >
+                      <Text style={[
                       styles.premiumDayText,
                       { 
                         color: isCurrentMonth ? '#FFFFFF' : '#888888',
                         fontWeight: isToday ? '600' : '400'
                       }
-                    ]}>
-                      {day.getDate()}
-                    </Text>
+                      ]}>
+                        {day.getDate()}
+                      </Text>
                     {isQuitDay && score > 70 && (
                       <View style={styles.premiumSuccessIndicator}>
                         <Text style={styles.premiumSuccessIcon}>✨</Text>
                       </View>
                     )}
-                  </TouchableOpacity>
-                );
-              })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
-
+            
           {/* Premium Motivational Message */}
           <View style={styles.premiumMotivationCard}>
             <Text style={styles.premiumMotivationText}>{getMotivationalMessage()}</Text>
-          </View>
+                </View>
 
           {/* Motivational Dashboard Section */}
           <View style={styles.motivationalSection}>
@@ -1297,7 +1363,7 @@ export default function DashboardScreen() {
                 </View>
                 <Text style={styles.quitGoalLabel}>You're on track to quit by:</Text>
                 <Text style={styles.quitGoalDate}>Dec 19, 2025</Text>
-              </View>
+                </View>
 
               {/* Temptation Status Card */}
               <View style={styles.temptationCard}>
@@ -1342,8 +1408,8 @@ export default function DashboardScreen() {
               <View style={styles.healthHeaderText}>
                 <Text style={styles.premiumHealthTitle}>Health Recovery Timeline</Text>
                 <Text style={styles.premiumHealthSubtitle}>
-                  Your body is healing! {achievedMilestones.length} of {milestoneStatus.length} milestones achieved.
-                </Text>
+              Your body is healing! {achievedMilestones.length} of {milestoneStatus.length} milestones achieved.
+            </Text>
               </View>
             </View>
             
@@ -1405,8 +1471,8 @@ export default function DashboardScreen() {
               <View style={styles.toolsHeaderText}>
                 <Text style={styles.premiumToolsTitle}>Your Tools</Text>
                 <Text style={styles.premiumToolsSubtitle} numberOfLines={1}>
-                  {totalUses} total uses • Most used: {mostUsedTool.name} {mostUsedTool.icon}
-                </Text>
+              {totalUses} total uses • Most used: {mostUsedTool.name} {mostUsedTool.icon}
+            </Text>
               </View>
             </View>
             
@@ -1514,36 +1580,36 @@ export default function DashboardScreen() {
                 onPress={() => setShowDayModal(false)}
               >
                 <Text style={styles.premiumCloseButtonText}>✕</Text>
-              </TouchableOpacity>
+            </TouchableOpacity>
               <Text style={styles.premiumModalTitle}>
-                {selectedDay?.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </Text>
+              {selectedDay?.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
               <View style={styles.premiumModalSpacer} />
-            </View>
+          </View>
 
             <ScrollView 
               style={styles.premiumModalContent}
               showsVerticalScrollIndicator={false}
             >
-              {selectedDay && (
-                <>
+            {selectedDay && (
+              <>
                   {/* Premium Activity Score Card */}
                   <View style={styles.premiumScoreCard}>
                     <View style={styles.premiumScoreGlow} />
                     <Text style={styles.premiumScoreLabel}>Activity Score</Text>
                     <Text style={styles.premiumScoreValue}>
-                      {calculateDayScore(selectedDay)}/100
-                    </Text>
+                    {calculateDayScore(selectedDay)}/100
+                  </Text>
                     <Text style={styles.premiumScoreDescription}>
-                      {calculateDayScore(selectedDay) > 70 ? 'Excellent day! 🌟' :
-                       calculateDayScore(selectedDay) > 40 ? 'Good progress! 👍' :
-                       calculateDayScore(selectedDay) > 0 ? 'Keep going! 💪' :
-                       'No quit activities'}
-                    </Text>
+                    {calculateDayScore(selectedDay) > 70 ? 'Excellent day! 🌟' :
+                     calculateDayScore(selectedDay) > 40 ? 'Good progress! 👍' :
+                     calculateDayScore(selectedDay) > 0 ? 'Keep going! 💪' :
+                     'No quit activities'}
+                  </Text>
                   </View>
 
                   {/* Premium Activities Card */}
@@ -1551,11 +1617,11 @@ export default function DashboardScreen() {
                     <View style={styles.premiumCardGlow} />
                     <Text style={styles.premiumActivitiesTitle}>Today's Activities</Text>
                     <View style={styles.premiumActivitiesList}>
-                      {getDayActivities(selectedDay).map((activity, index) => (
+                  {getDayActivities(selectedDay).map((activity, index) => (
                         <View key={index} style={styles.premiumActivityItem}>
                           <View style={styles.premiumActivityIconContainer}>
                             <Text style={styles.premiumActivityIcon}>{activity.icon}</Text>
-                          </View>
+                      </View>
                           <View style={styles.premiumActivityInfo}>
                             <Text style={styles.premiumActivityType}>{activity.type}</Text>
                             <Text style={styles.premiumActivityTime}>{activity.time}</Text>
@@ -1563,8 +1629,8 @@ export default function DashboardScreen() {
                           <View style={styles.premiumPointsBadge}>
                             <Text style={styles.premiumActivityPoints}>+{activity.points} pts</Text>
                           </View>
-                        </View>
-                      ))}
+                    </View>
+                  ))}
                     </View>
                   </View>
 
@@ -1573,25 +1639,25 @@ export default function DashboardScreen() {
                     <View style={styles.premiumCardGlow} />
                     <Text style={styles.premiumReflectionTitle}>Daily Reflection</Text>
                     <View style={styles.premiumInputContainer}>
-                      <TextInput
+                  <TextInput
                         style={styles.premiumReflectionInput}
-                        multiline
-                        numberOfLines={4}
-                        placeholder="How are you feeling today? Any reflections on your quit journey..."
+                    multiline
+                    numberOfLines={4}
+                    placeholder="How are you feeling today? Any reflections on your quit journey..."
                         placeholderTextColor="rgba(255, 255, 255, 0.4)"
-                        value={tempNote}
-                        onChangeText={setTempNote}
-                      />
+                    value={tempNote}
+                    onChangeText={setTempNote}
+                  />
                     </View>
                     <TouchableOpacity style={styles.premiumSaveButton} onPress={saveDayNote}>
                       <View style={styles.premiumSaveButtonGlow} />
                       <Text style={styles.premiumSaveButtonText}>Save Note</Text>
-                    </TouchableOpacity>
+                  </TouchableOpacity>
                   </View>
-                </>
-              )}
-            </ScrollView>
-          </SafeAreaView>
+              </>
+            )}
+          </ScrollView>
+        </SafeAreaView>
         </View>
       </Modal>
 
@@ -1701,7 +1767,7 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
+    </SafeAreaView>
       </Modal>
 
       {/* Interactive Tree Scene Modal */}
@@ -2055,48 +2121,59 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   
-  // Tree Growth System - Compact
+  // Tree Growth System - Modern & Clean
   treeContainer: {
     alignItems: 'center',
-    marginBottom: 32, // Restored proper spacing
+    marginBottom: 32,
   },
   treeCircle: {
-    width: 120, // Much smaller - was 160
+    width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 41, 59, 0.95)', // Even more visible dark background
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(148, 163, 184, 0.3)', // More visible border
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 16,
     position: 'relative',
   },
   treeInner: {
-    width: 100, // Proportionally smaller
+    width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(51, 65, 85, 0.6)', // Subtle inner background for depth
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(71, 85, 105, 0.4)',
   },
   treeEmoji: {
-    fontSize: 48, // Smaller - was 64
+    fontSize: 48,
     textAlign: 'center',
+    backgroundColor: 'transparent', // Ensure no background
+    color: 'inherit', // Use natural emoji colors
   },
   seedPromptPulse: {
     position: 'absolute',
-    width: 120, // Match new size
+    width: 120, // Match corrected outer circle size
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(74, 222, 128, 0.2)',
+    backgroundColor: 'rgba(74, 222, 128, 0.15)',
     borderWidth: 2,
-    borderColor: '#4ADE80',
+    borderColor: 'rgba(74, 222, 128, 0.6)',
+    shadowColor: '#4ADE80',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   treeDescription: {
     color: '#FFFFFF',
@@ -2129,7 +2206,7 @@ const styles = StyleSheet.create({
   // Quit Counter - Compact Spacing
   quitCounterContainer: {
     alignItems: 'center',
-    marginBottom: 20, // Just right spacing to coach button
+    marginBottom: 16, // Reduced spacing for better layout
   },
   quitCounterText: {
     color: '#FFFFFF',
@@ -2180,6 +2257,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '500',
     letterSpacing: 1,
+  },
+  
+  // QUITTR-style main display
+  mainTimeDisplay: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: 8, // Reduced from 16 to bring closer to pill
+  },
+  mainTimeNumber: {
+    color: '#FFFFFF',
+    fontSize: 80,
+    fontWeight: '700',
+    letterSpacing: -3,
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+    lineHeight: 80,
+  },
+  mainTimeUnit: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '400',
+    marginLeft: 8,
+    opacity: 0.8,
+    lineHeight: 60,
+  },
+  
+  // QUITTR-style secondary pill
+  secondaryTimePill: {
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderRadius: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.2)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  secondaryTimeText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
 
   // Coach Preview Button
