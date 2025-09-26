@@ -244,7 +244,9 @@ export default function AnalyticsScreen() {
               {/* Overall Progress Circle */}
               <View style={styles.radarOverallCard}>
                 <Text style={styles.radarOverallTitle}>Overall Recovery</Text>
-                <Text style={styles.radarOverallPercentage}>{percentage}%</Text>
+                <View style={styles.percentageContainer}>
+                  <Text style={styles.radarOverallPercentage}>{percentage}%</Text>
+                </View>
                 <Text style={styles.radarOverallSubtitle}>{daysSinceQuit} Day Streak</Text>
               </View>
               
@@ -586,7 +588,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 24,
+    padding: 32,
+    paddingTop: 56,
+    paddingBottom: 32,
     alignItems: 'center',
     marginBottom: 20,
     shadowColor: '#000',
@@ -594,12 +598,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+    overflow: 'visible',
   },
   radarOverallTitle: {
     ...Theme.typography.headline,
     color: Theme.colors.text.primary,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 20,
+  },
+  percentageContainer: {
+    minHeight: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'visible',
+    zIndex: 10,
   },
   radarOverallPercentage: {
     ...Theme.typography.largeTitle,
@@ -609,6 +621,10 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(144, 213, 255, 0.6)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
+    zIndex: 10,
+    position: 'relative',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   radarOverallSubtitle: {
     ...Theme.typography.caption1,
