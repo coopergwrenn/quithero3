@@ -4310,7 +4310,7 @@ const styles = StyleSheet.create({
   coachPreviewWelcome: {
     fontSize: 16,
     color: '#FFFFFF',
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 20,
     padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
