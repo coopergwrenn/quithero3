@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions, Alert, Easing } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Modal, TextInput, Dimensions, Alert, Easing, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -1670,14 +1670,21 @@ export default function DashboardScreen() {
       >
         <SafeAreaView style={styles.coachPreviewModalContainer}>
           <View style={styles.coachPreviewHeader}>
-            <TouchableOpacity onPress={() => setShowCoachPreview(false)}>
-              <Text style={styles.modalCloseButton}>✕</Text>
+            <TouchableOpacity 
+              style={styles.premiumCloseButton}
+              onPress={() => setShowCoachPreview(false)}
+            >
+              <Text style={styles.premiumCloseButtonText}>✕</Text>
             </TouchableOpacity>
             <Text style={styles.coachPreviewTitle}>Quit Hero</Text>
             <View style={styles.headerPlaceholder} />
           </View>
           
-          <View style={styles.coachPreviewContent}>
+          <KeyboardAvoidingView 
+            style={styles.coachPreviewContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 40}
+          >
             <Text style={styles.coachPreviewWelcome}>
               👋 Hi {userName || 'there'}! I'm your AI Quit Coach. Try sending me a message!
             </Text>
@@ -1766,7 +1773,7 @@ export default function DashboardScreen() {
                 <Text style={styles.coachPreviewSendText}>→</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </KeyboardAvoidingView>
     </SafeAreaView>
       </Modal>
 
@@ -4327,7 +4334,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginBottom: 20,
+    marginBottom: 8,
   },
   coachPreviewInput: {
     flex: 1,

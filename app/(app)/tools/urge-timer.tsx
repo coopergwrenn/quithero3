@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Vibration, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Vibration, Platform, Animated, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/src/design-system/theme';
@@ -330,9 +330,11 @@ export default function UrgeTimerScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.backButton} onPress={() => router.back()}>
-              ← Back
-            </Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={styles.backButton}>
+                ← Back
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.toolTitle}>⏱️ Urge Timer</Text>
             <Text style={styles.toolSubtitle}>
               Ride the wave - watch cravings peak and fade
