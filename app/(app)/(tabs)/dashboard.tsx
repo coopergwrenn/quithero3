@@ -1184,7 +1184,7 @@ export default function DashboardScreen() {
           {/* Coach Preview Button */}
           <TouchableOpacity 
             style={styles.coachPreviewButton}
-            onPress={() => setShowCoachPreview(true)}
+            onPress={() => router.push('/(app)/(tabs)/coach')}
             activeOpacity={0.7}
           >
             <Text style={styles.coachPreviewText}>Talk to your coach</Text>
