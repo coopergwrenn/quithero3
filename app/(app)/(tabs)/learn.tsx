@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingTop: 80,
+    paddingTop: 100,
     paddingBottom: 120,
   },
   header: {
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 32,
-    paddingTop: 56,
+    paddingTop: 32,
     paddingBottom: 32,
     alignItems: 'center',
     marginBottom: 20,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     ...Theme.typography.headline,
     color: Theme.colors.text.primary,
     fontWeight: '600',
-    marginBottom: 20,
+    marginBottom: 4,
   },
   percentageContainer: {
     minHeight: 60,
@@ -618,9 +618,8 @@ const styles = StyleSheet.create({
     color: Theme.colors.purple[500],
     fontWeight: '900',
     fontSize: 48,
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    lineHeight: 60,
+    marginTop: 4,
     zIndex: 10,
     position: 'relative',
     includeFontPadding: false,
@@ -695,9 +694,6 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.primary,
     fontWeight: '900',
     fontSize: 28,
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
   },
   
   // Premium Analytics Styles - Glass Morphism
@@ -751,9 +747,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 40,
     textAlign: 'center',
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
   },
   activitiesLabel: {
     ...Theme.typography.body,

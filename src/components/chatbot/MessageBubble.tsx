@@ -23,18 +23,25 @@ export function MessageBubble({ message, isCrisisMode = false }: MessageBubblePr
         isCrisisMessage && styles.crisisBubble,
         isCrisisMode && !isUser && styles.crisisModeBubble
       ]}>
-        <Text style={[
-          styles.text,
-          isUser ? styles.userText : styles.assistantText,
-          isCrisisMessage && styles.crisisText,
-          isCrisisMode && !isUser && styles.crisisModeText
-        ]}>
-          {renderFormattedText(message.content, {
-            textStyle: isUser ? styles.userText : styles.assistantText,
-            isCrisis: isCrisisMessage,
-            isCrisisMode: isCrisisMode && !isUser
-          })}
-        </Text>
+        <View style={isUser ? styles.userTextContainer : styles.assistantTextContainer}>
+          <Text style={[
+            styles.text,
+            isUser ? styles.userText : styles.assistantText,
+            isCrisisMessage && styles.crisisText,
+            isCrisisMode && !isUser && styles.crisisModeText
+          ]}>
+            {renderFormattedText(message.content, {
+              textStyle: [
+                styles.text,
+                isUser ? styles.userText : styles.assistantText,
+                isCrisisMessage && styles.crisisText,
+                isCrisisMode && !isUser && styles.crisisModeText
+              ],
+              isCrisis: isCrisisMessage,
+              isCrisisMode: isCrisisMode && !isUser
+            })}
+          </Text>
+        </View>
         
         {/* Timestamp */}
         <Text style={[
@@ -107,7 +114,10 @@ function renderFormattedText(text: string, options: {
     
     // Regular text - create unique key using content snippet
     return (
-      <Text key={`text-${index}-${part.slice(0, 10).replace(/\s/g, '')}`}>
+      <Text 
+        key={`text-${index}-${part.slice(0, 10).replace(/\s/g, '')}`}
+        style={options.textStyle}
+      >
         {part}
       </Text>
     );
@@ -159,6 +169,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderWidth: 1,
     borderColor: Theme.colors.dark.border,
+    alignItems: 'flex-start',
   },
   crisisBubble: {
     backgroundColor: '#dc2626',
@@ -171,6 +182,9 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     lineHeight: 22,
+    textAlign: 'left',
+    textAlignVertical: 'top',
+    writingDirection: 'ltr',
   },
   boldText: {
     fontWeight: '700',
@@ -183,9 +197,29 @@ const styles = StyleSheet.create({
   },
   userText: {
     color: Theme.colors.text.primary,
+    textAlign: 'right',
+    alignSelf: 'flex-end',
+    flex: 1,
+  },
+  assistantTextContainer: {
+    width: '100%',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    flexDirection: 'row',
+  },
+  userTextContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
   },
   assistantText: {
     color: Theme.colors.text.primary,
+    textAlign: 'left',
+    textAlignVertical: 'top',
+    writingDirection: 'ltr',
+    alignSelf: 'flex-start',
+    flex: 1,
   },
   crisisText: {
     color: '#ffffff',

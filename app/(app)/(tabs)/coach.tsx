@@ -171,23 +171,6 @@ export default function CoachScreen() {
           </View>
         </View>
 
-        {/* Context Card */}
-        {quitData.quitDate && (
-          <View style={styles.contextCard}>
-            <Text style={styles.contextTitle}>I know about your quit journey:</Text>
-            <View style={styles.contextItems}>
-              <Text style={styles.contextItem}>• Quit date: {new Date(quitData.quitDate).toLocaleDateString()}</Text>
-              {quitData.motivation && <Text style={styles.contextItem}>• Motivation: {quitData.motivation}</Text>}
-              {quitData.usageAmount && quitData.substanceType && (
-                <Text style={styles.contextItem}>• Usage: {quitData.usageAmount} {quitData.substanceType} daily</Text>
-              )}
-              {quitData.triggers && quitData.triggers.length > 0 && (
-                <Text style={styles.contextItem}>• Triggers: {quitData.triggers.join(', ')}</Text>
-              )}
-            </View>
-          </View>
-        )}
-
         {/* CTA Button */}
         <View style={styles.ctaContainer}>
           <TouchableOpacity
@@ -209,6 +192,23 @@ export default function CoachScreen() {
             <Text style={styles.infoButtonText}>How does this work?</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Context Card - Now positioned BELOW the button */}
+        {quitData.quitDate && (
+          <View style={styles.contextCard}>
+            <Text style={styles.contextTitle}>I know about your quit journey:</Text>
+            <View style={styles.contextItems}>
+              <Text style={styles.contextItem}>• Quit date: {new Date(quitData.quitDate).toLocaleDateString()}</Text>
+              {quitData.motivation && <Text style={styles.contextItem}>• Motivation: {quitData.motivation}</Text>}
+              {quitData.usageAmount && quitData.substanceType && (
+                <Text style={styles.contextItem}>• Usage: {quitData.usageAmount} {quitData.substanceType} daily</Text>
+              )}
+              {quitData.triggers && quitData.triggers.length > 0 && (
+                <Text style={styles.contextItem}>• Triggers: {quitData.triggers.join(', ')}</Text>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

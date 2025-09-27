@@ -463,9 +463,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '900',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
   },
   premiumEmergencySubtitle: {
     fontSize: 16,
@@ -563,9 +560,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
   },
   premiumQuickActionButtons: {
     flexDirection: 'row',
@@ -727,9 +721,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
   },
   premiumStrategiesSubtitle: {
     fontSize: 15,
@@ -908,9 +899,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
   },
   premiumStatsGrid: {
     flexDirection: 'row',
@@ -945,9 +933,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: Theme.colors.purple[500],
     marginBottom: 6,
-    textShadowColor: 'rgba(144, 213, 255, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
   },
   premiumStatLabel: {
     fontSize: 12,
