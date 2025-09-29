@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image, Keyboard, Animated } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -182,6 +182,7 @@ export default function OnboardingScreen() {
   const [authLoading, setAuthLoading] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '', password: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
+  const [keyboardOffset] = useState(new Animated.Value(0));
   
   console.log('🔍 Debug - showAuth:', showAuth, 'authMethod:', authMethod);
   const [otpCode, setOtpCode] = useState('');
@@ -633,7 +634,7 @@ export default function OnboardingScreen() {
           />
         </View>
 
-        <View style={styles.authBottomSection}>
+        <Animated.View style={[styles.authBottomSection, { transform: [{ translateY: keyboardOffset }] }]}>
           <View style={styles.authBottomContainer}>
             <Text style={styles.authBottomTitle}>Become a Quit Hero</Text>
             {authMethod === null && (
@@ -905,11 +906,39 @@ export default function OnboardingScreen() {
             Your data is private and secure. We never share personal information.
           </Text>
           </View>
-        </View>
+        </Animated.View>
         </SafeAreaView>
       </LinearGradient>
     </>
   );
+
+  // Keyboard event listeners
+  useEffect(() => {
+    const keyboardWillShow = (event: any) => {
+      const keyboardHeight = event.endCoordinates.height;
+      Animated.timing(keyboardOffset, {
+        toValue: -keyboardHeight + 100, // Move up by keyboard height minus padding
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    };
+
+    const keyboardWillHide = () => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    };
+
+    const showListener = Keyboard.addListener('keyboardWillShow', keyboardWillShow);
+    const hideListener = Keyboard.addListener('keyboardWillHide', keyboardWillHide);
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, [keyboardOffset]);
 
   // If onboarding is already complete, redirect to dashboard immediately
   useEffect(() => {
@@ -1406,7 +1435,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 24,
     justifyContent: 'space-between',
-    paddingBottom: 0, // Remove bottom padding to eliminate empty space
+    paddingBottom: 0,
   },
   authHeader: {
     alignItems: 'center',
@@ -1446,7 +1475,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 18, 35, 0.95)', // Darker container to match darker gradient
     paddingTop: 32,
     paddingHorizontal: 24,
-    paddingBottom: 60, // Increased to extend into safe area
+    paddingBottom: 60,
     marginHorizontal: -24, // Negative margin to extend to screen edges
     marginBottom: -40, // Negative margin to extend to bottom edge
     borderTopLeftRadius: 40,
