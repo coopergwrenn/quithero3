@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image } from 'react-native';
+import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -618,7 +619,9 @@ export default function OnboardingScreen() {
       >
         <SafeAreaView style={styles.authContainer}>
         <View style={styles.authHeader}>
-          <Text style={styles.authTitle}>Let's create your personalized quit plan</Text>
+          <Text style={styles.authTitle}>
+            Let's create your <Text style={[styles.authTitle, { color: '#90D5FF' }]}>personalized</Text> quit plan
+          </Text>
           <Text style={styles.authSubtitle}>Join thousands who've quit vaping with QuitHero</Text>
         </View>
 
@@ -649,7 +652,10 @@ export default function OnboardingScreen() {
                 <Text style={styles.googleButtonText}>Signing in...</Text>
               </View>
             ) : (
-              <Text style={styles.googleButtonText}>📱 Continue with Google</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <AntDesign name="google" size={18} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -657,14 +663,20 @@ export default function OnboardingScreen() {
             style={styles.emailButton}
             onPress={() => setAuthMethod('email')}
           >
-            <Text style={styles.emailButtonText}>✉️ Continue with Email</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcons name="email" size={18} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.emailButtonText}>Continue with Email</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.phoneButton}
             onPress={() => setAuthMethod('phone')}
           >
-            <Text style={styles.phoneButtonText}>📞 Continue with Phone</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialIcons name="phone" size={18} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.phoneButtonText}>Continue with Phone</Text>
+            </View>
           </TouchableOpacity>
         </View>
       )}
@@ -1407,7 +1419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-    paddingBottom: 180,
+    paddingBottom: 240,
   },
   heroGraphic: {
     width: 280,
@@ -1451,13 +1463,13 @@ const styles = StyleSheet.create({
     marginBottom: 8, // Further reduced from 16 to move buttons down more
   },
   googleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: '#90D5FF',
   },
   googleButtonText: {
     fontSize: 16,
@@ -1465,13 +1477,13 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   emailButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: '#90D5FF',
   },
   emailButtonText: {
     fontSize: 16,
@@ -1479,13 +1491,13 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   phoneButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 2,
+    borderColor: '#90D5FF',
   },
   phoneButtonText: {
     fontSize: 16,
@@ -1542,7 +1554,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   signInLink: {
-    color: '#8b5cf6',
+    color: '#90D5FF',
     fontWeight: '600',
   },
   privacyText: {
@@ -1574,7 +1586,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: '#8B5CF6',
+    borderColor: '#90D5FF',
   },
   // Country Picker Styles
   phoneContainer: {
