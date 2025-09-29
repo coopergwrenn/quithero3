@@ -1419,7 +1419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-    paddingBottom: 240,
+    paddingBottom: 300,
   },
   heroGraphic: {
     width: 280,
