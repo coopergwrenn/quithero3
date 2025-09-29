@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -16,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure WebBrowser for better UX
 WebBrowser.maybeCompleteAuthSession();
+
 
 interface OnboardingStep {
   id: string;
@@ -608,14 +610,31 @@ export default function OnboardingScreen() {
 
   // Render authentication screen
   const renderAuthScreen = () => (
-    <SafeAreaView style={styles.authContainer}>
-      <View style={styles.authHeader}>
-        <Text style={styles.authTitle}>Let's create your personalized quit plan</Text>
-        <Text style={styles.authSubtitle}>Join thousands who've quit vaping with QuitHero</Text>
-      </View>
+    <>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <LinearGradient
+        colors={['#1a1a2e', '#0f0f23', '#050510']}
+        style={styles.gradientBackground}
+      >
+        <SafeAreaView style={styles.authContainer}>
+        <View style={styles.authHeader}>
+          <Text style={styles.authTitle}>Let's create your personalized quit plan</Text>
+          <Text style={styles.authSubtitle}>Join thousands who've quit vaping with QuitHero</Text>
+        </View>
 
-      {authMethod === null && (
-        <View style={styles.authButtons}>
+        <View style={styles.heroGraphicSection}>
+          <Image 
+            source={require('@/assets/images/graphics/hero-figure-with-stars.png')}
+            style={styles.heroGraphic}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.authBottomSection}>
+          <View style={styles.authBottomContainer}>
+            <Text style={styles.authBottomTitle}>Become a Quit Hero</Text>
+            {authMethod === null && (
+              <View style={styles.authButtons}>
           <TouchableOpacity 
             style={[styles.googleButton, authLoading && styles.disabledButton]}
             onPress={() => {
@@ -857,23 +876,27 @@ export default function OnboardingScreen() {
           <TouchableOpacity onPress={() => setAuthMethod(null)}>
             <Text style={styles.backText}>← Back to options</Text>
           </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Sign In Option */}
+          <View style={styles.signInSection}>
+            <TouchableOpacity 
+              style={styles.signInButton}
+              onPress={() => router.push('/(auth)/signin')}
+            >
+              <Text style={styles.signInText}>Already have an account? <Text style={styles.signInLink}>Sign In</Text></Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.privacyText}>
+            Your data is private and secure. We never share personal information.
+          </Text>
+          </View>
         </View>
-      )}
-
-      {/* Sign In Option */}
-      <View style={styles.signInSection}>
-        <TouchableOpacity 
-          style={styles.signInButton}
-          onPress={() => router.push('/(auth)/signin')}
-        >
-          <Text style={styles.signInText}>Already have an account? <Text style={styles.signInLink}>Sign In</Text></Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.privacyText}>
-        Your data is private and secure. We never share personal information.
-      </Text>
-    </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
+    </>
   );
 
   // If onboarding is already complete, redirect to dashboard immediately
@@ -1363,15 +1386,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  gradientBackground: {
+    flex: 1,
+  },
   authContainer: {
     flex: 1,
-    backgroundColor: '#0f0f23',
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 0, // Remove bottom padding to eliminate empty space
   },
   authHeader: {
     alignItems: 'center',
     marginBottom: 48,
+    marginTop: 40, // Reduced from 80 to pull title up towards top
+    paddingHorizontal: 20,
+  },
+  heroGraphicSection: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingBottom: 180,
+  },
+  heroGraphic: {
+    width: 280,
+    height: 280,
+    opacity: 0.9,
   },
   authTitle: {
     fontSize: 28,
@@ -1385,27 +1426,52 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     textAlign: 'center',
   },
+  authBottomSection: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  authBottomContainer: {
+    backgroundColor: 'rgba(15, 18, 35, 0.95)', // Darker container to match darker gradient
+    paddingTop: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 60, // Increased to extend into safe area
+    marginHorizontal: -24, // Negative margin to extend to screen edges
+    marginBottom: -40, // Negative margin to extend to bottom edge
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+  },
+  authBottomTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
   authButtons: {
-    marginBottom: 32,
+    marginBottom: 8, // Further reduced from 16 to move buttons down more
   },
   googleButton: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   googleButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a2e',
+    color: 'white',
   },
   emailButton: {
-    backgroundColor: '#8b5cf6',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   emailButtonText: {
     fontSize: 16,
@@ -1413,11 +1479,13 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   phoneButton: {
-    backgroundColor: '#10b981',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   phoneButtonText: {
     fontSize: 16,
@@ -1460,7 +1528,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   signInSection: {
-    marginTop: 24,
+    marginTop: 4, // Further reduced from 8 to move buttons down more
     marginBottom: 16,
     alignItems: 'center',
   },

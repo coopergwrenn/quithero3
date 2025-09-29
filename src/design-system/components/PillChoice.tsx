@@ -53,6 +53,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignSelf: 'flex-start',
     minHeight: 44, // iOS HIG minimum touch target
+    justifyContent: 'center', // Center content vertically
+    alignItems: 'center', // Center content horizontally
   },
   selected: {
     backgroundColor: Theme.colors.purple[500],
