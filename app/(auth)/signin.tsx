@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, Alert, Keyboard, Animated } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, TextField, Card } from '@/src/design-system/components';
@@ -14,6 +14,35 @@ export default function SignInScreen() {
   const [useOTP, setUseOTP] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [keyboardOffset] = useState(new Animated.Value(0));
+
+  // Keyboard event listeners
+  useEffect(() => {
+    const keyboardWillShow = (event: any) => {
+      const keyboardHeight = event.endCoordinates.height;
+      Animated.timing(keyboardOffset, {
+        toValue: -keyboardHeight + 200, // Move up less - more padding above keyboard
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    };
+
+    const keyboardWillHide = () => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    };
+
+    const showListener = Keyboard.addListener('keyboardWillShow', keyboardWillShow);
+    const hideListener = Keyboard.addListener('keyboardWillHide', keyboardWillHide);
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, [keyboardOffset]);
 
   const handleSignIn = async () => {
     if (!email || (!password && !useOTP)) {
@@ -91,7 +120,7 @@ export default function SignInScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View style={[styles.content, { transform: [{ translateY: keyboardOffset }] }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
@@ -207,7 +236,7 @@ export default function SignInScreen() {
             🔍 Debug: Check Database
           </Button>
         </View>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
