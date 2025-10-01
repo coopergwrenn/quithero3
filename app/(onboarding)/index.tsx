@@ -15,6 +15,8 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, Poppins_700Bold, Poppins_800ExtraBold } from '@expo-google-fonts/poppins';
+import * as SplashScreen from 'expo-splash-screen';
 
 // Configure WebBrowser for better UX
 WebBrowser.maybeCompleteAuthSession();
@@ -178,9 +180,18 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { updateQuitData, completeOnboarding, isOnboardingComplete } = useQuitStore();
   
+  // Load Poppins fonts
+  let [fontsLoaded] = useFonts({
+    'Poppins-Regular': Poppins_400Regular,
+    'Poppins-Medium': Poppins_500Medium,
+    'Poppins-SemiBold': Poppins_600SemiBold,
+    'Poppins-Bold': Poppins_700Bold,
+    'Poppins-ExtraBold': Poppins_800ExtraBold,
+  });
+  
   const [showAuth, setShowAuth] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '', password: '' });
+  const [userInfo, setUserInfo] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [keyboardOffset] = useState(new Animated.Value(0));
   
@@ -372,7 +383,13 @@ export default function OnboardingScreen() {
   };
 
   const signInWithEmail = async () => {
-    if (!userInfo.email || !userInfo.name || !userInfo.password) return;
+    if (!userInfo.email || !userInfo.name || !userInfo.password || !userInfo.confirmPassword) return;
+    
+    // Password match validation
+    if (userInfo.password !== userInfo.confirmPassword) {
+      Alert.alert('Password Mismatch', 'Passwords do not match. Please try again.');
+      return;
+    }
     
     // Basic password validation
     if (userInfo.password.length < 6) {
@@ -709,10 +726,19 @@ export default function OnboardingScreen() {
             secureTextEntry
             autoCapitalize="none"
           />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm password"
+            placeholderTextColor="#9ca3af"
+            value={userInfo.confirmPassword}
+            onChangeText={(text) => setUserInfo(prev => ({ ...prev, confirmPassword: text }))}
+            secureTextEntry
+            autoCapitalize="none"
+          />
           <TouchableOpacity 
-            style={[styles.continueButton, (!userInfo.name || !userInfo.email || !userInfo.password || authLoading) && styles.disabledButton]}
+            style={[styles.continueButton, (!userInfo.name || !userInfo.email || !userInfo.password || !userInfo.confirmPassword || userInfo.password !== userInfo.confirmPassword || authLoading) && styles.disabledButton]}
             onPress={signInWithEmail}
-            disabled={!userInfo.name || !userInfo.email || !userInfo.password || authLoading}
+            disabled={!userInfo.name || !userInfo.email || !userInfo.password || !userInfo.confirmPassword || userInfo.password !== userInfo.confirmPassword || authLoading}
           >
             <Text style={styles.continueButtonText}>
               {authLoading ? 'Creating Account...' : 'Create Account'}
@@ -952,6 +978,11 @@ export default function OnboardingScreen() {
     return null; // Show nothing while redirecting
   }
 
+  // Don't render until fonts are loaded
+  if (!fontsLoaded) {
+    return null;
+  }
+
   // Show authentication first
   if (showAuth) {
     return renderAuthScreen();
@@ -1056,31 +1087,54 @@ export default function OnboardingScreen() {
     const userBadge = assignUserBadge(responses.motivation);
     
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.badgeAssignmentContainer}>
-          <View style={styles.badgeContent}>
-            <Text style={styles.badgeTitle}>Welcome, {userBadge.displayName}!</Text>
-            <Text style={styles.badgeEmoji}>🎖️</Text>
-            <Text style={styles.badgeDescription}>{userBadge.description}</Text>
-            <Text style={styles.badgeMessage}>
-              This badge represents your new identity. You're not just someone trying to quit - 
-              you're a {userBadge.displayName} on a mission to break free.
-            </Text>
-            <Button
-              variant="primary"
-              size="lg"
-              onPress={() => {
-                setResponses(prev => ({ ...prev, userBadge }));
-                setCurrentStep(2);
-                setSelectedOptions([]);
-              }}
-              style={styles.continueButton}
-            >
-              Continue Your Assessment
-            </Button>
+      <LinearGradient
+        colors={['#1a1a2e', '#0f0f23', '#050510']}
+        style={styles.gradientBackground}
+      >
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <SafeAreaView style={styles.badgeContainer}>
+          <View style={styles.badgeAssignmentContainer}>
+            {/* Header Section */}
+            <View style={styles.badgeHeader}>
+              <Text style={styles.badgeHeaderTitle}>Congratulations!</Text>
+              <Text style={styles.badgeHeaderSubtitle}>You've earned your first badge</Text>
+            </View>
+
+            {/* Badge Visual Section */}
+            <View style={styles.badgeVisualSection}>
+              <View style={styles.badgeCard}>
+                <View style={styles.badgeIconContainer}>
+                  <Text style={styles.badgeEmoji}>🎖️</Text>
+                </View>
+                <Text style={styles.badgeTitle}>{userBadge.displayName}</Text>
+                <Text style={styles.badgeDescription}>{userBadge.description}</Text>
+              </View>
+            </View>
+
+            {/* Message Section */}
+            <View style={styles.badgeMessageSection}>
+              <Text style={styles.badgeMessage}>
+                This badge represents your new identity. You're not just someone trying to quit - 
+                you're a <Text style={styles.badgeMessageAccent}>{userBadge.displayName}</Text> on a mission to break free.
+              </Text>
+            </View>
+
+            {/* Bottom CTA Section */}
+            <View style={styles.badgeBottomSection}>
+              <TouchableOpacity
+                style={styles.badgeContinueButton}
+                onPress={() => {
+                  setResponses(prev => ({ ...prev, userBadge }));
+                  setCurrentStep(2);
+                  setSelectedOptions([]);
+                }}
+              >
+                <Text style={styles.badgeContinueButtonText}>Continue Your Assessment</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
@@ -1272,41 +1326,125 @@ const styles = StyleSheet.create({
   nextButton: {
     flex: 2,
   },
+  badgeContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
   badgeAssignmentContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  badgeHeader: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  badgeHeaderTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 8,
+    fontFamily: 'Poppins-Bold',
+  },
+  badgeHeaderSubtitle: {
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    fontFamily: 'Poppins-Regular',
+  },
+  badgeVisualSection: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Theme.layout.screenPadding,
+    paddingVertical: 40,
   },
-  badgeContent: {
+  badgeCard: {
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 24,
+    padding: 32,
     alignItems: 'center',
     width: '100%',
     maxWidth: 320,
+    borderWidth: 1,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  badgeTitle: {
-    ...Theme.typography.largeTitle,
-    color: Theme.colors.text.primary,
-    textAlign: 'center',
-    marginBottom: Theme.spacing.md,
-    fontWeight: '700',
+  badgeIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(144, 213, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 2,
+    borderColor: 'rgba(144, 213, 255, 0.3)',
   },
   badgeEmoji: {
-    fontSize: 80,
-    marginBottom: Theme.spacing.lg,
+    fontSize: 60,
+  },
+  badgeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: 'Poppins-Bold',
   },
   badgeDescription: {
-    ...Theme.typography.title1,
-    color: Theme.colors.purple[500],
+    fontSize: 16,
+    color: '#90D5FF',
     textAlign: 'center',
-    marginBottom: Theme.spacing.lg,
-    fontWeight: '600',
+    fontFamily: 'Poppins-Medium',
+    lineHeight: 22,
+  },
+  badgeMessageSection: {
+    paddingHorizontal: 20,
+    marginBottom: 40,
   },
   badgeMessage: {
-    ...Theme.typography.body,
-    color: Theme.colors.text.secondary,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: Theme.spacing.xl * 2,
+    fontFamily: 'Poppins-Regular',
+  },
+  badgeMessageAccent: {
+    color: '#90D5FF',
+    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  badgeBottomSection: {
+    alignItems: 'center',
+  },
+  badgeContinueButton: {
+    backgroundColor: 'rgba(30, 42, 58, 0.8)',
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#90D5FF60',
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  badgeContinueButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    fontFamily: 'Poppins-SemiBold',
   },
   continueButton: {
     width: '100%',
@@ -1549,11 +1687,22 @@ const styles = StyleSheet.create({
     color: '#1a1a2e',
   },
   continueButton: {
-    backgroundColor: '#10b981',
+    position: 'relative',
+    backgroundColor: 'rgba(30, 42, 58, 0.8)', // Dark navy glassmorphism
+    borderRadius: 14,
     paddingVertical: 16,
-    borderRadius: 12,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#90D5FF60', // Your blue border with transparency
+    shadowColor: '#90D5FF',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   disabledButton: {
     backgroundColor: '#6b7280',
