@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert, Keyboard, Animated } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, Keyboard, Animated, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, TextField, Card } from '@/src/design-system/components';
@@ -201,16 +201,13 @@ export default function SignInScreen() {
           </Button>
 
           {!useOTP && (
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
+            <TouchableOpacity
               onPress={handlePasswordReset}
-              loading={loading}
+              disabled={loading}
               style={styles.resetButton}
             >
-              Forgot Password?
-            </Button>
+              <Text style={styles.resetButtonText}>Forgot Password?</Text>
+            </TouchableOpacity>
           )}
         </Card>
 
@@ -277,7 +274,14 @@ const styles = StyleSheet.create({
     marginTop: Theme.spacing.md,
   },
   resetButton: {
-    marginTop: Theme.spacing.sm,
+    marginTop: Theme.spacing.lg,
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.sm,
+  },
+  resetButtonText: {
+    ...Theme.typography.body,
+    color: Theme.colors.purple[500],
+    textDecorationLine: 'underline',
   },
   footer: {
     alignItems: 'center',

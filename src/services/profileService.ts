@@ -8,6 +8,7 @@ export interface UserProfile {
   // User identification
   email?: string;
   first_name?: string;
+  gender?: 'male' | 'female';
   signup_method?: 'email' | 'google' | 'phone' | 'apple';
   
   // Badge and Identity
@@ -80,6 +81,7 @@ export const profileService = {
         
         // User identification
         email: user.email || '',
+        gender: responses.gender,
         signup_method: detectedSignupMethod,
         
         // Badge data

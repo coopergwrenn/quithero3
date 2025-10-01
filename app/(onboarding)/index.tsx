@@ -37,6 +37,15 @@ interface OnboardingStep {
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
+    id: 'gender',
+    question: 'What is your gender?',
+    description: 'This helps us personalize your experience',
+    options: [
+      { value: 'male', label: 'Male', icon: '👨' },
+      { value: 'female', label: 'Female', icon: '👩' },
+    ],
+  },
+  {
     id: 'motivation',
     question: 'What\'s your main reason for quitting?',
     description: 'Understanding your motivation helps us personalize your support',
@@ -1083,7 +1092,7 @@ export default function OnboardingScreen() {
   }
 
   // Show badge assignment screen after motivation selection
-  if (currentStep === 1 && responses.motivation) {
+  if (currentStep === 2 && responses.motivation) {
     const userBadge = assignUserBadge(responses.motivation);
     
     return (
@@ -1125,7 +1134,7 @@ export default function OnboardingScreen() {
                 style={styles.badgeContinueButton}
                 onPress={() => {
                   setResponses(prev => ({ ...prev, userBadge }));
-                  setCurrentStep(2);
+                  setCurrentStep(3);
                   setSelectedOptions([]);
                 }}
               >
