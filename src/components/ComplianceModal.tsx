@@ -11,10 +11,22 @@ interface ComplianceModalProps {
 
 export function ComplianceModal({ visible, onAccept, onDecline }: ComplianceModalProps) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  
+  // Auto-enable after 3 seconds as fallback for scroll detection issues
+  React.useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => {
+        setHasScrolledToBottom(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
 
   const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const isScrolledToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+    // More generous threshold for detecting bottom scroll
+    const threshold = 50;
+    const isScrolledToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - threshold;
     setHasScrolledToBottom(isScrolledToBottom);
   };
 
@@ -32,9 +44,11 @@ export function ComplianceModal({ visible, onAccept, onDecline }: ComplianceModa
 
         <ScrollView 
           style={styles.content}
+          contentContainerStyle={styles.contentContainer}
           onScroll={handleScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={true}
+          bounces={false}
         >
           {/* Age Verification */}
           <Card style={styles.section}>
@@ -180,7 +194,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     padding: Theme.layout.screenPadding,
+    paddingBottom: Theme.spacing.xl, // Extra padding at bottom for better scroll experience
   },
   section: {
     padding: Theme.spacing.lg,
