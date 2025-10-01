@@ -562,6 +562,11 @@ export default function OnboardingScreen() {
       setSelectedOptions(newSelection);
     } else {
       setSelectedOptions([value]);
+      
+      // Auto-advance for single-choice questions after a brief delay
+      setTimeout(() => {
+        handleNext();
+      }, 800); // 800ms delay for smooth UX
     }
   };
 
