@@ -42,6 +42,7 @@ export interface UserProfile {
   sleep_quality?: string;
   previous_attempts?: string;
   quit_timeline?: string;
+  nrt_interest?: string;
   support_type?: string;
   
   created_at?: string;
@@ -115,6 +116,7 @@ export const profileService = {
         sleep_quality: responses.sleepQuality,
         previous_attempts: responses.previousAttempts,
         quit_timeline: responses.quitTimeline,
+        nrt_interest: responses.nrtInterest,
         support_type: responses.support,
       };
       
