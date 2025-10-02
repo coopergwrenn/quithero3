@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert, Keyboard, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, Keyboard, Animated, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
 import { Button, TextField, Card } from '@/src/design-system/components';
@@ -120,13 +120,19 @@ export default function SignInScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.View style={[styles.content, { transform: [{ translateY: keyboardOffset }] }]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
-            Sign in to sync your progress across devices
-          </Text>
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={[styles.content, { transform: [{ translateY: keyboardOffset }] }]}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>
+                Sign in to sync your progress across devices
+              </Text>
+            </View>
 
         <Card style={styles.formCard}>
           <TextField
@@ -233,7 +239,9 @@ export default function SignInScreen() {
             🔍 Debug: Check Database
           </Button>
         </View>
-      </Animated.View>
+          </Animated.View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -242,6 +250,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.colors.dark.background,
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   content: {
     flex: 1,
