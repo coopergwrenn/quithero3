@@ -63,6 +63,11 @@ interface QuitStore {
   setUserProfile: (profile: UserProfile | null) => void;
   loadUserProfile: () => Promise<void>;
   
+  // Quit calculations
+  getQuitStreak: () => number;
+  getTimeSinceQuit: () => { days: number; hours: number; minutes: number; seconds: number };
+  getTotalSavings: () => number;
+  
   // Persistence
   loadFromStorage: () => void;
   clearData: () => void;
@@ -210,6 +215,65 @@ export const useQuitStore = create<QuitStore>((set, get) => ({
     } catch (error) {
       console.error('Error loading data from storage:', error);
     }
+  },
+
+  getQuitStreak: () => {
+    const { quitData, userProfile } = get();
+    
+    // Check if user has a quit date from onboarding or profile
+    const quitDate = userProfile?.quit_date 
+      ? new Date(userProfile.quit_date)
+      : quitData.quitDate;
+    
+    if (!quitDate) return 0;
+    
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - quitDate.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  },
+
+  getTimeSinceQuit: () => {
+    const { quitData, userProfile } = get();
+    
+    // Check if user has a quit date from onboarding or profile
+    const quitDate = userProfile?.quit_date 
+      ? new Date(userProfile.quit_date)
+      : quitData.quitDate;
+    
+    if (!quitDate) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    }
+    
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - quitDate.getTime());
+    
+    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffTime % (1000 * 60)) / 1000);
+    
+    return { days, hours, minutes, seconds };
+  },
+
+  getTotalSavings: () => {
+    const { quitData, userProfile } = get();
+    
+    // Check if user has a quit date from onboarding or profile
+    const quitDate = userProfile?.quit_date 
+      ? new Date(userProfile.quit_date)
+      : quitData.quitDate;
+    
+    if (!quitDate) return 0;
+    
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - quitDate.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Estimate savings: $15/day for vaping (conservative estimate)
+    const dailyCost = quitData.costPerPack || 15;
+    return diffDays * dailyCost;
   },
 
   clearData: () => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image, Keyboard, Animated } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import DatePicker from 'react-native-date-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -141,6 +142,15 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
       { value: 'poor', label: 'Poor', description: 'Trouble falling asleep or staying asleep' },
       { value: 'fair', label: 'Fair', description: 'Some sleep issues' },
       { value: 'good', label: 'Good', description: 'Sleep well most nights' },
+    ],
+  },
+  {
+    id: 'alreadyQuit',
+    question: 'Have you already quit?',
+    description: 'If you\'ve already started your quit journey, we\'ll track your real progress',
+    options: [
+      { value: 'yes', label: 'Yes, I\'ve already quit', icon: '✅' },
+      { value: 'no', label: 'No, I haven\'t quit yet', icon: '🚀' },
     ],
   },
   {
@@ -301,6 +311,11 @@ export default function OnboardingScreen() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [dependencyResults, setDependencyResults] = useState<any>(null);
+  
+  // Date picker state for quit date
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [quitDate, setQuitDate] = useState(new Date());
+  const [hasSelectedQuitDate, setHasSelectedQuitDate] = useState(false);
 
   useEffect(() => {
     analytics.trackOnboardingStarted();
@@ -563,11 +578,42 @@ export default function OnboardingScreen() {
     } else {
       setSelectedOptions([value]);
       
+      // Special handling for quit date question
+      if (currentStepData.id === 'alreadyQuit' && value === 'yes') {
+        // Show date picker instead of auto-advancing
+        setShowDatePicker(true);
+        return;
+      }
+      
       // Auto-advance for single-choice questions after a brief delay
       setTimeout(() => {
         handleNext();
       }, 800); // 800ms delay for smooth UX
     }
+  };
+
+  const handleDateConfirm = (selectedDate: Date) => {
+    setQuitDate(selectedDate);
+    setHasSelectedQuitDate(true);
+    setShowDatePicker(false);
+    
+    // Save the quit date to responses
+    setResponses(prev => ({ 
+      ...prev, 
+      alreadyQuit: 'yes',
+      quitDate: selectedDate.toISOString()
+    }));
+    
+    // Auto-advance after date selection
+    setTimeout(() => {
+      handleNext();
+    }, 500);
+  };
+
+  const handleDateCancel = () => {
+    setShowDatePicker(false);
+    // Reset selection if user cancels
+    setSelectedOptions([]);
   };
 
   const handleOnboardingComplete = async (responses: Record<string, any>) => {
@@ -1211,6 +1257,22 @@ export default function OnboardingScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Date Picker Modal for Quit Date */}
+      <DatePicker
+        modal
+        open={showDatePicker}
+        date={quitDate}
+        mode="date"
+        maximumDate={new Date()} // Can't quit in the future
+        minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 5))} // Max 5 years ago
+        title="When did you quit?"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        onConfirm={handleDateConfirm}
+        onCancel={handleDateCancel}
+        theme="dark"
+      />
 
       <View style={styles.footer}>
         <View style={styles.navigationButtons}>

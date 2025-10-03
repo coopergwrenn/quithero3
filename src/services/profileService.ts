@@ -44,6 +44,8 @@ export interface UserProfile {
   quit_timeline?: string;
   nrt_interest?: string;
   support_type?: string;
+  already_quit?: string;
+  quit_date?: string;
   
   created_at?: string;
   updated_at?: string;
@@ -118,6 +120,8 @@ export const profileService = {
         quit_timeline: responses.quitTimeline,
         nrt_interest: responses.nrtInterest,
         support_type: responses.support,
+        already_quit: responses.alreadyQuit,
+        quit_date: responses.quitDate,
       };
       
       const { data, error } = await supabase
