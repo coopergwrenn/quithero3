@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image, Keyboard, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Alert, ActivityIndicator, StatusBar, Image, Keyboard, Animated, Platform, Modal } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Theme } from '@/src/design-system/theme';
@@ -1259,20 +1259,67 @@ export default function OnboardingScreen() {
       </ScrollView>
 
       {/* Date Picker Modal for Quit Date */}
-      <DatePicker
-        modal
-        open={showDatePicker}
-        date={quitDate}
-        mode="date"
-        maximumDate={new Date()} // Can't quit in the future
-        minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 5))} // Max 5 years ago
-        title="When did you quit?"
-        confirmText="Confirm"
-        cancelText="Cancel"
-        onConfirm={handleDateConfirm}
-        onCancel={handleDateCancel}
-        theme="dark"
-      />
+      {showDatePicker && (
+        Platform.OS === 'ios' ? (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={showDatePicker}
+            onRequestClose={handleDateCancel}
+          >
+            <View style={styles.datePickerModal}>
+              <View style={styles.datePickerContainer}>
+                <View style={styles.datePickerHeader}>
+                  <Text style={styles.datePickerTitle}>When did you quit?</Text>
+                </View>
+                <DateTimePicker
+                  value={quitDate}
+                  mode="date"
+                  display="spinner"
+                  maximumDate={new Date()}
+                  minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 5))}
+                  onChange={(event, selectedDate) => {
+                    if (event.type === 'set' && selectedDate) {
+                      setQuitDate(selectedDate);
+                    }
+                  }}
+                  themeVariant="dark"
+                  style={styles.datePicker}
+                />
+                <View style={styles.datePickerButtons}>
+                  <TouchableOpacity
+                    style={styles.datePickerCancelButton}
+                    onPress={handleDateCancel}
+                  >
+                    <Text style={styles.datePickerCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.datePickerConfirmButton}
+                    onPress={() => handleDateConfirm(quitDate)}
+                  >
+                    <Text style={styles.datePickerConfirmText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        ) : (
+          <DateTimePicker
+            value={quitDate}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 5))}
+            onChange={(event, selectedDate) => {
+              if (event.type === 'set' && selectedDate) {
+                handleDateConfirm(selectedDate);
+              } else {
+                handleDateCancel();
+              }
+            }}
+          />
+        )
+      )}
 
       <View style={styles.footer}>
         <View style={styles.navigationButtons}>
@@ -1969,5 +2016,63 @@ const styles = StyleSheet.create({
   noResultsSubtext: {
     color: '#6B7280',
     fontSize: 14,
+  },
+  // Date Picker Modal Styles
+  datePickerModal: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerContainer: {
+    backgroundColor: '#1F2937',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  datePickerHeader: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  datePickerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  datePicker: {
+    height: 200,
+  },
+  datePickerButtons: {
+    flexDirection: 'row',
+    padding: 20,
+    gap: 12,
+  },
+  datePickerCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: '#374151',
+    alignItems: 'center',
+  },
+  datePickerCancelText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  datePickerConfirmButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: '#90D5FF',
+    alignItems: 'center',
+  },
+  datePickerConfirmText: {
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
   },
 });
