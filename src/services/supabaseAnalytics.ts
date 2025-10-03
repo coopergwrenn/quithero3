@@ -82,13 +82,33 @@ class SupabaseAnalyticsService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // For quit streaks, calculate from actual quit date if available
+      let calculatedStreak = currentStreak;
+      let userQuitDate: string | null = null;
+      
+      if (streakType === 'quit') {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('quit_date')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.quit_date) {
+          userQuitDate = profile.quit_date;
+          const quitDate = new Date(profile.quit_date);
+          const now = new Date();
+          const diffTime = Math.abs(now.getTime() - quitDate.getTime());
+          calculatedStreak = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+      }
+
       const { data, error } = await supabase
         .from('user_streaks')
         .upsert([{
           user_id: user.id,
           streak_type: streakType,
-          current_streak: currentStreak,
-          best_streak: currentStreak, // Will be handled by database logic
+          current_streak: calculatedStreak,
+          best_streak: calculatedStreak, // Will be handled by database logic
           last_activity: new Date().toISOString(),
         }], {
           onConflict: 'user_id,streak_type'
@@ -99,10 +119,11 @@ class SupabaseAnalyticsService {
       if (error) throw error;
 
       // Track milestone achievements
-      if (currentStreak > 0 && [1, 3, 7, 14, 30, 90, 365].includes(currentStreak)) {
+      if (calculatedStreak > 0 && [1, 3, 7, 14, 30, 90, 365].includes(calculatedStreak)) {
         await this.track('streak_milestone_reached', {
           streak_type: streakType,
-          days: currentStreak,
+          days: calculatedStreak,
+          quit_date: userQuitDate,
         });
       }
 
